@@ -1,0 +1,83 @@
+Dataset: traffic_accidents.csv
+
+Query: "derive key patterns and recommendations without generating visualizations."
+
+Planner Node Ouput: ""plan_steps": [{"tool": "assess_data_quality", "args": {"file_path":
+                             "C:\\Users\\Tmr\\Desktop\\IWSP\\Multi-Agent\\agent_system\\src\\agents\\analy
+                             sis\\helpers\\traffic_accidents.csv"}, "why": "Validate data integrity before
+                             analysis"}, {"tool": "perform_anova", "args": {"file_path":
+                             "C:\\Users\\Tmr\\Desktop\\IWSP\\Multi-Agent\\agent_system\\src\\agents\\analy
+                             sis\\helpers\\traffic_accidents.csv", "dependent_column": "injuries_total",
+                             "group_column": "weather_condition"}, "why": "Identify weather conditions
+                             with significant injury variation"}, {"tool": "perform_anova", "args":
+                             {"file_path":
+                             "C:\\Users\\Tmr\\Desktop\\IWSP\\Multi-Agent\\agent_system\\src\\agents\\analy
+                             sis\\helpers\\traffic_accidents.csv", "dependent_column": "injuries_total",
+                             "group_column": "lighting_condition"}, "why": "Analyze injury patterns across
+                             lighting conditions"}, {"tool": "perform_anova", "args": {"file_path":
+                             "C:\\Users\\Tmr\\Desktop\\IWSP\\Multi-Agent\\agent_system\\src\\agents\\analy
+                             sis\\helpers\\traffic_accidents.csv", "dependent_column": "num_units",
+                             "group_column": "traffic_control_device"}, "why": "Evaluate traffic control
+                             device impact on crash severity"}, {"tool": "analyze_temporal_patterns",
+                             "args": {"file_path":
+                             "C:\\Users\\Tmr\\Desktop\\IWSP\\Multi-Agent\\agent_system\\src\\agents\\analy
+                             sis\\helpers\\traffic_accidents.csv", "datetime_column": "crash_date",
+                             "incident_type_column": "most_severe_injury"}, "why": "Detect temporal
+                             patterns in severe injury incidents"}]"
+
+Query: "look at this crash data and show me meaningful correlations"
+
+Planner Node Ouput: ""plan_steps": [{"tool": "assess_data_quality", "args":
+                             {"file_path":
+                             "C:\\Users\\Tmr\\Desktop\\IWSP\\Multi-Agent\\agent_system\\src\\agents\\analy
+                             sis\\helpers\\traffic_accidents.csv"}, "why": "Validate data integrity before
+                             statistical analysis"}, {"tool": "perform_anova", "args": {"file_path":
+                             "C:\\Users\\Tmr\\Desktop\\IWSP\\Multi-Agent\\agent_system\\src\\agents\\analy
+                             sis\\helpers\\traffic_accidents.csv", "dependent_column": "injuries_total",
+                             "group_column": "traffic_control_device"}, "why": "Identify significant
+                             differences in total injuries by traffic control devices"}, {"tool":
+                             "perform_anova", "args": {"file_path":
+                             "C:\\Users\\Tmr\\Desktop\\IWSP\\Multi-Agent\\agent_system\\src\\agents\\analy
+                             sis\\helpers\\traffic_accidents.csv", "dependent_column": "injuries_fatal",
+                             "group_column": "weather_condition"}, "why": "Analyze fatal injury variations
+                             across weather conditions"}, {"tool": "perform_anova", "args": {"file_path":
+                             "C:\\Users\\Tmr\\Desktop\\IWSP\\Multi-Agent\\agent_system\\src\\agents\\analy
+                             sis\\helpers\\traffic_accidents.csv", "dependent_column": "num_units",
+                             "group_column": "lighting_condition"}, "why": "Examine vehicle involvement
+                             patterns under different lighting conditions"}, {"tool": "perform_t_test",
+                             "args": {"file_path":
+                             "C:\\Users\\Tmr\\Desktop\\IWSP\\Multi-Agent\\agent_system\\src\\agents\\analy
+                             sis\\helpers\\traffic_accidents.csv", "group_column":
+                             "intersection_related_i", "value_column": "injuries_incapacitating",
+                             "group1_name": "Yes", "group2_name": "No"}, "why": "Compare incapacitating
+                             injuries at intersections vs non-intersections"}]"			
+
+Query: "What are the key patterns, trends, and insights in this traffic accident dataset?"
+
+Planner Node Ouput: ""plan_steps": [{"tool": "assess_data_quality", "args":
+                             {"file_path":
+                             "C:\\Users\\Tmr\\Desktop\\IWSP\\Multi-Agent\\agent_system\\src\\agents\\analy
+                             sis\\helpers\\traffic_accidents.csv"}, "why": "Validate data integrity before
+                             analysis"}, {"tool": "perform_advanced_eda_on_csv", "args": {"file_path":
+                             "C:\\Users\\Tmr\\Desktop\\IWSP\\Multi-Agent\\agent_system\\src\\agents\\analy
+                             sis\\helpers\\traffic_accidents.csv", "auto_detect_analysis": true}, "why":
+                             "Identify distribution patterns and missingness in key variables"}, {"tool":
+                             "analyze_temporal_patterns", "args": {"file_path":
+                             "C:\\Users\\Tmr\\Desktop\\IWSP\\Multi-Agent\\agent_system\\src\\agents\\analy
+                             sis\\helpers\\traffic_accidents.csv", "datetime_column": "crash_date",
+                             "incident_type_column": "most_severe_injury"}, "why": "Detect temporal
+                             clustering in severe injury incidents"}, {"tool": "perform_anova", "args":
+                             {"file_path":
+                             "C:\\Users\\Tmr\\Desktop\\IWSP\\Multi-Agent\\agent_system\\src\\agents\\analy
+                             sis\\helpers\\traffic_accidents.csv", "dependent_column": "injuries_total",
+                             "group_column": "weather_condition"}, "why": "Analyze injury variation across
+                             weather conditions"}, {"tool": "handle_outliers", "args": {"file_path":
+                             "C:\\Users\\Tmr\\Desktop\\IWSP\\Multi-Agent\\agent_system\\src\\agents\\analy
+                             sis\\helpers\\traffic_accidents.csv", "column": "num_units", "strategy":
+                             "iqr", "iqr_multiplier": 1.5}, "why": "Identify extreme vehicle involvement
+                             cases"}, {"tool": "generate_correlation_heatmap", "args": {"file_path":
+                             "C:\\Users\\Tmr\\Desktop\\IWSP\\Multi-Agent\\agent_system\\src\\agents\\analy
+                             sis\\helpers\\traffic_accidents.csv", "columns": ["injuries_total",
+                             "num_units", "crash_hour", "crash_day_of_week", "injuries_fatal"], "method":
+                             "spearman", "top_k": 8}, "why": "Identify relationships between accident
+                             scale and temporal factors"}]"
