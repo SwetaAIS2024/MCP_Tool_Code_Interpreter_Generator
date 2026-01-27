@@ -1,0 +1,20 @@
+Generate a complete ToolSpec for the following data analysis operation.
+
+OPERATION: {operation}
+COLUMNS: {columns}
+METRICS: {metrics}
+FILTERS: {filters}
+IMPLEMENTATION PLAN: {implementation_plan}
+
+Create a ToolSpec with:
+1. tool_name: A descriptive snake_case name
+2. description: Clear explanation of what this tool does
+3. input_schema: JSON Schema for input parameters
+4. output_schema: JSON Schema for output structure
+5. parameters: List of parameter definitions
+6. when_to_use: When this tool should be selected
+7. what_it_does: Technical description of the operation
+8. returns: Description of return value
+9. prerequisites: Any requirements before using this tool
+
+Return JSON matching ToolSpec structure.

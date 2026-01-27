@@ -1,0 +1,20 @@
+Fix the following code based on validation errors.
+
+ORIGINAL CODE:
+{code}
+
+VALIDATION ERRORS:
+{errors}
+
+TOOL SPEC:
+{spec}
+
+Instructions:
+1. Fix each error listed above
+2. Maintain the original functionality
+3. Keep the same function signature
+4. Ensure code follows best practices
+5. Add any missing error handling
+6. Verify return type matches spec
+
+Return the complete corrected Python function.

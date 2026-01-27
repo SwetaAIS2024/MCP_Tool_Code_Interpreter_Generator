@@ -1,0 +1,60 @@
+# Sandbox Security Policy Configuration
+
+# What code CAN do
+allowed:
+  imports:
+    - pandas
+    - numpy
+    - matplotlib
+    - seaborn
+    - json
+    - csv
+    - datetime
+    - collections
+    - itertools
+    - functools
+  
+  max_file_size_mb: 100
+  max_rows: 1000000
+  
+  operations:
+    - read_csv
+    - dataframe_operations
+    - aggregations
+    - plots
+    - transformations
+
+# What code CANNOT do
+blocked:
+  imports:
+    - os
+    - subprocess
+    - socket
+    - requests
+    - urllib
+    - http
+    - eval
+    - exec
+    - __import__
+    - importlib
+    - sys
+  
+  filesystem:
+    write_access: false
+    paths_blocked:
+      - /etc
+      - /root
+      - ~/.ssh
+      - C:\Windows
+      - C:\Program Files
+  
+  network:
+    internet_access: false
+    local_ports: []
+
+# Resource limits
+limits:
+  timeout_seconds: 30
+  memory_mb: 512
+  cpu_percent: 50
+  max_output_size_kb: 1024

@@ -1,0 +1,19 @@
+FROM python:3.10-slim
+
+WORKDIR /sandbox
+
+# Install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy only necessary files
+COPY tools/sandbox/ /sandbox/
+
+# Security: Run as non-root user
+RUN useradd -m -u 1000 sandboxuser && \
+    chown -R sandboxuser:sandboxuser /sandbox
+USER sandboxuser
+
+# No network access, limited resources
+# These are enforced by docker-compose
+CMD ["python", "/sandbox/temp_code/tool.py"]

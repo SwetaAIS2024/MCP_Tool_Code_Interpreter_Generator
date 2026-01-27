@@ -1,0 +1,20 @@
+[
+  {
+    "query": "Show me the top 10 states by accident count",
+    "expected_operation": "groupby_aggregate",
+    "expected_columns": ["state"],
+    "expected_metrics": ["count"]
+  },
+  {
+    "query": "Calculate average severity by weather condition",
+    "expected_operation": "groupby_aggregate",
+    "expected_columns": ["weather", "severity"],
+    "expected_metrics": ["mean"]
+  },
+  {
+    "query": "Filter accidents where severity > 3 and show count by state",
+    "expected_operation": "filter_groupby",
+    "expected_columns": ["state", "severity"],
+    "expected_metrics": ["count"]
+  }
+]

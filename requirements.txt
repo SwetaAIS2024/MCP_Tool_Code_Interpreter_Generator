@@ -1,0 +1,17 @@
+# Core dependencies
+fastmcp>=0.2.0
+langgraph>=0.0.40
+pydantic>=2.5.0
+openai>=1.3.0
+pandas>=2.0.0
+numpy>=1.24.0
+PyYAML>=6.0
+
+# Code generation
+black>=23.0.0
+
+# Validation
+jsonschema>=4.17.0
+
+# Optional: Docker SDK (if using Docker sandbox)
+# docker>=6.0.0

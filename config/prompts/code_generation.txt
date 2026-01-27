@@ -1,0 +1,25 @@
+Generate Python function code for this tool specification.
+
+TOOL NAME: {tool_name}
+DESCRIPTION: {description}
+PARAMETERS: {parameters}
+IMPLEMENTATION PLAN: {implementation_plan}
+WHAT IT DOES: {what_it_does}
+
+Requirements:
+1. Use pandas for data manipulation
+2. Include type hints
+3. Add comprehensive error handling
+4. Return Dict[str, Any] with 'result' and 'metadata' keys
+5. Follow the implementation plan step-by-step
+6. Handle edge cases gracefully
+7. Add docstring with examples
+
+Include:
+- pandas DataFrame input handling
+- Error handling for missing columns, invalid data types
+- Clear variable names
+- Comments for complex operations
+- Return structure: {{"result": {...}, "metadata": {{...}}}}
+
+Generate complete, production-ready Python function.

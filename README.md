@@ -1,195 +1,127 @@
 # MCP Tool Code Interpreter Generator
 
-**An agentic code-generation pipeline for data analysis MCP tools**
+> **Autonomous MCP tool generator** using LangGraph orchestration and Qwen LLM
 
-MCP_Tool_Code_Interpreter_Generator is a modular, agentic code-generation pipeline that turns natural-language analysis intents into executable MCP tools for data analysis workflows. It performs intent extraction, tool retrieval and gap detection, contract-first tool specification (schemas), code/package scaffolding, and sandbox validation with iterative repair. Newly generated tools are staged by default and promoted to the active MCP registry only after explicit positive user feedback on the tool's output, ensuring tool quality and preventing registry pollution.
-
----
-
-## 🎯 Key Features
-
-- **Intent-Driven Generation**: Converts natural language requests into executable data analysis tools
-- **Contract-First Design**: Generates formal ToolSpecs with schemas before implementation
-- **Multi-Stage Validation**: Schema checking, static analysis, and sandbox testing with auto-repair
-- **Staged Execution**: Test tools in isolation before committing to registry
-- **Feedback-Gated Promotion**: Tools only registered after explicit user approval
-- **Zero Tool Pollution**: Strict acceptance criteria prevent low-quality tools
+An intelligent system that automatically generates, validates, and deploys MCP (Model Context Protocol) tools from natural language queries. Built with LangGraph state machine orchestration and powered by Qwen 2.5-Coder for code generation.
 
 ---
 
-## 🏗️ Architecture Overview
+## 🎯 Overview
+
+**What it does:**
+1. Takes a natural language data analysis query
+2. Extracts structured intent and generates implementation plan
+3. Creates formal tool specifications
+4. Generates Python code with MCP decorators
+5. Validates code in isolated sandbox
+6. Executes and captures results
+7. Gets human approval (two-stage feedback)
+8. Promotes approved tools to active registry
+
+**Example Query:**
+```
+"Show me the top 10 states by traffic accident count"
+```
+
+**Result:**
+- Generated MCP tool: `analyze_accidents_by_state.py`
+- Validated, tested, and ready to use
+- Automatically added to tool registry
+
+---
+
+## 🏗️ Architecture
+
+### Tech Stack
+- **FastMCP** - MCP server framework
+- **LangGraph** - StateGraph workflow orchestration
+- **Qwen 2.5-Coder 32B** - On-premises code generation LLM
+- **Pydantic v2.5+** - Data validation
+- **Python 3.10+** - Core runtime
+
+### High-Level Flow
+```
+User Query → Intent → Spec → Code → Validate → Execute → Approve → Promote
+```
+
+**📖 For detailed architecture, node descriptions, and implementation specs, see [module_prs/README.md](module_prs/README.md)**
+
+---
+
+## 📁 Project Structure
 
 ```
-User Request → Intent Extraction → Gap Detection → Tool Spec Generation
-                                                            ↓
-User Approval ← Present Output ← Staged Execution ← Code Generation
-      ↓                                                     ↓
-   Promote                                            Validation & Repair
-      ↓                                                  (sandbox testing)
-Active Registry
+MCP_Tool_Code_Interpreter_Generator/
+├── src/                    # Core modules (11 files)
+├── tools/                  # Generated tools (draft/staged/active)
+├── tests/                  # Test suite
+├── config/                 # Configuration & prompts
+├── docker/                 # Sandbox container
+├── docs/                   # Architecture docs
+├── module_prs/             # Implementation PRs
+└── reference_files/        # Sample data & examples
 ```
 
-### Tool Lifecycle
-
-```
-DRAFT → STAGED → APPROVED → PROMOTED (active registry)
-                     ↓
-                 REJECTED (archived for learning)
-```
+See complete structure in [module_prs/README.md](module_prs/README.md#-project-file-structure).
 
 ---
 
 ## 🚀 Quick Start
 
-### Installation
+### 1. Setup Environment
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/MCP_Tool_Code_Interpreter_Generator.git
-cd MCP_Tool_Code_Interpreter_Generator
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
+pip install -r requirements-dev.txt
 
-# Set up environment
-export OPENAI_API_KEY="your-api-key"
-# or create a .env file
-
-# Initialize registry
-python -m src.init_registry
+# Configure environment
+cp .env.example .env
+# Edit .env with your LLM endpoint
 ```
 
-### Basic Usage
+### 2. Configure LLM Endpoint
+
+Update `config/config.yaml`:
+```yaml
+llm:
+  base_url: "http://localhost:8000/v1"
+  model: "Qwen/Qwen2.5-Coder-32B-Instruct"
+```
+
+### 3. Run the Server
+
+```bash
+python run_server.py
+```
+
+### 4. Use the Tool
 
 ```python
-from src.pipeline import ToolGenerationPipeline
-
-# Initialize pipeline
-pipeline = ToolGenerationPipeline()
-
-# Generate tool from natural language request
-result = pipeline.process_request(
-    "Analyze traffic accidents grouped by severity and location"
+# Via MCP client
+analyze_data(
+    query="Show top 10 states by accident count",
+    file_path="data/traffic_accidents.csv"
 )
-
-# Tool is staged, executed, and presented to user
-# User approves/rejects → automatic promotion or archival
 ```
 
 ---
 
-## 📋 Example: Generated Tool
+## 📚 Documentation
 
-**User Request**: "Analyze traffic accidents by severity"
+### For Users
+- **[Quick Start](#-quick-start)** - Get up and running
+- **[Configuration](#-configuration)** - Setup guide
+- **[Troubleshooting](#-troubleshooting)** - Common issues
 
-**Generated Tool**:
-```python
-@mcp.tool()
-def group_and_count_by_columns(
-    file_path: Annotated[str, Field(description="Path to CSV file")],
-    group_by_columns: Annotated[List[str], Field(description="Columns to group by")],
-) -> str:
-    """
-    Group data by specified columns and count occurrences.
-    
-    WHEN TO USE: When you need to count occurrences across grouping dimensions
-    WHAT IT DOES: Loads CSV, groups by columns, counts rows, returns markdown
-    RETURNS: Markdown table with grouped counts
-    PREREQUISITES: CSV file must exist and contain specified columns
-    """
-    # Implementation with validation, error handling, and output formatting
-    ...
-```
-
-**Workflow**:
-1. ✅ Tool generated and validated
-2. ✅ Executed in staging with user's data
-3. ✅ Output presented to user
-4. 👤 User approves → tool promoted to active registry
-5. ✅ Tool available for future requests
-
----
-
-## 🔧 Core Components
-
-### 1. Intent Extraction & Gap Detection
-- Parse natural language requests
-- Query active tool registry
-- Identify missing capabilities
-- Decision: reuse existing vs. generate new
-
-### 2. Tool Specification Generation
-- Contract-first ToolSpec with schemas
-- Annotated parameter types
-- Comprehensive documentation (WHEN/WHAT/RETURNS/PREREQUISITES)
-- Return type definitions
-
-### 3. Code Generation & Scaffolding
-- MCP tool decorator and function signature
-- Implementation following established patterns
-- Error handling and validation
-- Machine-readable JSON footers
-
-### 4. Validation & Repair
-- **Schema Validation**: Parameter/return type checking
-- **Static Analysis**: mypy, pylint, security checks
-- **Sandbox Testing**: Isolated execution with synthetic data
-- **Iterative Repair**: LLM-driven fixes (max 3 iterations)
-
-### 5. Staged Execution
-- Run tool with real user data
-- Capture execution metadata and artifacts
-- Isolated from active registry
-- Record assumptions and limitations
-
-### 6. Feedback Capture
-- Present output and tool summary
-- Request explicit approval/rejection
-- Strict acceptance criteria
-- Default to rejection for ambiguity
-
-### 7. Promotion/Archival
-- **Approved**: Copy to active registry, update MCP server
-- **Rejected**: Archive with feedback for learning
-- Version management and duplicate prevention
-
----
-
-## 📊 Data Models
-
-### ToolCandidate
-
-```python
-class ToolCandidate(BaseModel):
-    tool_id: str
-    version: str
-    spec: ToolSpec
-    package_path: str
-    code_hash: str
-    spec_hash: str
-    status: ToolStatus  # DRAFT | STAGED | APPROVED | REJECTED | PROMOTED
-    validation_report: Optional[ValidationReport]
-    run_artifacts: Optional[RunArtifacts]
-    user_feedback: Optional[UserFeedback]
-    created_at: str
-    dependencies: List[str]
-```
-
-### Registry Structure
-
-```
-registry/
-├── active/           # Promoted tools (PROMOTED)
-│   ├── metadata.json
-│   └── tools/
-│       └── <tool_name>/
-│           ├── tool.py
-│           ├── spec.json
-│           └── tests.py
-├── staging/          # Validated candidates (STAGED)
-│   └── candidates/
-└── archive/          # Rejected tools (learning data)
-```
+### For Developers
+- **[Module PRs](module_prs/README.md)** - Complete implementation specs (10 modules)
+- **[Sandbox Security](docs/SANDBOX_SECURITY.md)** - Security policies
+- **[Architecture Docs](docs/)** - Design decisions
 
 ---
 
@@ -199,114 +131,190 @@ registry/
 # Run all tests
 pytest tests/
 
-# Run specific test suite
-pytest tests/test_spec_generator.py
+# Run specific module tests
+pytest tests/test_intent_extraction.py -v
 
 # Run with coverage
 pytest --cov=src tests/
+
+# Integration tests only
+pytest tests/test_integration.py
 ```
 
-### Test Coverage Goals
-- Unit tests: >90%
-- Integration tests: End-to-end pipeline
-- Validation tests: Schema/sandbox isolation
+---
+
+## 🔒 Security
+
+### Sandbox Isolation
+All generated code runs in an isolated sandbox with:
+- ✅ No network access
+- ✅ No file system write access
+- ✅ Resource limits (CPU, memory, timeout)
+- ✅ Import restrictions (only safe libraries)
+
+See [docs/SANDBOX_SECURITY.md](docs/SANDBOX_SECURITY.md) for details.
+
+### Sandbox Modes
+- **Subprocess** (default) - Fast, good for development
+- **Docker** - Full isolation, production-ready
+
+Configure in `config/config.yaml`:
+```yaml
+sandbox:
+  mode: "subprocess"  # or "docker"
+```
 
 ---
 
-## 🛡️ Security & Safety
+## 🛠️ Development
 
-### Code Generation Safety
-- Prohibit dangerous patterns (`eval`, `exec`, `subprocess`)
-- Sandbox validation in isolated environments
-- File access restricted to allowed paths
-- Static analysis for security issues
+### Setup Dev Environment
 
-### Tool Promotion Safety
-- Never auto-register tools
-- Require explicit user approval
-- Version conflict detection
-- Promotion audit log
+```bash
+# Install dev dependencies
+pip install -r requirements-dev.txt
 
----
+# Run linter
+ruff check src/
 
-## 📈 Metrics & Monitoring
+# Format code
+black src/ tests/
 
-Track key performance indicators:
-- **Generation Success Rate**: Tools passing validation (target: >90%)
-- **Approval Rate**: User-approved vs. rejected (target: >70%)
-- **False Positive Rate**: Approved tools failing in production (target: <5%)
-- **Time to Tool**: Request → staged execution (target: <60s)
+# Type checking
+mypy src/
+```
 
----
+### Utility Scripts
 
-## 🗺️ Roadmap
+```bash
+# Clean sandbox temporary files
+python scripts/clean_sandbox.py
 
-### Version 1.0 (MVP)
-- [x] Intent extraction and gap detection
-- [x] Contract-first spec generation
-- [x] Code generation with validation
-- [x] Staged execution pipeline
-- [x] Feedback capture and promotion
+# List tools by state
+python scripts/migrate_tools.py list active
 
-### Version 1.1
-- [ ] Enhanced auto-repair with feedback loop
-- [ ] Support for JSON, Parquet, SQL data sources
-- [ ] Tool versioning and upgrade paths
-- [ ] Performance metrics and caching
-
-### Version 2.0
-- [ ] Multi-tool composition (tool chaining)
-- [ ] Visual tool builder UI
-- [ ] A/B testing for tool variants
-- [ ] Automatic deprecation based on usage
-
-### Version 2.1
-- [ ] Visualization tools (matplotlib, plotly)
-- [ ] Export tools as standalone packages
-- [ ] Collaborative team registry
+# Migrate tool between states
+python scripts/migrate_tools.py migrate my_tool draft staged
+```
 
 ---
 
-## 📚 Documentation
+## 📊 Tool Lifecycle
 
-- **[Project Requirements](ProjectRequirements.instructions.md)**: Comprehensive specification
-- **[Reference Examples](reference_files/)**: Sample tools and outputs
-- **API Documentation**: Coming soon
+```
+DRAFT → STAGED → APPROVED → PROMOTED
+  ↓                 ↓
+REJECTED        ARCHIVED
+```
+
+### States
+- **DRAFT** - Freshly generated code
+- **STAGED** - Validated, ready for testing
+- **APPROVED** - Executed successfully, user approved
+- **PROMOTED** - In active registry, production-ready
+- **REJECTED** - Failed validation or user rejected
+
+---
+
+## 🎯 Implementation Status
+
+### Current Phase: Foundation
+- ✅ Project structure
+- ✅ Configuration files
+- ✅ Test framework
+- ⏳ Module implementation (see [module_prs/README.md](module_prs/README.md#-implementation-roadmap))
+
+**For detailed roadmap and task breakdown, see [module_prs/README.md](module_prs/README.md)**
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Implement changes with tests
-4. Run validation (`pytest tests/`)
-5. Submit a pull request with test coverage report
+1. Review [module_prs/](module_prs/) for implementation specs
+2. Create feature branch from `main`
+3. Follow coding standards (black, ruff, mypy)
+4. Write tests for new functionality
+5. Update documentation
+6. Submit PR with clear description
 
 ---
 
-## 📝 License
+## 📝 Configuration
 
-[MIT License](LICENSE) - see LICENSE file for details
+### Main Config: `config/config.yaml`
+```yaml
+llm:
+  base_url: "http://localhost:8000/v1"
+  model: "Qwen/Qwen2.5-Coder-32B-Instruct"
+
+paths:
+  draft_dir: "./tools/draft"
+  staged_dir: "./tools/staged"
+  active_dir: "./tools/active"
+
+validation:
+  max_repair_attempts: 3
+  sandbox_timeout_seconds: 30
+```
+
+### Sandbox Policy: `config/sandbox_policy.yaml`
+- Allowed/blocked imports
+- Resource limits
+- Filesystem restrictions
+- Network policies
+
+### Prompt Templates: `config/prompts/`
+- `intent_extraction.txt`
+- `spec_generation.txt`
+- `code_generation.txt`
+- `code_repair.txt`
+
+---
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+**LLM not responding**
+```bash
+# Check vLLM server
+curl http://localhost:8000/v1/models
+```
+
+**Validation failures**
+- Review `ValidationReport.errors` for details
+- Check sandbox logs in `tools/sandbox/logs/`
+
+**Graph interrupts not working**
+- Verify `interrupt_before` in pipeline configuration
+- Check LangGraph version compatibility
+
+### Debug Mode
+
+```python
+import logging
+logging.basicConfig(level=logging.DEBUG)
+```
+
+---
+
+## 📄 License
+
+[Add license information]
 
 ---
 
 ## 🙏 Acknowledgments
 
-- Built on [Model Context Protocol (MCP)](https://modelcontextprotocol.io/)
-- Powered by [FastMCP](https://github.com/jlowin/fastmcp)
-- Validation with [Pydantic](https://docs.pydantic.dev/)
+- **FastMCP** - MCP server framework
+- **LangGraph** - Workflow orchestration
+- **Qwen Team** - Code generation LLM
+- **Anthropic** - MCP protocol specification
 
 ---
 
-## 📧 Contact
+**Version**: 1.0.0  
+**Status**: In Development  
+**Last Updated**: January 27, 2026
 
-For questions, issues, or feature requests, please open an issue on GitHub.
-
----
-
-**Status**: 🚧 Active Development  
-**Version**: 1.0.0-alpha  
-**Last Updated**: 2026-01-22
+For detailed module documentation, see [module_prs/README.md](module_prs/README.md).

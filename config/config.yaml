@@ -1,0 +1,29 @@
+# LLM Configuration
+llm:
+  base_url: "http://localhost:8000/v1"
+  model: "Qwen/Qwen2.5-Coder-32B-Instruct"
+  temperature: 0.3
+
+# Paths
+paths:
+  draft_dir: "./tools/draft"
+  staged_dir: "./tools/staged"
+  active_dir: "./tools/active"
+  registry: "./registry/tools.json"
+  sandbox_workspace: "./tools/sandbox"
+
+# Validation
+validation:
+  max_repair_attempts: 3
+  sandbox_timeout_seconds: 30
+
+# Sandbox
+sandbox:
+  mode: "subprocess"  # or "docker"
+  timeout_seconds: 30
+  memory_limit_mb: 512
+
+# Logging
+logging:
+  level: "INFO"
+  file: "./logs/pipeline.log"

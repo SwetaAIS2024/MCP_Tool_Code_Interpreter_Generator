@@ -1,0 +1,30 @@
+[
+  {
+    "tool_name": "analyze_accidents_by_state",
+    "description": "Analyze traffic accidents grouped by state",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "file_path": {"type": "string"},
+        "limit": {"type": "integer", "default": 10}
+      },
+      "required": ["file_path"]
+    },
+    "output_schema": {
+      "type": "object",
+      "properties": {
+        "result": {"type": "object"},
+        "metadata": {"type": "object"}
+      }
+    },
+    "parameters": [
+      {"name": "file_path", "type": "str", "description": "Path to CSV file"},
+      {"name": "limit", "type": "int", "description": "Number of results"}
+    ],
+    "return_type": "Dict[str, Any]",
+    "when_to_use": "When analyzing accident patterns by state",
+    "what_it_does": "Groups accidents by state and counts occurrences",
+    "returns": "Dictionary with state-wise accident counts",
+    "prerequisites": "CSV file with 'state' column"
+  }
+]

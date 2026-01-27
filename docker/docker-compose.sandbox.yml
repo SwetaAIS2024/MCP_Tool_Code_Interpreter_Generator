@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  sandbox:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.sandbox
+    network_mode: none
+    mem_limit: 512m
+    cpus: 0.5
+    volumes:
+      - ../tools/sandbox:/sandbox:ro
+    environment:
+      - PYTHONUNBUFFERED=1
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
