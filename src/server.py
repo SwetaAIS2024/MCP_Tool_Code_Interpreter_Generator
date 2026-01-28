@@ -40,7 +40,7 @@ def analyze_data(
     7. Promotes approved tools to the registry
     
     RETURNS: Dictionary with:
-    - status: "success" or "failed"
+    - status: "su-ccess" or "failed"
     - tool_created: Name of the generated tool (if successful)
     - result: Execution output from the tool
     - error: Error message (if failed)

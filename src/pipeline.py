@@ -10,8 +10,9 @@ This module assembles the complete tool generation pipeline:
 7. Promotion to registry
 """
 
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from langgraph.graph import StateGraph, END
+from langgraph.checkpoint.memory import MemorySaver
 
 from .models import ToolGeneratorState
 from .intent_extraction import intent_node, route_after_intent
@@ -28,12 +29,20 @@ from .feedback_handler import (
 from .promoter import promoter_node
 
 
-def build_graph() -> StateGraph:
+def build_graph(checkpointer: Optional[MemorySaver] = None) -> StateGraph:
     """Build and compile the LangGraph StateGraph.
+    
+    Args:
+        checkpointer: Optional checkpointer for interrupt handling.
+                     If None, creates a MemorySaver for interrupt support.
     
     Returns:
         Compiled graph ready for execution
     """
+    # Create checkpointer if not provided (needed for interrupts)
+    if checkpointer is None:
+        checkpointer = MemorySaver()
+    
     # Build graph
     workflow = StateGraph(ToolGeneratorState)
     
@@ -64,6 +73,7 @@ def build_graph() -> StateGraph:
     
     # Compile with interrupts for human feedback
     graph = workflow.compile(
+        checkpointer=checkpointer,
         interrupt_before=["feedback_stage1_node", "feedback_stage2_node"]
     )
     
@@ -87,10 +97,49 @@ def run_pipeline(user_query: str, data_path: str) -> Dict[str, Any]:
     initial_state: ToolGeneratorState = {
         "user_query": user_query,
         "data_path": data_path,
+        "extracted_intent": None,
+        "has_gap": False,
+        "tool_spec": None,
+        "generated_code": None,
+        "validation_result": None,
         "repair_attempts": 0,
+        "execution_output": None,
+        "stage1_approved": False,
+        "stage2_approved": False,
+        "promoted_tool": None,
         "messages": []
     }
     
+    # class ToolGeneratorState(TypedDict):
+    # """State shared across all LangGraph nodes."""
+    
+    # # Input
+    # user_query: str
+    # data_path: str
+    
+    # # Intent
+    # extracted_intent: Optional[Dict]
+    # has_gap: bool
+    
+    # # Generation
+    # tool_spec: Optional[ToolSpec]
+    # generated_code: Optional[str]
+    
+    # # Validation
+    # validation_result: Optional[ValidationReport]
+    # repair_attempts: int
+    
+    # # Execution
+    # execution_output: Optional[RunArtifacts]
+    
+    # # Feedback
+    # stage1_approved: bool
+    # stage2_approved: bool
+    
+    # # Final
+    # promoted_tool: Optional[Dict]
+    # messages: Annotated[List[tuple], add]
+
     # Run graph
     result = graph.invoke(initial_state)
     

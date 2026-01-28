@@ -1,7 +1,7 @@
 # LLM Configuration
 llm:
-  base_url: "http://localhost:8000/v1"
-  model: "Qwen/Qwen2.5-Coder-32B-Instruct"
+  base_url: "http://localhost:11434/v1"  # Ollama default port
+  model: "qwen2.5-coder:32b"  # Smaller, faster model for testing
   temperature: 0.3
 
 # Paths

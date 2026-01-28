@@ -71,6 +71,9 @@ class SubprocessSandboxExecutor(BaseSandbox):
         if timeout is None:
             timeout = self.timeout
         
+        # Strip MCP-specific code for sandbox testing
+        code = self._strip_mcp_code(code)
+        
         # Validate imports before execution
         if not self._validate_imports(code):
             return {
@@ -159,6 +162,33 @@ class SubprocessSandboxExecutor(BaseSandbox):
                         return False
         
         return True
+    
+    def _strip_mcp_code(self, code: str) -> str:
+        """Strip MCP-specific imports and decorators for sandbox testing.
+        
+        Args:
+            code: Full code with MCP decorators
+            
+        Returns:
+            Code with MCP parts removed
+        """
+        lines = code.split('\n')
+        cleaned_lines = []
+        
+        for line in lines:
+            stripped = line.strip()
+            # Skip MCP-specific lines
+            if any([
+                'from fastmcp import' in line,
+                'import fastmcp' in line,
+                'mcp = FastMCP' in line,
+                stripped == '@mcp.tool()' or stripped.startswith('@mcp.tool('),
+                stripped.startswith('"""Generated MCP tool:')
+            ]):
+                continue
+            cleaned_lines.append(line)
+        
+        return '\n'.join(cleaned_lines)
     
     def _load_policy(self, config_path: str) -> Dict[str, Any]:
         """Load sandbox policy from YAML.

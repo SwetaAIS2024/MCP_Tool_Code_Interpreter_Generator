@@ -73,6 +73,11 @@ class SpecGenerator:
         spec_dict.setdefault("returns", "Dictionary with 'result' and 'metadata' keys")
         spec_dict.setdefault("prerequisites", "CSV file with required columns")
         
+        # Handle fields that might be lists instead of strings
+        for field in ["when_to_use", "what_it_does", "returns", "prerequisites"]:
+            if isinstance(spec_dict.get(field), list):
+                spec_dict[field] = " ".join(spec_dict[field])
+        
         # Validate and return ToolSpec
         return ToolSpec(**spec_dict)
     

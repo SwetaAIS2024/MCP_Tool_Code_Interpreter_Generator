@@ -29,6 +29,7 @@ class ToolSpec(BaseModel):
     """Complete specification for a generated tool."""
     tool_name: str
     description: str
+    version: str = "1.0.0"
     input_schema: Dict[str, Any]
     output_schema: Dict[str, Any]
     parameters: List[Dict[str, Any]]

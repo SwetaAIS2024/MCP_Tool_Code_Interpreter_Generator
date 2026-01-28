@@ -38,8 +38,11 @@ class CodeGenerator:
         # Generate code with low temperature for consistency
         raw_code = self.llm.generate(prompt, temperature=0.2)
         
+        # Extract code from markdown blocks or conversational text
+        code = self._extract_code(raw_code)
+        
         # Wrap with MCP decorator and imports
-        full_code = self._wrap_with_mcp(raw_code, spec.tool_name)
+        full_code = self._wrap_with_mcp(code, spec.tool_name, spec.parameters)
         
         # Format with black
         try:
@@ -49,6 +52,79 @@ class CodeGenerator:
             # If black fails, return unformatted code
             print(f"Warning: Black formatting failed: {e}")
             return full_code
+    
+    def _extract_code(self, text: str) -> str:
+        """Extract code from LLM response, handling markdown blocks and conversational text.
+        
+        Args:
+            text: Raw LLM response
+            
+        Returns:
+            Extracted code
+        """
+        import re
+        
+        # Strategy 1: Find last code block (in case of multiple)
+        code_blocks = re.findall(r'```(?:python)?\s*(.*?)\s*```', text, re.DOTALL)
+        if code_blocks:
+            # Use the last code block (usually the corrected one)
+            code = code_blocks[-1].strip()
+            # Now extract just the function from this block
+            return self._extract_function_only(code)
+        
+        # Strategy 2: Extract from plain text
+        return self._extract_function_only(text)
+    
+    def _extract_function_only(self, code: str) -> str:
+        """Extract ONLY the actual function definition, skipping mocks/placeholders.
+        
+        Args:
+            code: Code that may contain mocks, imports, placeholders
+            
+        Returns:
+            Just the function definition
+        """
+        lines = code.split('\n')
+        function_lines = []
+        in_function = False
+        function_indent = 0
+        skip_mock = False
+        
+        for i, line in enumerate(lines):
+            stripped = line.strip()
+            
+            # Skip mock/placeholder decorator definitions
+            if 'def mcp_tool' in stripped or 'def decorator' in stripped or 'class FastMCP' in stripped:
+                skip_mock = True
+                continue
+            
+            # Skip mock imports
+            if skip_mock and (stripped.startswith('return') or stripped.startswith('func.')):
+                continue
+            
+            # Reset skip_mock when we hit a real function
+            if stripped.startswith('def ') and 'mcp_tool' not in stripped and 'decorator' not in stripped:
+                skip_mock = False
+                in_function = True
+                function_indent = len(line) - len(line.lstrip())
+                function_lines.append(line)
+                continue
+            
+            # If we're in the function, keep collecting lines
+            if in_function:
+                current_indent = len(line) - len(line.lstrip())
+                # Continue while indented or empty lines
+                if line.strip() == '' or current_indent > function_indent:
+                    function_lines.append(line)
+                else:
+                    # Function ended
+                    break
+        
+        if function_lines:
+            return '\n'.join(function_lines)
+        
+        # Fallback
+        return code.strip()
     
     def _build_prompt(self, spec: ToolSpec) -> str:
         """Build prompt for code generation.
@@ -84,23 +160,25 @@ Requirements:
 1. Function name should be: {spec.tool_name}
 2. Use pandas for data manipulation
 3. Include type hints for all parameters and return value
-4. Add comprehensive error handling (try/except blocks)
-5. Return Dict[str, Any] with these keys:
+4. **CRITICAL**: Function signature MUST have return type: -> Dict[str, Any]
+5. Add comprehensive error handling (try/except blocks)
+6. Return Dict[str, Any] with these keys:
    - 'result': The actual analysis result (dict, list, or dataframe converted to dict)
    - 'metadata': Execution metadata (execution_time, row_count, etc.)
-6. Add docstring with:
+7. Add docstring with:
    - Brief description
    - Args section
    - Returns section
    - Example usage
-7. Handle edge cases:
+8. Handle edge cases:
    - Missing columns
    - Empty datasets
    - Invalid data types
-8. Add clear variable names and comments for complex operations
+9. Add clear variable names and comments for complex operations
 
-Generate ONLY the function definition (def {spec.tool_name}(...):), NOT the imports or decorators.
+Generate ONLY the function definition (def {spec.tool_name}(...) -> Dict[str, Any]:), NOT the imports or decorators.
 Do NOT include 'from fastmcp import FastMCP' or '@mcp.tool()' - these will be added separately.
+Do NOT create placeholder decorators or mock classes.
 
 Example structure:
 ```python
@@ -153,16 +231,27 @@ def {spec.tool_name}(file_path: str, **kwargs) -> Dict[str, Any]:
 Generate the complete function now:
 """
     
-    def _wrap_with_mcp(self, code: str, tool_name: str) -> str:
+    def _wrap_with_mcp(self, code: str, tool_name: str, parameters: list = None) -> str:
         """Wrap generated code with MCP decorator and imports.
         
         Args:
             code: Raw function code
             tool_name: Name of the tool
+            parameters: List of parameter specs from ToolSpec
             
         Returns:
             Complete code with imports and decorators
         """
+        import re
+        
+        # Fix parameter names to match spec
+        if parameters:
+            for param in parameters:
+                spec_param_name = param.get("name", "")
+                # Replace data_path with the spec's parameter name (usually file_path)
+                if spec_param_name and spec_param_name != "data_path":
+                    code = re.sub(r'\bdata_path\b', spec_param_name, code)
+        
         # Remove any existing imports or decorators from LLM output
         lines = code.strip().split('\n')
         clean_lines = []
@@ -172,10 +261,18 @@ Generate the complete function now:
             if skip_until_def:
                 if line.strip().startswith('def '):
                     skip_until_def = False
+                    # Replace ANY return type annotation with -> Dict[str, Any]
+                    if '->' in line:
+                        # Remove existing return type and add correct one
+                        line = re.sub(r'->\s*[^:]+:', ' -> Dict[str, Any]:', line)
+                    else:
+                        # Add return type before colon
+                        line = line.replace('):', ') -> Dict[str, Any]:', 1)
                     clean_lines.append(line)
-                elif 'import' not in line.lower() and '@' not in line and line.strip():
-                    # Keep comments or docstrings before function
-                    clean_lines.append(line)
+                elif 'import' not in line.lower() and '@' not in line and 'class' not in line.lower() and line.strip():
+                    # Skip placeholder classes/decorators but keep docstrings
+                    if not line.strip().startswith('#'):
+                        continue
             else:
                 clean_lines.append(line)
         
@@ -230,13 +327,60 @@ class CodeRepairer:
         prompt = self._build_repair_prompt(code, errors, spec)
         
         # Generate repaired code
-        repaired = self.llm.generate(prompt, temperature=0.1)
+        raw_repaired = self.llm.generate(prompt, temperature=0.1)
+        
+        # Extract code (repair responses also have conversational text)
+        repaired = self._extract_repair_code(raw_repaired)
+        
+        # If the repaired code doesn't have the decorator, re-wrap it
+        if "@mcp.tool()" not in repaired:
+            # Extract just the function
+            generator = CodeGenerator(self.llm)
+            function_code = generator._extract_function_only(repaired)
+            # Re-wrap with decorator
+            repaired = generator._wrap_with_mcp(function_code, spec.tool_name, spec.parameters)
         
         # Format with black
         try:
             return black.format_str(repaired, mode=black.FileMode())
         except Exception:
             return repaired
+    
+    def _extract_repair_code(self, text: str) -> str:
+        """Extract code from repair response.
+        
+        Args:
+            text: Raw repair response
+            
+        Returns:
+            Extracted code
+        """
+        import re
+        
+        # Find last code block (repaired version)
+        code_blocks = re.findall(r'```(?:python)?\s*(.*?)\s*```', text, re.DOTALL)
+        if code_blocks:
+            return code_blocks[-1].strip()
+        
+        # Look for complete code starting from imports/decorators
+        lines = text.split('\n')
+        code_lines = []
+        started = False
+        
+        for line in lines:
+            stripped = line.strip()
+            if not started:
+                # Start from imports, decorators, or function definition
+                if stripped.startswith(('from ', 'import ', '@', 'def ', '"""Generated')):
+                    started = True
+                    code_lines.append(line)
+            else:
+                code_lines.append(line)
+        
+        if code_lines:
+            return '\n'.join(code_lines)
+        
+        return text.strip()
     
     def _build_repair_prompt(self, code: str, errors: List[str], spec: ToolSpec) -> str:
         """Build prompt for code repair.

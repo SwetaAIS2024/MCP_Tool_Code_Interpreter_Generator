@@ -15,3 +15,6 @@ jsonschema>=4.17.0
 
 # Optional: Docker SDK (if using Docker sandbox)
 # docker>=6.0.0
+
+openai
+vllm

@@ -2,7 +2,7 @@
 
 import ast
 import re
-from typing import List
+from typing import List, Optional, Dict, Any    
 from src.models import ToolSpec, ValidationReport, ToolGeneratorState
 from src.sandbox import create_sandbox
 
@@ -18,7 +18,7 @@ class Validator:
         """Initialize validator with sandbox."""
         self.sandbox = create_sandbox()
     
-    def validate(self, code: str, spec: ToolSpec, test_data_path: str = None) -> ValidationReport:
+    def validate(self, code: str, spec: ToolSpec, test_data_path: Optional[str] = None) -> ValidationReport:
         """Perform multi-stage validation.
         
         Args:
@@ -166,7 +166,7 @@ class Validator:
 # Helper Functions
 # ============================================================================
 
-def validate(code: str, spec: ToolSpec, test_data_path: str = None) -> ValidationReport:
+def validate(code: str, spec: ToolSpec, test_data_path: Optional[str] = None) -> ValidationReport:
     """Validate generated code.
     
     Args:
@@ -215,7 +215,8 @@ def route_after_validation(state: ToolGeneratorState) -> str:
     Returns:
         Next node name
     """
-    if state["validation_result"].is_valid:
+    validation_result = state.get("validation_result")
+    if validation_result and validation_result.is_valid:
         return "executor_node"
     elif state.get("repair_attempts", 0) < 3:
         return "repair_node"

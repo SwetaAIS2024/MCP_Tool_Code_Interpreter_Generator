@@ -3,7 +3,7 @@
 import json
 import yaml
 from abc import ABC, abstractmethod
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from pathlib import Path
 from openai import OpenAI
 
@@ -93,7 +93,7 @@ class QwenLLMClient(BaseLLMClient):
         except Exception as e:
             raise RuntimeError(f"LLM generation failed: {e}")
     
-    def generate_structured(self, prompt: str, schema: Dict = None) -> Dict:
+    def generate_structured(self, prompt: str, schema: Optional[Dict] = None) -> Dict:
         """Generate structured JSON response.
         
         Args:

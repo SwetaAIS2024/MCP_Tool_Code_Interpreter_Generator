@@ -3,7 +3,7 @@
 import json
 import pandas as pd
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from src.models import ToolGeneratorState
 from src.llm_client import QwenLLMClient
 
@@ -249,7 +249,7 @@ class GapDetector:
 # Helper Functions
 # ============================================================================
 
-def extract_intent(query: str, data_path: str, llm_client: QwenLLMClient = None) -> Dict:
+def extract_intent(query: str, data_path: str, llm_client: Optional[QwenLLMClient] = None) -> Dict:
     """Extract intent from user query.
     
     Args:
