@@ -19,7 +19,7 @@ from .intent_extraction import intent_node, route_after_intent
 from .spec_generator import spec_generator_node
 from .code_generator import code_generator_node, repair_node
 from .validator import validator_node, route_after_validation
-from .executor import executor_node
+from .executor import executor_node, route_after_execution
 from .feedback_handler import (
     feedback_stage1_node,
     feedback_stage2_node,
@@ -66,7 +66,7 @@ def build_graph(checkpointer: Optional[MemorySaver] = None) -> StateGraph:
     workflow.add_edge("code_generator_node", "validator_node")
     workflow.add_conditional_edges("validator_node", route_after_validation)
     workflow.add_edge("repair_node", "validator_node")
-    workflow.add_edge("executor_node", "feedback_stage1_node")
+    workflow.add_conditional_edges("executor_node", route_after_execution)
     workflow.add_conditional_edges("feedback_stage1_node", route_after_stage1)
     workflow.add_conditional_edges("feedback_stage2_node", route_after_stage2)
     workflow.add_edge("promoter_node", END)

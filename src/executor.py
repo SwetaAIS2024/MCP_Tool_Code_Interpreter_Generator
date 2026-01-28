@@ -184,3 +184,26 @@ def executor_node(state: ToolGeneratorState) -> ToolGeneratorState:
         **state,
         "execution_output": result
     }
+
+
+def route_after_execution(state: ToolGeneratorState) -> str:
+    """Route after execution based on success/failure.
+    
+    Args:
+        state: Current generator state
+        
+    Returns:
+        Next node name
+    """
+    from langgraph.graph import END
+    
+    execution_output = state.get("execution_output")
+    
+    if not execution_output:
+        # No execution output - something went wrong, end
+        return END
+    
+    # Always proceed to user feedback regardless of execution success
+    # User will review the output and decide whether to approve or reject
+    # This includes cases where execution failed or returned empty results
+    return "feedback_stage1_node"

@@ -97,9 +97,23 @@ def test_with_feedback():
             if current_state.get("execution_output"):
                 exec_out = current_state["execution_output"]
                 print(f"\n[EXECUTION OUTPUT]")
-                print(f"  Result: {str(exec_out.get('result', {}))[:200]}")
-                if exec_out.get("error"):
-                    print(f"  Error: {exec_out['error']}")
+                
+                # Check for failures
+                has_error = bool(exec_out.error)
+                empty_result = not exec_out.result or exec_out.result == {}
+                
+                if has_error:
+                    print(f"  ⚠️  EXECUTION FAILED")
+                    print(f"  Error: {exec_out.error}")
+                elif empty_result:
+                    print(f"  ⚠️  EXECUTION RETURNED EMPTY RESULT")
+                    print(f"  This likely indicates a problem with the code logic.")
+                
+                print(f"  Result: {str(exec_out.result)[:200]}")
+                print(f"  Execution Time: {exec_out.execution_time_ms:.2f}ms")
+                
+                if has_error or empty_result:
+                    print(f"\n  💡 Recommendation: REJECT this output")
             
             # Get user input
             print("\n" + "-" * 80)
