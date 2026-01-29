@@ -103,8 +103,8 @@ class Validator:
         if f"def {spec.tool_name}" not in code:
             errors.append(f"Function '{spec.tool_name}' not found in code")
         
-        # Check required imports
-        required_imports = ["pandas", "Dict", "Any"]
+        # Check required imports (only essential ones, not typing)
+        required_imports = ["pandas"]
         for imp in required_imports:
             if imp not in code:
                 errors.append(f"Missing required import: {imp}")
@@ -113,10 +113,10 @@ class Validator:
         if "@mcp.tool()" not in code:
             errors.append("Missing @mcp.tool() decorator")
         
-        # Check return type annotation
-        return_pattern = rf"def {spec.tool_name}\(.*\)\s*->\s*Dict\[str,\s*Any\]"
-        if not re.search(return_pattern, code):
-            errors.append("Function must have return type annotation: -> Dict[str, Any]")
+        # Check that function signature exists (don't enforce type annotations)
+        function_pattern = rf"def {spec.tool_name}\(.*\):"
+        if not re.search(function_pattern, code):
+            errors.append(f"Function signature for '{spec.tool_name}' is malformed")
         
         # Check for required parameters
         for param in spec.parameters:
@@ -150,6 +150,27 @@ class Validator:
             # Check execution time
             if result["execution_time_ms"] > 30000:
                 errors.append(f"Execution too slow: {result['execution_time_ms']}ms")
+            
+            # SEMANTIC VALIDATION: Check if execution returned errors about missing columns
+            # This catches cases where code is syntactically valid but semantically wrong
+            stdout = result.get("stdout", "")
+            stderr = result.get("stderr", "")
+            
+            # Check for common error patterns in output
+            error_patterns = [
+                "missing required columns",
+                "keyerror:",
+                "column.*not found",
+                "does not exist",
+                "invalid column"
+            ]
+            
+            combined_output = (stdout + " " + stderr).lower()
+            for pattern in error_patterns:
+                if pattern in combined_output:
+                    errors.append(f"Semantic error detected: execution returned column-related error")
+                    errors.append(f"Output: {stdout[:200]}")  # First 200 chars
+                    return False, errors
             
             # Parse output to verify return type
             # Note: This is a simplified check. In production, we'd execute the function
@@ -199,6 +220,23 @@ def validator_node(state: ToolGeneratorState) -> ToolGeneratorState:
         state["tool_spec"],
         state.get("data_path")
     )
+    
+    # DEBUG: Print validation results
+    print("\n" + "="*80)
+    print("VALIDATION RESULTS:")
+    print("="*80)
+    print(f"Schema OK: {result.schema_ok}")
+    print(f"Tests OK: {result.tests_ok}")
+    print(f"Sandbox OK: {result.sandbox_ok}")
+    if result.errors:
+        print(f"\nERRORS ({len(result.errors)}):")
+        for i, err in enumerate(result.errors, 1):
+            print(f"  {i}. {err}")
+    if result.warnings:
+        print(f"\nWARNINGS ({len(result.warnings)}):")
+        for i, warn in enumerate(result.warnings, 1):
+            print(f"  {i}. {warn}")
+    print("="*80 + "\n")
     
     return {
         **state,

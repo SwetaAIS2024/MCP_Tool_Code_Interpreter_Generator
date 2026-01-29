@@ -12,10 +12,12 @@ TOOL SPEC:
 Instructions:
 1. Fix each error listed above
 2. Maintain the original functionality
-3. Keep the EXACT function signature: def function_name(data_path: str) -> Dict[str, Any]:
+3. Keep the function signature: def function_name(file_path: str):
 4. Ensure code follows best practices
 5. Add any missing error handling
-6. Verify return type matches spec: -> Dict[str, Any]
+6. Return a dictionary with 'result' and 'metadata' keys
+
+IMPORTANT: Use {{}} or dict() to create dictionaries. Do NOT import or use typing classes.
 
 DO NOT INCLUDE:
 - DO NOT create placeholder decorator functions like "def mcp_tool()" or "def decorator()"
@@ -31,8 +33,8 @@ DO NOT INCLUDE:
 
 ONLY OUTPUT:
 - The single corrected function implementation
-- Standard library imports (pandas, typing, etc.)
-- The function must have return type: -> Dict[str, Any]
+- Standard library imports (pandas, etc. - NO typing imports)
+- The function must return a dictionary
 - No decorators, no extra functions, no explanations
 
 Return ONLY the corrected function implementation. Nothing else.

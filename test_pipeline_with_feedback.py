@@ -165,6 +165,8 @@ def test_with_feedback():
         tool = current_state["promoted_tool"]
         print(f"  Name: {tool.get('name')}")
         print(f"  Version: {tool.get('version')}")
+        print(f"  Active Path: {tool.get('path')}")
+        print(f"  Logs Path: {tool.get('logs_path')}")
         print(f"  Registry Path: {tool.get('registry_path')}")
     else:
         print("\n⚠️  Tool was not promoted to registry")

@@ -55,9 +55,14 @@ def test_simple_query():
         if result.get("extracted_intent"):
             print("\n[INTENT EXTRACTION]")
             intent = result["extracted_intent"]
+            print(f"  Has Gap: {intent.get('has_gap')}")
+            if intent.get('gap_reason'):
+                print(f"  Gap Reason: {intent.get('gap_reason')}")
             print(f"  Operation: {intent.get('operation')}")
-            print(f"  Columns: {intent.get('columns')}")
+            print(f"  Required Columns: {intent.get('required_columns')}")
+            print(f"  Group By: {intent.get('group_by')}")
             print(f"  Metrics: {intent.get('metrics')}")
+            print(f"  Filters: {intent.get('filters')}")
         
         # Print tool spec
         if result.get("tool_spec"):

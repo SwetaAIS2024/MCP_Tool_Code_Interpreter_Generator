@@ -1,0 +1,49 @@
+Analyze this data analysis request and create a detailed implementation plan.
+
+USER QUERY: {query}
+DATASET: {data_path}
+AVAILABLE COLUMNS: {columns}
+COLUMN TYPES: {dtypes}
+SAMPLE VALUES: {sample_values}
+
+Provide a thorough analysis with:
+
+1. INTENT BREAKDOWN:
+   - Primary operation (groupby, filter, aggregate, join, pivot, transform, etc.)
+   - Required columns and their roles
+   - Metrics/calculations needed (count, sum, mean, median, std, etc.)
+   - Filter conditions (if any)
+   - Sorting requirements
+   - Output format (table, chart, summary, json)
+
+2. IMPLEMENTATION PLAN (Step-by-step todo list):
+   - List each discrete step needed to accomplish the task
+   - Include data loading, transformations, calculations, formatting
+   - Specify order of operations
+   - Note any edge cases or validations needed
+
+3. EXPECTED OUTPUT:
+   - Describe what the final result should look like
+   - Include column names, data types, format
+
+Return JSON with this structure:
+{{
+  "operation": "groupby_aggregate",
+  "columns": ["state", "severity"],
+  "metrics": ["count", "mean"],
+  "filters": [{{"column": "date", "operator": ">", "value": "2023-01-01"}}],
+  "sort_by": ["count"],
+  "sort_order": "descending",
+  "limit": 10,
+  "output_format": "table",
+  "implementation_plan": [
+    {{"step": 1, "action": "Load CSV file", "details": "Read data"}},
+    {{"step": 2, "action": "Validate columns", "details": "Check required columns exist"}}
+  ],
+  "expected_output": {{
+    "columns": ["state", "severity", "count"],
+    "format": "markdown_table"
+  }},
+  "edge_cases": ["empty dataset", "missing columns"],
+  "validation_rules": ["columns must exist", "date must be valid format"]
+}}

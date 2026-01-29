@@ -57,8 +57,13 @@ class ToolExecutor:
                 timeout=self.timeout
             )
             
-            # Extract summary if available
-            summary = result.get("summary") or result.get("result", {}).get("summary")
+            print(f"[EXECUTOR DEBUG] Result type: {type(result)}")
+            print(f"[EXECUTOR DEBUG] Result value: {result}")
+            
+            # Extract summary if available (handle both dict and non-dict results)
+            summary = None
+            if isinstance(result, dict):
+                summary = result.get("summary") or result.get("result", {}).get("summary")
             
             return RunArtifacts(
                 result=result,
@@ -108,12 +113,37 @@ class ToolExecutor:
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         
-        # Find the decorated function (should have @mcp.tool())
-        # Look for functions that are not private/magic
+        # DEBUG: Print what's in the module
+        all_attrs = [name for name in dir(module) if not name.startswith('_')]
+        print(f"\n[EXECUTOR] Module contents: {all_attrs}")
+        
+        # Find the actual function - look for user-defined functions
+        import types
         for attr_name in dir(module):
-            if not attr_name.startswith('_'):
+            if not attr_name.startswith('_') and attr_name not in ['mcp', 'FastMCP', 'pd', 'pandas', 'time']:
                 attr = getattr(module, attr_name)
+                print(f"[EXECUTOR] Checking '{attr_name}': type={type(attr)}, callable={callable(attr)}, is_function={isinstance(attr, types.FunctionType)}")
+                
+                # Check if it's a FunctionTool from FastMCP (decorated function)
+                if type(attr).__name__ == 'FunctionTool':
+                    print(f"[EXECUTOR] Found FunctionTool, extracting underlying function...")
+                    # The FunctionTool has the original function stored
+                    if hasattr(attr, 'func'):
+                        return attr.func
+                    elif hasattr(attr, 'fn'):
+                        return attr.fn
+                    elif hasattr(attr, '_func'):
+                        return attr._func
+                    # Try to get it from __dict__
+                    for key in ['func', 'fn', '_func', 'function']:
+                        if hasattr(attr, key):
+                            func = getattr(attr, key)
+                            if callable(func):
+                                return func
+                
+                # Check if it's callable (decorated functions might not be FunctionType)
                 if callable(attr) and not isinstance(attr, type):
+                    print(f"[EXECUTOR] Found callable: {attr_name}")
                     return attr
         
         raise ValueError("No executable function found in module")
@@ -133,12 +163,14 @@ class ToolExecutor:
         Raises:
             TimeoutError: If execution exceeds timeout
         """
+        from concurrent.futures import TimeoutError as FuturesTimeoutError
+        
         with ThreadPoolExecutor(max_workers=1) as executor:
             future = executor.submit(func, **kwargs)
             try:
                 result = future.result(timeout=timeout)
                 return result
-            except Exception as e:
+            except FuturesTimeoutError as e:
                 raise TimeoutError(f"Function execution timed out after {timeout}s") from e
 
 

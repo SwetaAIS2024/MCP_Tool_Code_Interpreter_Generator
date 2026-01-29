@@ -35,18 +35,54 @@ class CodeGenerator:
         # Build prompt for code generation
         prompt = self._build_prompt(spec)
         
+        # DEBUG: Print prompt to see what's being sent
+        print("\n" + "="*80)
+        print("CODE GENERATION PROMPT:")
+        print("="*80)
+        print(prompt[:1000] + "..." if len(prompt) > 1000 else prompt)
+        print("="*80 + "\n")
+        
         # Generate code with low temperature for consistency
         raw_code = self.llm.generate(prompt, temperature=0.2)
+        
+        # DEBUG: Print raw LLM response
+        print("\n" + "="*80)
+        print("RAW LLM RESPONSE:")
+        print("="*80)
+        print(raw_code[:1000] + "..." if len(raw_code) > 1000 else raw_code)
+        print("="*80 + "\n")
         
         # Extract code from markdown blocks or conversational text
         code = self._extract_code(raw_code)
         
+        # DEBUG: Print extracted code
+        print("\n" + "="*80)
+        print("EXTRACTED CODE (before wrapping):")
+        print("="*80)
+        print(code[:1000] + "..." if len(code) > 1000 else code)
+        print("="*80 + "\n")
+        
         # Wrap with MCP decorator and imports
         full_code = self._wrap_with_mcp(code, spec.tool_name, spec.parameters)
+        
+        # DEBUG: Print wrapped code before formatting
+        print("\n" + "="*80)
+        print("WRAPPED CODE (before black formatting):")
+        print("="*80)
+        print(full_code[:1000] + "..." if len(full_code) > 1000 else full_code)
+        print("="*80 + "\n")
         
         # Format with black
         try:
             formatted_code = black.format_str(full_code, mode=black.FileMode())
+            
+            # DEBUG: Print final formatted code
+            print("\n" + "="*80)
+            print("FINAL FORMATTED CODE:")
+            print("="*80)
+            print(formatted_code)
+            print("="*80 + "\n")
+            
             return formatted_code
         except Exception as e:
             # If black fails, return unformatted code
@@ -137,17 +173,25 @@ class CodeGenerator:
         """
         # Try to load template
         if self.prompt_template_path.exists():
-            with open(self.prompt_template_path) as f:
+            print(f"\n✓ Using template file: {self.prompt_template_path}")
+            with open(self.prompt_template_path, encoding='utf-8') as f:
                 template = f.read()
+            
+            # Convert parameters list to readable string
+            import json
+            params_str = json.dumps(spec.parameters, indent=2) if isinstance(spec.parameters, list) else str(spec.parameters)
+            
             return template.format(
                 tool_name=spec.tool_name,
                 description=spec.description,
-                parameters=spec.parameters,
+                parameters=params_str,
+                required_columns=spec.prerequisites,  # Prerequisites contains column requirements
                 implementation_plan=spec.what_it_does,
                 what_it_does=spec.what_it_does
             )
         
         # Fallback inline prompt
+        print(f"\n⚠ Using FALLBACK prompt (template not found at {self.prompt_template_path})")
         return f"""Generate Python function code for this tool specification.
 
 TOOL NAME: {spec.tool_name}
@@ -159,30 +203,31 @@ PREREQUISITES: {spec.prerequisites}
 Requirements:
 1. Function name should be: {spec.tool_name}
 2. Use pandas for data manipulation
-3. Include type hints for all parameters and return value
-4. **CRITICAL**: Function signature MUST have return type: -> Dict[str, Any]
-5. Add comprehensive error handling (try/except blocks)
-6. Return Dict[str, Any] with these keys:
+3. Function signature: def {spec.tool_name}(file_path: str):
+4. Add comprehensive error handling (try/except blocks)
+5. Return a dictionary with these keys:
    - 'result': The actual analysis result (dict, list, or dataframe converted to dict)
    - 'metadata': Execution metadata (execution_time, row_count, etc.)
-7. Add docstring with:
+6. Add docstring with:
    - Brief description
    - Args section
    - Returns section
    - Example usage
-8. Handle edge cases:
+7. Handle edge cases:
    - Missing columns
    - Empty datasets
    - Invalid data types
-9. Add clear variable names and comments for complex operations
+8. Add clear variable names and comments for complex operations
 
-Generate ONLY the function definition (def {spec.tool_name}(...) -> Dict[str, Any]:), NOT the imports or decorators.
+CRITICAL: Use {{}} or dict() to create dictionaries. Do NOT import typing or use Dict() constructor.
+
+Generate ONLY the function definition (def {spec.tool_name}(...):), NOT the imports or decorators.
 Do NOT include 'from fastmcp import FastMCP' or '@mcp.tool()' - these will be added separately.
 Do NOT create placeholder decorators or mock classes.
 
 Example structure:
 ```python
-def {spec.tool_name}(file_path: str, **kwargs) -> Dict[str, Any]:
+def {spec.tool_name}(file_path: str, **kwargs):
     \"\"\"
     {spec.description}
     
@@ -261,13 +306,7 @@ Generate the complete function now:
             if skip_until_def:
                 if line.strip().startswith('def '):
                     skip_until_def = False
-                    # Replace ANY return type annotation with -> Dict[str, Any]
-                    if '->' in line:
-                        # Remove existing return type and add correct one
-                        line = re.sub(r'->\s*[^:]+:', ' -> Dict[str, Any]:', line)
-                    else:
-                        # Add return type before colon
-                        line = line.replace('):', ') -> Dict[str, Any]:', 1)
+                    # Keep the line as-is, don't add type hints
                     clean_lines.append(line)
                 elif 'import' not in line.lower() and '@' not in line and 'class' not in line.lower() and line.strip():
                     # Skip placeholder classes/decorators but keep docstrings
@@ -283,7 +322,6 @@ Generate the complete function now:
 
 from fastmcp import FastMCP
 import pandas as pd
-from typing import Dict, Any
 import time
 
 mcp = FastMCP("data_analysis_tools")
@@ -395,7 +433,7 @@ class CodeRepairer:
         """
         # Try to load template
         if self.prompt_template_path.exists():
-            with open(self.prompt_template_path) as f:
+            with open(self.prompt_template_path, encoding='utf-8') as f:
                 template = f.read()
             return template.format(
                 code=code,
@@ -425,8 +463,9 @@ Instructions:
 3. Keep the same function signature
 4. Ensure code follows best practices
 5. Add any missing error handling
-6. Verify return type matches spec (Dict[str, Any] with 'result' and 'metadata')
+6. Verify return value is a dictionary with 'result' and 'metadata' keys
 7. Keep all imports and decorators intact
+8. CRITICAL: Use {{}} or dict() to create dictionaries, NOT Dict() constructor
 
 Return the complete corrected Python code.
 """
@@ -526,6 +565,15 @@ def repair_node(state: ToolGeneratorState) -> ToolGeneratorState:
         Updated state with repaired code
     """
     from src.llm_client import create_llm_client
+    
+    # DEBUG: Print repair info
+    print("\n" + "="*80)
+    print(f"REPAIR ATTEMPT #{state['repair_attempts'] + 1}")
+    print("="*80)
+    print(f"Errors to fix: {len(state['validation_result'].errors)}")
+    for i, err in enumerate(state['validation_result'].errors, 1):
+        print(f"  {i}. {err}")
+    print("="*80 + "\n")
     
     llm_client = create_llm_client()
     errors = state["validation_result"].errors

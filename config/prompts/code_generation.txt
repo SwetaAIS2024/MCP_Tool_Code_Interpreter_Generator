@@ -3,17 +3,19 @@ Generate Python function code for this tool specification.
 TOOL NAME: {tool_name}
 DESCRIPTION: {description}
 PARAMETERS: {parameters}
+REQUIRED COLUMNS: {required_columns}
 IMPLEMENTATION PLAN: {implementation_plan}
 WHAT IT DOES: {what_it_does}
 
 Requirements:
 1. Use pandas for data manipulation
-2. Include type hints with EXACT signature: def {tool_name}(file_path: str) -> Dict[str, Any]:
+2. Function signature must be: def {tool_name}(file_path: str):
 3. Add comprehensive error handling
-4. Return Dict[str, Any] with 'result' and 'metadata' keys
+4. Return a dictionary with 'result' and 'metadata' keys
 5. Follow the implementation plan step-by-step
 6. Handle edge cases gracefully
 7. Add docstring with examples
+8. CRITICAL: Use ONLY the columns listed in REQUIRED COLUMNS above - do NOT invent or assume other column names
 
 Include:
 - pandas DataFrame input handling
@@ -21,6 +23,8 @@ Include:
 - Clear variable names
 - Comments for complex operations
 - Return structure: {{"result": {{}}, "metadata": {{}}}}
+
+IMPORTANT: Use {{}} or dict() to create dictionaries. Do NOT use typing classes like Dict() to instantiate objects.
 
 DO NOT INCLUDE:
 - DO NOT create placeholder decorator functions like "def mcp_tool()" or "def decorator()"
@@ -36,8 +40,8 @@ DO NOT INCLUDE:
 
 ONLY OUTPUT:
 - The single function implementation named {tool_name}
-- Standard library imports (pandas, typing, etc.)
-- The function must start with: def {tool_name}(file_path: str) -> Dict[str, Any]:
+- Standard library imports (pandas, etc. - NO typing imports needed)
+- The function must start with: def {tool_name}(file_path: str):
 - No decorators, no extra functions, no explanations
 
 Generate ONLY the function implementation. Nothing else.

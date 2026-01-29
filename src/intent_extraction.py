@@ -3,7 +3,8 @@
 import json
 import pandas as pd
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List, Tuple
+from difflib import SequenceMatcher
 from src.models import ToolGeneratorState
 from src.llm_client import QwenLLMClient
 
@@ -40,6 +41,13 @@ class IntentExtractor:
         dtypes = {col: str(dtype) for col, dtype in df_preview.dtypes.to_dict().items()}
         sample_values = {col: df_preview[col].head(3).tolist() for col in columns}
         
+        # DEBUG: Print available columns
+        print("\n" + "="*80)
+        print("INTENT EXTRACTION - AVAILABLE COLUMNS:")
+        print("="*80)
+        print(f"Columns: {columns}")
+        print("="*80 + "\n")
+        
         # Build comprehensive analysis prompt
         prompt = self._build_prompt(query, data_path, columns, dtypes, sample_values)
         
@@ -47,13 +55,37 @@ class IntentExtractor:
         schema = {
             "type": "object",
             "properties": {
+                "has_gap": {"type": "boolean"},
+                "gap_reason": {"type": "string"},
                 "operation": {"type": "string"},
-                "columns": {"type": "array", "items": {"type": "string"}},
-                "metrics": {"type": "array", "items": {"type": "string"}},
-                "filters": {"type": "array"},
-                "sort_by": {"type": "array"},
+                "required_columns": {"type": "array", "items": {"type": "string"}},
+                "missing_columns": {"type": "array", "items": {"type": "string"}},
+                "filters": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "column": {"type": "string"},
+                            "operator": {"type": "string"},
+                            "value": {}
+                        }
+                    }
+                },
+                "group_by": {"type": "array", "items": {"type": "string"}},
+                "metrics": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {"type": "string"},
+                            "column": {"type": ["string", "null"]},
+                            "alias": {"type": ["string", "null"]}
+                        }
+                    }
+                },
+                "sort_by": {"type": "array", "items": {"type": "string"}},
                 "sort_order": {"type": "string"},
-                "limit": {"type": "integer"},
+                "limit": {"type": ["integer", "null"]},
                 "output_format": {"type": "string"},
                 "implementation_plan": {
                     "type": "array",
@@ -62,19 +94,153 @@ class IntentExtractor:
                         "properties": {
                             "step": {"type": "integer"},
                             "action": {"type": "string"},
-                            "details": {"type": "string"}
+                            "details": {"type": "string"},
+                            "validations": {"type": "array", "items": {"type": "string"}}
                         }
                     }
                 },
-                "expected_output": {"type": "object"},
-                "edge_cases": {"type": "array"},
-                "validation_rules": {"type": "array"}
+                "edge_cases": {"type": "array", "items": {"type": "string"}},
+                "validation_rules": {"type": "array", "items": {"type": "string"}},
+                "assumptions": {"type": "array", "items": {"type": "string"}},
+                "clarifications_needed": {"type": "array", "items": {"type": "string"}}
             },
-            "required": ["operation", "columns", "implementation_plan"]
+            "required": ["has_gap", "operation", "required_columns", "implementation_plan"]
         }
         
         # Use Qwen LLM for detailed extraction
-        return self.llm.generate_structured(prompt, schema)
+        intent = self.llm.generate_structured(prompt, schema)
+        
+        # CRITICAL: Validate and ground column names to prevent hallucination
+        required_cols = intent.get('required_columns', [])
+        missing_cols = intent.get('missing_columns', [])
+        
+        hallucinated_cols = [col for col in required_cols if col not in columns]
+        if hallucinated_cols:
+            print("\n" + "="*80)
+            print("COLUMN GROUNDING - Resolving hallucinated columns")
+            print("="*80)
+            print(f"Hallucinated columns: {hallucinated_cols}")
+            print(f"Available columns: {columns}")
+            print("\nAttempting fuzzy matching...")
+            
+            # Try to ground hallucinated columns to actual columns
+            grounded, unresolved = self._ground_columns(query, columns, hallucinated_cols)
+            
+            # Keep non-hallucinated columns that were correct
+            valid_cols = [col for col in required_cols if col in columns]
+            
+            # Add successfully grounded columns
+            intent['required_columns'] = valid_cols + grounded
+            
+            # Add unresolved to missing_columns
+            for col in unresolved:
+                if col not in missing_cols:
+                    missing_cols.append(col)
+            intent['missing_columns'] = missing_cols
+            
+            print(f"\nGROUNDING RESULTS:")
+            print(f"  Valid columns (already existed): {valid_cols}")
+            print(f"  Grounded columns (fuzzy matched): {grounded}")
+            print(f"  Unresolved columns (moved to missing): {unresolved}")
+            print("="*80 + "\n")
+        
+        # DEBUG: Print extracted intent
+        print("\n" + "="*80)
+        print("EXTRACTED INTENT:")
+        print("="*80)
+        print(f"Required columns: {intent.get('required_columns', [])}")
+        print(f"Missing columns: {intent.get('missing_columns', [])}")
+        print(f"Operation: {intent.get('operation')}")
+        print("="*80 + "\n")
+        
+        return intent
+    
+    def _ground_columns(self, query: str, available_columns: List[str], 
+                       required_columns: List[str]) -> Tuple[List[str], List[str]]:
+        """Ground hallucinated column names to actual dataset columns using fuzzy matching.
+        
+        Args:
+            query: User's natural language query
+            available_columns: Actual columns in the dataset
+            required_columns: Columns extracted by LLM (may be hallucinated)
+            
+        Returns:
+            Tuple of (grounded_columns, unresolved_columns)
+        """
+        grounded = []
+        unresolved = []
+        
+        # Common concept mappings for traffic accident data
+        concept_mappings = {
+            'accident_type': ['crash_type', 'first_crash_type', 'trafficway_type'],
+            'crash_type': ['crash_type', 'first_crash_type'],
+            'type': ['crash_type', 'first_crash_type', 'trafficway_type'],
+            'severity': ['most_severe_injury', 'damage', 'injuries_fatal'],
+            'injury': ['most_severe_injury', 'injuries_total', 'injuries_fatal'],
+            'date': ['crash_date'],
+            'time': ['crash_hour', 'crash_date'],
+            'year': ['crash_date', 'crash_month'],
+            'month': ['crash_month', 'crash_date'],
+            'day': ['crash_day_of_week', 'crash_date'],
+            'hour': ['crash_hour'],
+            'weather': ['weather_condition'],
+            'location': ['alignment', 'trafficway_type'],
+            'cause': ['prim_contributory_cause'],
+            'control': ['traffic_control_device'],
+            'lighting': ['lighting_condition'],
+            'surface': ['roadway_surface_cond'],
+            'defect': ['road_defect']
+        }
+        
+        for req_col in required_columns:
+            # Check if column exists exactly
+            if req_col in available_columns:
+                grounded.append(req_col)
+                continue
+            
+            # Try concept mapping first
+            req_col_lower = req_col.lower()
+            candidates = []
+            for concept, col_list in concept_mappings.items():
+                if concept in req_col_lower or req_col_lower in concept:
+                    candidates.extend([c for c in col_list if c in available_columns])
+            
+            # If no concept match, do fuzzy matching
+            if not candidates:
+                # Calculate similarity scores
+                similarities = []
+                for avail_col in available_columns:
+                    # Token-based matching (split on underscores)
+                    req_tokens = set(req_col_lower.split('_'))
+                    avail_tokens = set(avail_col.lower().split('_'))
+                    
+                    # Jaccard similarity (token overlap)
+                    intersection = len(req_tokens & avail_tokens)
+                    union = len(req_tokens | avail_tokens)
+                    token_score = intersection / union if union > 0 else 0
+                    
+                    # Levenshtein-like similarity (entire string)
+                    string_score = SequenceMatcher(None, req_col_lower, avail_col.lower()).ratio()
+                    
+                    # Combined score (weighted)
+                    combined_score = 0.6 * token_score + 0.4 * string_score
+                    similarities.append((avail_col, combined_score))
+                
+                # Get best match above threshold
+                similarities.sort(key=lambda x: x[1], reverse=True)
+                if similarities and similarities[0][1] >= 0.3:
+                    candidates = [similarities[0][0]]
+            
+            # Use first candidate if found
+            if candidates:
+                best_match = candidates[0]
+                print(f"  ✓ Grounded '{req_col}' → '{best_match}'")
+                grounded.append(best_match)
+            else:
+                print(f"  ✗ Could not ground '{req_col}' (no match in dataset)")
+                unresolved.append(req_col)
+        
+        return grounded, unresolved
     
     def _build_prompt(self, query: str, data_path: str, columns: list, 
                      dtypes: dict, sample_values: dict) -> str:
@@ -92,7 +258,7 @@ class IntentExtractor:
         """
         # Try to load template, fallback to inline if not found
         if self.prompt_template_path.exists():
-            with open(self.prompt_template_path) as f:
+            with open(self.prompt_template_path, encoding='utf-8') as f:
                 template = f.read()
             return template.format(
                 query=query,
@@ -229,15 +395,29 @@ class GapDetector:
             score += weights["operation"]
         
         # Compare columns (set intersection)
-        intent_cols = set(intent.get("columns", []))
-        tool_cols = set(tool.get("columns", []))
+        # Note: intent uses "required_columns" in new schema
+        intent_cols = set(intent.get("required_columns", intent.get("columns", [])))
+        tool_cols = set(tool.get("required_columns", tool.get("columns", [])))
         if intent_cols and tool_cols:
             col_overlap = len(intent_cols & tool_cols) / len(intent_cols | tool_cols)
             score += weights["columns"] * col_overlap
         
         # Compare metrics (set intersection)
-        intent_metrics = set(intent.get("metrics", []))
-        tool_metrics = set(tool.get("metrics", []))
+        # Note: metrics is now array of objects, extract names
+        intent_metrics_raw = intent.get("metrics", [])
+        if isinstance(intent_metrics_raw, list) and intent_metrics_raw and isinstance(intent_metrics_raw[0], dict):
+            # New schema: extract metric names
+            intent_metrics = set(m.get("name") for m in intent_metrics_raw if m.get("name"))
+        else:
+            # Old schema or simple strings
+            intent_metrics = set(intent_metrics_raw) if isinstance(intent_metrics_raw, list) else set()
+        
+        tool_metrics_raw = tool.get("metrics", [])
+        if isinstance(tool_metrics_raw, list) and tool_metrics_raw and isinstance(tool_metrics_raw[0], dict):
+            tool_metrics = set(m.get("name") for m in tool_metrics_raw if m.get("name"))
+        else:
+            tool_metrics = set(tool_metrics_raw) if isinstance(tool_metrics_raw, list) else set()
+        
         if intent_metrics and tool_metrics:
             metric_overlap = len(intent_metrics & tool_metrics) / len(intent_metrics | tool_metrics)
             score += weights["metrics"] * metric_overlap
@@ -308,7 +488,7 @@ def intent_node(state: ToolGeneratorState) -> ToolGeneratorState:
 
 
 def route_after_intent(state: ToolGeneratorState) -> str:
-    """Route after intent extraction.
+    """Route after intent extraction with validation gates.
     
     Args:
         state: Current generator state
@@ -316,4 +496,41 @@ def route_after_intent(state: ToolGeneratorState) -> str:
     Returns:
         Next node name
     """
-    return "spec_generator_node" if state["has_gap"] else "executor_node"
+    # HARD STOP GATE: Check if columns are properly grounded
+    required_cols = state.get("required_columns", [])
+    missing_cols = state.get("missing_columns", [])
+    operation = state.get("operation", "")
+    
+    # Gate 1: For groupby/aggregation operations, must have required columns
+    groupby_operations = ["groupby_aggregate", "group_by", "pivot", "time_series_aggregate"]
+    if operation in groupby_operations and len(required_cols) == 0:
+        print("\n" + "🛑"*40)
+        print("ROUTING GATE: BLOCKED")
+        print(f"Operation '{operation}' requires columns, but required_columns is empty")
+        print("This indicates column grounding failed")
+        print("🛑"*40 + "\n")
+        state["errors"] = state.get("errors", []) + [
+            "Column grounding failed: no valid columns found for groupby operation"
+        ]
+        return "END"  # Stop pipeline - needs clarification
+    
+    # Gate 2: If critical columns are missing and not resolved, stop
+    if len(missing_cols) > 0 and len(required_cols) == 0:
+        print("\n" + "🛑"*40)
+        print("ROUTING GATE: BLOCKED")
+        print(f"All required columns are missing: {missing_cols}")
+        print("Cannot generate tool without any valid columns")
+        print("🛑"*40 + "\n")
+        state["errors"] = state.get("errors", []) + [
+            f"Cannot ground columns: {missing_cols} not found in dataset"
+        ]
+        return "END"  # Stop pipeline - needs clarification
+    
+    # Gate 3: Warn if partial resolution (some columns grounded, some missing)
+    if len(missing_cols) > 0:
+        print(f"\n⚠️ WARNING: Proceeding with partial column resolution")
+        print(f"   Grounded: {required_cols}")
+        print(f"   Missing: {missing_cols}\n")
+    
+    # Proceed to spec generation if gates passed
+    return "spec_generator_node" if not state["has_gap"] else "spec_generator_node"

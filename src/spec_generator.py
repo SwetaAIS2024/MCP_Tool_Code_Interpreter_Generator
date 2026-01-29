@@ -92,30 +92,39 @@ class SpecGenerator:
         """
         # Try to load template
         if self.prompt_template_path.exists():
-            with open(self.prompt_template_path) as f:
+            with open(self.prompt_template_path, encoding='utf-8') as f:
                 template = f.read()
             return template.format(
                 operation=intent.get("operation", "unknown"),
-                columns=intent.get("columns", []),
+                required_columns=intent.get("required_columns", []),
+                group_by=intent.get("group_by", []),
                 metrics=intent.get("metrics", []),
                 filters=intent.get("filters", []),
-                implementation_plan=intent.get("implementation_plan", [])
+                implementation_plan=intent.get("implementation_plan", []),
+                edge_cases=intent.get("edge_cases", []),
+                validation_rules=intent.get("validation_rules", [])
             )
         
         # Fallback inline prompt
         operation = intent.get("operation", "unknown")
-        columns = intent.get("columns", [])
+        required_columns = intent.get("required_columns", [])
+        group_by = intent.get("group_by", [])
         metrics = intent.get("metrics", [])
         filters = intent.get("filters", [])
         impl_plan = intent.get("implementation_plan", [])
+        edge_cases = intent.get("edge_cases", [])
+        validation_rules = intent.get("validation_rules", [])
         
         return f"""Generate a complete ToolSpec for the following data analysis operation.
 
 OPERATION: {operation}
-COLUMNS: {columns}
+REQUIRED COLUMNS: {required_columns}
+GROUP BY: {group_by}
 METRICS: {metrics}
 FILTERS: {filters}
 IMPLEMENTATION PLAN: {impl_plan}
+EDGE CASES: {edge_cases}
+VALIDATION RULES: {validation_rules}
 
 Create a ToolSpec with:
 1. tool_name: A descriptive snake_case name based on the operation
@@ -127,7 +136,7 @@ Create a ToolSpec with:
 7. when_to_use: When this tool should be selected
 8. what_it_does: Technical description of the operation
 9. returns: Description of return value structure
-10. prerequisites: Any requirements before using this tool
+10. prerequisites: String describing requirements (e.g., "CSV file with 'state' column")
 
 Return JSON matching ToolSpec structure. Ensure tool_name is snake_case and descriptive.
 
@@ -199,6 +208,35 @@ def spec_generator_node(state: ToolGeneratorState) -> ToolGeneratorState:
         Updated state with tool_spec
     """
     from src.llm_client import create_llm_client
+    
+    # VALIDATION: Check if we have valid columns before generating spec
+    required_cols = state.get("required_columns", [])
+    missing_cols = state.get("missing_columns", [])
+    operation = state.get("operation", "")
+    
+    # Reject spec generation if critical columns are missing
+    groupby_operations = ["groupby_aggregate", "group_by", "pivot", "time_series_aggregate"]
+    if operation in groupby_operations and len(required_cols) == 0:
+        print("\n" + "="*80)
+        print("SPEC GENERATION REJECTED")
+        print("="*80)
+        print(f"Cannot generate spec for '{operation}' without required columns")
+        print(f"Missing columns: {missing_cols}")
+        print("="*80 + "\n")
+        
+        # Return state with error
+        return {
+            **state,
+            "errors": state.get("errors", []) + [
+                f"SpecGen blocked: {operation} requires columns but none are grounded"
+            ]
+        }
+    
+    # Warn if proceeding with missing columns
+    if len(missing_cols) > 0:
+        print(f"\n⚠️ WARNING: Generating spec with incomplete column set")
+        print(f"   Available: {required_cols}")
+        print(f"   Missing: {missing_cols}\n")
     
     llm_client = create_llm_client()
     spec = generate_spec(state["extracted_intent"], llm_client)

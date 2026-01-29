@@ -1,49 +1,185 @@
-Analyze this data analysis request and create a detailed implementation plan.
+You are the "IntentExtractor" module in an MCP Tool Code Interpreter Generator.
 
-USER QUERY: {query}
-DATASET: {data_path}
-AVAILABLE COLUMNS: {columns}
-COLUMN TYPES: {dtypes}
-SAMPLE VALUES: {sample_values}
+Task: Convert a natural-language data analysis request into STRICT JSON intent + an executable implementation plan (for one pandas-based MCP tool function).
+This JSON will feed ToolSpec generation and code generation + sandbox validation.
 
-Provide a thorough analysis with:
+INPUT CONTEXT
+USER_QUERY: {query}
+DATA_PATH: {data_path}
+AVAILABLE_COLUMNS: {columns}
+COLUMN_TYPES: {dtypes}
+SAMPLE_VALUES: {sample_values}
 
-1. INTENT BREAKDOWN:
-   - Primary operation (groupby, filter, aggregate, join, pivot, transform, etc.)
-   - Required columns and their roles
-   - Metrics/calculations needed (count, sum, mean, median, std, etc.)
-   - Filter conditions (if any)
-   - Sorting requirements
-   - Output format (table, chart, summary, json)
+CRITICAL RULES - COLUMN USAGE
+  ABSOLUTELY CRITICAL: The ONLY columns you can use are listed in AVAILABLE_COLUMNS above
+  DO NOT invent column names like 'severity', 'year', 'location', 'date', 'type' etc.
+  If user says "severity" but AVAILABLE_COLUMNS has "most_severe_injury", use "most_severe_injury"
+  If user says "year" but AVAILABLE_COLUMNS has "crash_month", use "crash_month" or derive from date
+  If user says "location" and no location column exists, list it in missing_columns
+  LOOK AT AVAILABLE_COLUMNS. COPY THE EXACT NAMES. DO NOT RENAME OR GUESS.
+  
+  Step-by-step process:
+  1. Read the user query and identify what they want (e.g., "accident types", "by year", "severity")
+  2. Look at AVAILABLE_COLUMNS list above and find the actual column name that matches the concept
+  3. Use COLUMN_TYPES and SAMPLE_VALUES to verify which column contains the data
+  4. Put the ACTUAL column name from AVAILABLE_COLUMNS in required_columns
+  5. If no match exists, add the user's requested concept to missing_columns
+  
+  Examples of mapping user concepts to actual columns:
+  - User says "accident types" → Look for column containing type data → Use actual name like "crash_type" or "first_crash_type"
+  - User says "by severity" → Look for injury/severity column → Use actual name like "most_severe_injury"
+  - User says "by year" → Look for date/time column → Use actual name like "crash_date" or "crash_month"
+  - User says "location" → If no location column exists → Add "location" to missing_columns
 
-2. IMPLEMENTATION PLAN (Step-by-step todo list):
-   - List each discrete step needed to accomplish the task
-   - Include data loading, transformations, calculations, formatting
-   - Specify order of operations
-   - Note any edge cases or validations needed
+HARD RULES
+  - Output MUST be valid JSON only (no markdown, no code fences, no comments).
+  - Use ONLY columns from AVAILABLE_COLUMNS. If the query references unknown columns, list them in missing_columns.
+  - Do NOT invent dataset facts. If ambiguous, list assumptions and clarifications_needed, but still output best-effort intent.
+  - Keep the plan implementable for a single MCP tool function using pandas.
+  - Decide tool gap:
+   - has_gap=true if request needs join/multi-dataset, external API, non-CSV, complex custom scoring, or domain-heavy logic.
+   - else has_gap=false.
+  - operation MUST be one of:
+   "filter","groupby_aggregate","describe_summary","pivot","sort_limit","time_series_aggregate","custom_transform"
+  - filters.operator MUST be one of:
+   "==","!="," >",">=","<","<=","in","not_in","contains","between","is_null","not_null"
+  - COLUMN SELECTION CONSTRAINT:
+   - For groupby_aggregate, pivot, time_series_aggregate operations: required_columns MUST be non-empty
+   - Every column in required_columns MUST exist in AVAILABLE_COLUMNS (no exceptions)
+   - When user mentions a concept (e.g., "accident type"), you MUST map it to the closest matching column name from AVAILABLE_COLUMNS by examining column names and sample values
+   - Never output a column name that does not appear in AVAILABLE_COLUMNS
 
-3. EXPECTED OUTPUT:
-   - Describe what the final result should look like
-   - Include column names, data types, format
+OUTPUT JSON (MUST MATCH)
 
-Return JSON with this structure:
+BEFORE YOU WRITE required_columns:
+  - Look at AVAILABLE_COLUMNS: {columns}
+  - ONLY use column names that appear EXACTLY in that list
+  - If you need a column that's NOT in AVAILABLE_COLUMNS, put it in missing_columns instead
+  - DO NOT use generic names like 'severity', 'year', 'location' if they're not in AVAILABLE_COLUMNS
+
+COMMON QUERY PATTERNS (Learn from these examples):
+
+1. "Show me the top N [THING] by count"
+   → operation: "groupby_aggregate"
+   → group_by: [column representing THING]
+   → metrics: [{{"name": "count", "column": null, "alias": "count"}}]  ← COUNT(*), not SUM(column)
+   → sort_by: ["count"]
+   → limit: N
+   Example: "top 5 accident types" → group_by: ["crash_type"], metrics: count, limit: 5
+
+2. "Show me [THING] by [DIMENSION]"
+   → operation: "groupby_aggregate"  
+   → group_by: [column for DIMENSION]
+   → metrics: [{{"name": "sum|avg|count", "column": "column_for_THING", "alias": "..."}}]
+   Example: "accidents by weather" → group_by: ["weather_condition"], metrics: count
+
+3. "Filter where [CONDITION]"
+   → operation: "filter"
+   → filters: [{{"column": "...", "operator": "...", "value": "..."}}]
+
 {{
-  "operation": "groupby_aggregate",
-  "columns": ["state", "severity"],
-  "metrics": ["count", "mean"],
-  "filters": [{{"column": "date", "operator": ">", "value": "2023-01-01"}}],
-  "sort_by": ["count"],
-  "sort_order": "descending",
-  "limit": 10,
-  "output_format": "table",
+  "has_gap": boolean,
+  "gap_reason": string,
+  
+  "operation": string,
+
+  "required_columns": [string],
+  "missing_columns": [string],
+
+  "filters": [{{"column": string, "operator": string, "value": any}}],
+  "group_by": [string],
+  "metrics": [{{"name": string, "column": string|null, "alias": string|null}}],
+  "sort_by": [string],
+  "sort_order": "ascending"|"descending",
+  "limit": integer|null,
+  "output_format": "table"|"summary"|"json"|"chart_spec",
+
   "implementation_plan": [
-    {{"step": 1, "action": "Load CSV file", "details": "Read data"}},
-    {{"step": 2, "action": "Validate columns", "details": "Check required columns exist"}}
+    {{"step": integer, "action": string, "details": string, "validations": [string]}}
   ],
-  "expected_output": {{
-    "columns": ["state", "severity", "count"],
-    "format": "markdown_table"
-  }},
-  "edge_cases": ["empty dataset", "missing columns"],
-  "validation_rules": ["columns must exist", "date must be valid format"]
+  "edge_cases": [string],
+  "validation_rules": [string],
+  "assumptions": [string],
+  "clarifications_needed": [string]
 }}
+
+
+EXAMPLE FOR REFERENCE (Note: This example uses hypothetical columns. YOU must use ACTUAL columns from AVAILABLE_COLUMNS above)
+{{
+  "has_gap": true,
+  "gap_reason": "User requested a heatmap visualization; current generic table-only tool cannot emit a heatmap/chart spec.",
+  "operation": "heatmap",
+  "required_columns": ["column_a", "column_b"],
+  "missing_columns": [],
+  "filters": [
+    {{ "column": "column_c", "operator": ">=", "value": 2023 }}
+  ],
+  "group_by": ["column_a", "column_b"],
+  "metrics": [
+    {{ "name": "count", "column": null, "alias": "count_alias" }}
+  ],
+  "sort_by": ["column_a", "column_b"],
+  "sort_order": "ascending",
+  "limit": null,
+  "output_format": "chart_spec",
+  "implementation_plan": [
+    {{
+      "step": 1,
+      "action": "Load dataset",
+      "details": "Read CSV from data_path into a pandas DataFrame (df).",
+      "validations": ["File exists at data_path", "CSV is readable into a DataFrame"]
+    }},
+    {{
+      "step": 2,
+      "action": "Validate required columns",
+      "details": "Verify df contains all columns from required_columns list.",
+      "validations": ["All required_columns exist", "missing_columns is empty or handled via fallback"]
+    }},
+    {{
+      "step": 3,
+      "action": "Apply filters (if any)",
+      "details": "Apply filters from filters list to df (coerce types if needed).",
+      "validations": ["Filter column exists", "Filter value type is compatible", "Handle empty result after filter"]
+    }},
+    {{
+      "step": 4,
+      "action": "Aggregate for heatmap matrix",
+      "details": "Compute counts by group_by columns, then pivot into a matrix using pivot_table with aggfunc='size' or count.",
+      "validations": ["Pivot produces 2D matrix", "Fill missing combinations with 0", "Result indices/columns are non-empty"]
+    }},
+    {{
+      "step": 5,
+      "action": "Generate heatmap chart specification",
+      "details": "Create a JSON chart_spec describing a heatmap with axes from group_by columns and values from metrics. Optionally include ordering, labels, and value formatting.",
+      "validations": ["chart_spec is JSON-serializable", "Axis labels match matrix columns/index"]
+    }},
+    {{
+      "step": 6,
+      "action": "Return structured output",
+      "details": "Return dict with chart_spec (primary) + lightweight metadata (row/col counts, applied filters, warnings).",
+      "validations": ["Output conforms to tool’s output_schema", "Includes clear message if matrix is empty"]
+    }}
+  ],
+  "edge_cases": [
+    "Empty dataset after filtering (return empty result with message)",
+    "High cardinality in group_by columns (result becomes too large; require top-k values)",
+    "Inconsistent values (case/typos) causing fragmented groups",
+    "Missing combinations between group_by columns (fill with 0 or null)"
+  ],
+  "validation_rules": [
+    "All required_columns must exist in AVAILABLE_COLUMNS",
+    "Filters must use supported operators",
+    "Heatmap matrix must be 2D and numeric; non-numeric values must be coerced or filled"
+  ],
+  "assumptions": [
+    "Heatmap intensity is based on count of records per (state, severity)",
+    "A UI can render chart_spec; no image is generated in Step 1"
+  ],
+  "clarifications_needed": [
+    "Confirm data types for group_by columns",
+    "Confirm whether to show all values or only top-k values by count"
+  ]
+}}
+
+
+Now output JSON only.
