@@ -60,13 +60,23 @@ class ToolExecutor:
             print(f"[EXECUTOR DEBUG] Result type: {type(result)}")
             print(f"[EXECUTOR DEBUG] Result value: {result}")
             
-            # Extract summary if available (handle both dict and non-dict results)
-            summary = None
-            if isinstance(result, dict):
-                summary = result.get("summary") or result.get("result", {}).get("summary")
+            # Ensure result is a dictionary (wrap if necessary)
+            if not isinstance(result, dict):
+                wrapped_result = {
+                    "result": result,
+                    "metadata": {
+                        "note": "Result was not returned as dict, auto-wrapped"
+                    }
+                }
+                print(f"[EXECUTOR DEBUG] Auto-wrapped non-dict result into dict")
+            else:
+                wrapped_result = result
+            
+            # Extract summary if available
+            summary = wrapped_result.get("summary") or wrapped_result.get("result", {}).get("summary") if isinstance(wrapped_result.get("result"), dict) else None
             
             return RunArtifacts(
-                result=result,
+                result=wrapped_result,
                 summary_markdown=summary,
                 execution_time_ms=(time.time() - start) * 1000,
                 error=None
@@ -193,6 +203,31 @@ def execute_tool(code: str, data_path: str, timeout: int = 300) -> RunArtifacts:
     return executor.execute(code, data_path)
 
 
+def _convert_numpy_types(obj):
+    """Recursively convert numpy types to Python native types for serialization.
+    
+    Args:
+        obj: Object that may contain numpy types
+        
+    Returns:
+        Object with numpy types converted to Python native types
+    """
+    import numpy as np
+    
+    if isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.floating):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, dict):
+        return {key: _convert_numpy_types(value) for key, value in obj.items()}
+    elif isinstance(obj, (list, tuple)):
+        return [_convert_numpy_types(item) for item in obj]
+    else:
+        return obj
+
+
 # ============================================================================
 # LangGraph Node
 # ============================================================================
@@ -212,9 +247,16 @@ def executor_node(state: ToolGeneratorState) -> ToolGeneratorState:
         timeout=300
     )
     
+    # Convert RunArtifacts to dict for serialization
+    # LangGraph's checkpointer uses msgpack which doesn't handle Pydantic models or numpy types
+    result_dict = result.model_dump() if hasattr(result, 'model_dump') else result
+    
+    # Convert numpy types to Python native types
+    result_dict = _convert_numpy_types(result_dict)
+    
     return {
         **state,
-        "execution_output": result
+        "execution_output": result_dict
     }
 
 
@@ -230,12 +272,44 @@ def route_after_execution(state: ToolGeneratorState) -> str:
     from langgraph.graph import END
     
     execution_output = state.get("execution_output")
+    repair_attempts = state.get("repair_attempts", 0)
+    max_repair_attempts = 3  # Maximum automatic repair attempts
     
     if not execution_output:
         # No execution output - something went wrong, end
         return END
     
-    # Always proceed to user feedback regardless of execution success
-    # User will review the output and decide whether to approve or reject
-    # This includes cases where execution failed or returned empty results
+    # execution_output is now a dict (converted from RunArtifacts)
+    # Structure: {"result": {...}, "error": "...", "execution_time_ms": ...}
+    has_error = False
+    error_msg = "Unknown error"
+    
+    # Check for error field
+    if execution_output.get("error"):
+        has_error = True
+        error_msg = execution_output.get("error")
+    # Also check for error in result metadata
+    elif execution_output.get("result") and isinstance(execution_output.get("result"), dict):
+        metadata = execution_output["result"].get("metadata", {})
+        if "error" in metadata:
+            has_error = True
+            error_msg = metadata.get("error", "Unknown error")
+        # Check if result is empty (no actual result returned)
+        elif not execution_output["result"].get("result"):
+            has_error = True
+            error_msg = "Empty result returned"
+    
+    # If there's an error and we haven't exceeded repair attempts, try repair
+    if has_error and repair_attempts < max_repair_attempts:
+        print(f"\n⚠️  Execution error detected (attempt {repair_attempts + 1}/{max_repair_attempts})")
+        print(f"Error: {error_msg}")
+        print("🔧 Attempting automatic code repair...\n")
+        return "repair_node"
+    
+    # If repair attempts exceeded or no error, proceed to human feedback
+    if has_error and repair_attempts >= max_repair_attempts:
+        print(f"\n❌ Maximum repair attempts ({max_repair_attempts}) exceeded")
+        print("Proceeding to human feedback for manual review\n")
+    
+    # Always proceed to user feedback for final review
     return "feedback_stage1_node"

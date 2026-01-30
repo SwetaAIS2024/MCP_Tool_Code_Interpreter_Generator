@@ -74,16 +74,6 @@ class SubprocessSandboxExecutor(BaseSandbox):
         # Strip MCP-specific code for sandbox testing
         code = self._strip_mcp_code(code)
         
-        # Validate imports before execution
-        if not self._validate_imports(code):
-            return {
-                "success": False,
-                "stdout": "",
-                "stderr": "Blocked imports detected in code",
-                "returncode": -1,
-                "execution_time_ms": 0
-            }
-        
         # Create temporary file for code
         with tempfile.NamedTemporaryFile(
             mode='w', 
@@ -98,8 +88,12 @@ class SubprocessSandboxExecutor(BaseSandbox):
             # Execute in subprocess
             start = time.time()
             
+            # Use sys.executable to ensure same Python as current process
+            import sys
+            python_executable = sys.executable
+            
             result = subprocess.run(
-                ['python', str(temp_file)],
+                [python_executable, str(temp_file), data_path],  # Pass data_path as argument
                 capture_output=True,
                 text=True,
                 timeout=timeout,
@@ -142,38 +136,56 @@ class SubprocessSandboxExecutor(BaseSandbox):
                 pass
     
     def _validate_imports(self, code: str) -> bool:
-        """Check if code contains blocked imports.
+        """Check if code contains blocked imports and only uses allowed imports.
         
         Args:
             code: Python code
             
         Returns:
-            True if code is safe, False if blocked imports detected
+            True if code is safe, False if blocked/disallowed imports detected
         """
         blocked = self.policy.get("blocked", {}).get("imports", [])
+        allowed = self.policy.get("allowed", {}).get("imports", [])
         
         # Simple check for import statements
         lines = code.split('\n')
         for line in lines:
             stripped = line.strip()
             if stripped.startswith('import ') or stripped.startswith('from '):
+                # Check blocked imports first
                 for blocked_module in blocked:
                     if blocked_module in stripped:
                         return False
+                
+                # Check if import is in allowed list (whitelist enforcement)
+                import_allowed = False
+                for allowed_module in allowed:
+                    # Handle "import pandas", "from pandas import ...", and "from scipy.stats import ..."
+                    # Check if the allowed module appears after 'import' or 'from'
+                    if (f'import {allowed_module}' in stripped or 
+                        f'from {allowed_module}.' in stripped or 
+                        f'from {allowed_module} import' in stripped):
+                        import_allowed = True
+                        break
+                
+                # If we found an import statement and it's not allowed, reject
+                if not import_allowed:
+                    return False
         
         return True
     
     def _strip_mcp_code(self, code: str) -> str:
-        """Strip MCP-specific imports and decorators for sandbox testing.
+        """Strip MCP-specific imports and decorators for sandbox testing, and add function invocation.
         
         Args:
             code: Full code with MCP decorators
             
         Returns:
-            Code with MCP parts removed
+            Code with MCP parts removed and test invocation added
         """
         lines = code.split('\n')
         cleaned_lines = []
+        function_name = None
         
         for line in lines:
             stripped = line.strip()
@@ -183,10 +195,37 @@ class SubprocessSandboxExecutor(BaseSandbox):
                 'import fastmcp' in line,
                 'mcp = FastMCP' in line,
                 stripped == '@mcp.tool()' or stripped.startswith('@mcp.tool('),
-                stripped.startswith('"""Generated MCP tool:')
+                stripped.startswith('"""Generated MCP tool:'),
+                stripped == 'import time'  # Added by wrapper but not needed in sandbox
             ]):
                 continue
+            
+            # Extract function name for test invocation
+            if stripped.startswith('def ') and '(' in stripped and function_name is None:
+                # Extract function name: "def function_name(params):" -> "function_name"
+                func_def = stripped.split('def ')[1].split('(')[0].strip()
+                function_name = func_def
+            
             cleaned_lines.append(line)
+        
+        # Add test invocation at the end if function was found
+        if function_name:
+            # Add invocation that calls the function and prints result
+            test_code = f'''
+# Test invocation
+if __name__ == "__main__":
+    import sys
+    import json
+    # Get data path from command line or use default
+    data_path = sys.argv[1] if len(sys.argv) > 1 else "test_data.csv"
+    
+    # Call the function
+    result = {function_name}(data_path)
+    
+    # Print result for validation
+    print("SANDBOX_RESULT:", json.dumps(result, default=str))
+'''
+            cleaned_lines.append(test_code)
         
         return '\n'.join(cleaned_lines)
     

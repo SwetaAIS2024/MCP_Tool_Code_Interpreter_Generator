@@ -73,10 +73,18 @@ class SpecGenerator:
         spec_dict.setdefault("returns", "Dictionary with 'result' and 'metadata' keys")
         spec_dict.setdefault("prerequisites", "CSV file with required columns")
         
-        # Handle fields that might be lists instead of strings
+        # Handle fields that might be lists or dicts instead of strings
         for field in ["when_to_use", "what_it_does", "returns", "prerequisites"]:
-            if isinstance(spec_dict.get(field), list):
-                spec_dict[field] = " ".join(spec_dict[field])
+            value = spec_dict.get(field)
+            if isinstance(value, list):
+                # Convert all items to strings before joining
+                spec_dict[field] = " ".join(str(item) for item in value)
+            elif isinstance(value, dict):
+                # Extract description or convert to string representation
+                spec_dict[field] = value.get("description", str(value))
+            elif value is not None and not isinstance(value, str):
+                # Convert any other type to string
+                spec_dict[field] = str(value)
         
         # Validate and return ToolSpec
         return ToolSpec(**spec_dict)
@@ -90,6 +98,16 @@ class SpecGenerator:
         Returns:
             Formatted prompt string
         """
+        # Format implementation_plan as readable text
+        impl_plan = intent.get("implementation_plan", [])
+        if isinstance(impl_plan, list) and impl_plan:
+            formatted_plan = "\n".join(
+                f"Step {step.get('step', i+1)}: {step.get('action', 'Unknown')} - {step.get('details', '')}"
+                for i, step in enumerate(impl_plan)
+            )
+        else:
+            formatted_plan = str(impl_plan)
+        
         # Try to load template
         if self.prompt_template_path.exists():
             with open(self.prompt_template_path, encoding='utf-8') as f:
@@ -100,7 +118,7 @@ class SpecGenerator:
                 group_by=intent.get("group_by", []),
                 metrics=intent.get("metrics", []),
                 filters=intent.get("filters", []),
-                implementation_plan=intent.get("implementation_plan", []),
+                implementation_plan=formatted_plan,
                 edge_cases=intent.get("edge_cases", []),
                 validation_rules=intent.get("validation_rules", [])
             )
@@ -111,7 +129,6 @@ class SpecGenerator:
         group_by = intent.get("group_by", [])
         metrics = intent.get("metrics", [])
         filters = intent.get("filters", [])
-        impl_plan = intent.get("implementation_plan", [])
         edge_cases = intent.get("edge_cases", [])
         validation_rules = intent.get("validation_rules", [])
         
@@ -122,7 +139,7 @@ REQUIRED COLUMNS: {required_columns}
 GROUP BY: {group_by}
 METRICS: {metrics}
 FILTERS: {filters}
-IMPLEMENTATION PLAN: {impl_plan}
+IMPLEMENTATION PLAN: {formatted_plan}
 EDGE CASES: {edge_cases}
 VALIDATION RULES: {validation_rules}
 
@@ -188,7 +205,8 @@ def generate_spec(intent: Dict[str, Any], llm_client: QwenLLMClient = None) -> T
     """
     if llm_client is None:
         from src.llm_client import create_llm_client
-        llm_client = create_llm_client()
+        # Use reasoning model for spec generation/planning
+        llm_client = create_llm_client(model_type="reasoning")
     
     generator = SpecGenerator(llm_client)
     return generator.generate(intent)
@@ -238,7 +256,8 @@ def spec_generator_node(state: ToolGeneratorState) -> ToolGeneratorState:
         print(f"   Available: {required_cols}")
         print(f"   Missing: {missing_cols}\n")
     
-    llm_client = create_llm_client()
+    # Use reasoning model for spec generation/planning
+    llm_client = create_llm_client(model_type="reasoning")
     spec = generate_spec(state["extracted_intent"], llm_client)
     
     return {

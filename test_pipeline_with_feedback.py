@@ -21,8 +21,9 @@ def test_with_feedback():
         return
     
     # Test query
-    query = "Show me the top 5 accident types by count"
-    data_path = str(test_data)
+    # query = "Show me the top 5 accident types by count"
+    query = "Run ANOVA across groups, then perform a Tukey HSD post-hoc (multiple-comparisons correction required) and report adjusted p-values and effect sizes."
+    data_path = str(test_data.resolve())  # Use absolute path for sandbox
     
     print("=" * 80)
     print("TESTING PIPELINE WITH FEEDBACK")
@@ -98,19 +99,19 @@ def test_with_feedback():
                 exec_out = current_state["execution_output"]
                 print(f"\n[EXECUTION OUTPUT]")
                 
-                # Check for failures
-                has_error = bool(exec_out.error)
-                empty_result = not exec_out.result or exec_out.result == {}
+                # Check for failures (exec_out is now a dict, not RunArtifacts object)
+                has_error = bool(exec_out.get("error"))
+                empty_result = not exec_out.get("result") or exec_out.get("result") == {}
                 
                 if has_error:
                     print(f"  ⚠️  EXECUTION FAILED")
-                    print(f"  Error: {exec_out.error}")
+                    print(f"  Error: {exec_out.get('error')}")
                 elif empty_result:
                     print(f"  ⚠️  EXECUTION RETURNED EMPTY RESULT")
                     print(f"  This likely indicates a problem with the code logic.")
                 
-                print(f"  Result: {str(exec_out.result)[:200]}")
-                print(f"  Execution Time: {exec_out.execution_time_ms:.2f}ms")
+                print(f"  Result: {str(exec_out.get('result'))[:200]}")
+                print(f"  Execution Time: {exec_out.get('execution_time_ms', 0):.2f}ms")
                 
                 if has_error or empty_result:
                     print(f"\n  💡 Recommendation: REJECT this output")

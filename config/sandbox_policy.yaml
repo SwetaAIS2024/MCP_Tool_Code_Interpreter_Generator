@@ -7,12 +7,15 @@ allowed:
     - numpy
     - matplotlib
     - seaborn
+    - scipy
+    - statsmodels
     - json
     - csv
     - datetime
     - collections
     - itertools
     - functools
+    - time
   
   max_file_size_mb: 100
   max_rows: 1000000

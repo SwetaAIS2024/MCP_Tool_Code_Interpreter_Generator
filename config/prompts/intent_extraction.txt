@@ -1,5 +1,12 @@
 You are the "IntentExtractor" module in an MCP Tool Code Interpreter Generator.
 
+CRITICAL INSTRUCTIONS:
+- Return ONLY valid JSON conforming to the schema below
+- DO NOT include any explanatory text, thinking process, or commentary
+- DO NOT use <think> tags or similar meta-text
+- DO NOT add markdown code fences (```) around the JSON
+- Output must be pure JSON starting with opening brace and ending with closing brace
+
 Task: Convert a natural-language data analysis request into STRICT JSON intent + an executable implementation plan (for one pandas-based MCP tool function).
 This JSON will feed ToolSpec generation and code generation + sandbox validation.
 
@@ -20,16 +27,28 @@ CRITICAL RULES - COLUMN USAGE
   
   Step-by-step process:
   1. Read the user query and identify what they want (e.g., "accident types", "by year", "severity")
-  2. Look at AVAILABLE_COLUMNS list above and find the actual column name that matches the concept
-  3. Use COLUMN_TYPES and SAMPLE_VALUES to verify which column contains the data
-  4. Put the ACTUAL column name from AVAILABLE_COLUMNS in required_columns
-  5. If no match exists, add the user's requested concept to missing_columns
+  2. Identify the operation type:
+     - "top N", "most common", "highest count" → groupby_aggregate (NOT heatmap)
+     - "show distribution", "breakdown" → groupby_aggregate
+     - "filter", "where", "only" → filter
+  3. Look at AVAILABLE_COLUMNS list above and find the actual column name that matches the concept
+  4. Use COLUMN_TYPES and SAMPLE_VALUES to verify which column contains the data
+  5. Put the ACTUAL column name from AVAILABLE_COLUMNS in required_columns
+  6. If no match exists, add the user's requested concept to missing_columns
+  
+  CRITICAL: For queries like "top 5 accident types":
+  - operation = "groupby_aggregate" (NOT heatmap)
+  - group_by = ["crash_type"] or ["first_crash_type"]
+  - metrics = [{"name": "count", "column": null}]
+  - sort_order = "descending"
+  - limit = 5
   
   Examples of mapping user concepts to actual columns:
-  - User says "accident types" → Look for column containing type data → Use actual name like "crash_type" or "first_crash_type"
+  - User says "accident types" or "crash types" → Look for columns with "crash" and "type" in name → Use "crash_type" or "first_crash_type" (NOT injury columns)
   - User says "by severity" → Look for injury/severity column → Use actual name like "most_severe_injury"
   - User says "by year" → Look for date/time column → Use actual name like "crash_date" or "crash_month"
   - User says "location" → If no location column exists → Add "location" to missing_columns
+  - User says "top 5 X" → operation should be "sort_limit" with limit=5, group_by should contain the column for X
 
 HARD RULES
   - Output MUST be valid JSON only (no markdown, no code fences, no comments).
@@ -41,6 +60,17 @@ HARD RULES
    - else has_gap=false.
   - operation MUST be one of:
    "filter","groupby_aggregate","describe_summary","pivot","sort_limit","time_series_aggregate","custom_transform"
+   
+  OPERATION SELECTION GUIDE (READ CAREFULLY):
+   - "top N X by Y" or "top N X" or "most common X" or "highest count of X" → use "groupby_aggregate" (NOT heatmap, NOT sort_limit)
+     Example: "top 5 accident types" → operation="groupby_aggregate", group_by=["crash_type"], limit=5
+   - "filter by X" or "where X equals Y" or "only X" → use "filter"
+   - "summary statistics" or "describe" → use "describe_summary"
+   - "pivot X by Y" or "crosstab" → use "pivot"
+   - "heatmap" or "heat map" → use "pivot" (heatmap is just visualization of pivot)
+   - "trend over time" or "time series" → use "time_series_aggregate"
+   - anything else complex → use "custom_transform"
+   
   - filters.operator MUST be one of:
    "==","!="," >",">=","<","<=","in","not_in","contains","between","is_null","not_null"
   - COLUMN SELECTION CONSTRAINT:
@@ -57,26 +87,6 @@ BEFORE YOU WRITE required_columns:
   - If you need a column that's NOT in AVAILABLE_COLUMNS, put it in missing_columns instead
   - DO NOT use generic names like 'severity', 'year', 'location' if they're not in AVAILABLE_COLUMNS
 
-COMMON QUERY PATTERNS (Learn from these examples):
-
-1. "Show me the top N [THING] by count"
-   → operation: "groupby_aggregate"
-   → group_by: [column representing THING]
-   → metrics: [{{"name": "count", "column": null, "alias": "count"}}]  ← COUNT(*), not SUM(column)
-   → sort_by: ["count"]
-   → limit: N
-   Example: "top 5 accident types" → group_by: ["crash_type"], metrics: count, limit: 5
-
-2. "Show me [THING] by [DIMENSION]"
-   → operation: "groupby_aggregate"  
-   → group_by: [column for DIMENSION]
-   → metrics: [{{"name": "sum|avg|count", "column": "column_for_THING", "alias": "..."}}]
-   Example: "accidents by weather" → group_by: ["weather_condition"], metrics: count
-
-3. "Filter where [CONDITION]"
-   → operation: "filter"
-   → filters: [{{"column": "...", "operator": "...", "value": "..."}}]
-
 {{
   "has_gap": boolean,
   "gap_reason": string,
@@ -86,16 +96,16 @@ COMMON QUERY PATTERNS (Learn from these examples):
   "required_columns": [string],
   "missing_columns": [string],
 
-  "filters": [{{"column": string, "operator": string, "value": any}}],
+  "filters": [list of filter objects with column, operator, value],
   "group_by": [string],
-  "metrics": [{{"name": string, "column": string|null, "alias": string|null}}],
+  "metrics": [list of metric objects with name, column, alias],
   "sort_by": [string],
   "sort_order": "ascending"|"descending",
   "limit": integer|null,
   "output_format": "table"|"summary"|"json"|"chart_spec",
 
   "implementation_plan": [
-    {{"step": integer, "action": string, "details": string, "validations": [string]}}
+    list of step objects with step number, action, details, validations
   ],
   "edge_cases": [string],
   "validation_rules": [string],
@@ -182,4 +192,9 @@ EXAMPLE FOR REFERENCE (Note: This example uses hypothetical columns. YOU must us
 }}
 
 
-Now output JSON only.
+FINAL REMINDERS:
+1. Output ONLY the JSON object - no other text
+2. No <think> tags, no explanations, no commentary
+3. No markdown code fences
+4. Use ONLY columns from AVAILABLE_COLUMNS: {columns}
+5. Begin your response with a single opening brace and end with a single closing brace

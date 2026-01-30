@@ -1,0 +1,365 @@
+
+
+(c_venv) (base) PS C:\Users\admin\Desktop\sweta\code_generator_interpreter\MCP_Tool_Code_Interpreter_Generator> python .\test_pipeline_with_feedback.py
+================================================================================
+TESTING PIPELINE WITH FEEDBACK
+================================================================================
+Query: Run ANOVA across groups, then perform a Tukey HSD post-hoc (multiple-comparisons correction required) and report adjusted p-values and effect sizes.
+Data: C:\Users\admin\Desktop\sweta\code_generator_interpreter\MCP_Tool_Code_Interpreter_Generator\reference_files\sample_planner_output\traffic_accidents.csv
+================================================================================
+
+
+================================================================================
+INTENT EXTRACTION - AVAILABLE COLUMNS:
+================================================================================
+Columns: ['crash_date', 'traffic_control_device', 'weather_condition', 'lighting_condition', 'first_crash_type', 'trafficway_type', 'alignment', 'roadway_surface_cond', 'road_defect', 'crash_type', 'intersection_related_i', 'damage', 'prim_contributory_cause', 'num_units', 'most_severe_injury', 'injuries_total', 'injuries_fatal', 'injuries_incapacitating', 'injuries_non_incapacitating', 'injuries_reported_not_evident', 'injuries_no_indication', 'crash_hour', 'crash_day_of_week', 'crash_month']      
+================================================================================
+
+
+================================================================================
+EXTRACTED INTENT:
+================================================================================
+Required columns: ['traffic_control_device', 'injuries_total']
+Missing columns: []
+Operation: custom_transform
+================================================================================
+
+
+📍 Event: ['intent_node']
+
+📍 Event: ['spec_generator_node']
+
+✓ Using template file: config\prompts\code_generation.txt
+
+================================================================================
+CODE GENERATION PROMPT:
+================================================================================
+Generate Python function code for this tool specification.
+
+TOOL NAME: analyze_traffic_control_injury_impact
+DESCRIPTION: Performs an ANOVA test followed by Tukey HSD post-hoc analysis to compare total injuries across different traffic control devices.
+PARAMETERS: [
+  {
+    "name": "file_path",
+    "type": "str",
+    "description": "Path to CSV file containing 'traffic_control_device' and 'injuries_total'",
+    "required": true
+  }
+]
+REQUIRED COLUMNS: traffic_control_device, injuries_total
+IMPLEMENTATION PLAN: Import required libraries: scipy.stats for ANOVA and statsmodels.stats.multicomp for Tukey HSD Load data from CSV file and validate required columns exist Group data by 'traffic_control_device' Run ANOVA to test for differences in injuries across groups Perform post-hoc Tukey HSD testing with multiple-comparisons correction Calculate eta-squared effect sizes Format results including F-statistic, p-values, adjusted p-values, and effect sizes
+WHAT IT DOES: Import required libraries...
+================================================================================
+
+
+================================================================================
+RAW LLM RESPONSE:
+================================================================================
+```python
+import pandas as pd
+from scipy.stats import f_oneway
+from statsmodels.stats.multicomp import pairwise_tukeyhsd
+
+def analyze_traffic_control_injury_impact(file_path: str):
+    """
+    Performs an ANOVA test followed by Tukey HSD post-hoc analysis to compare total injuries across different traffic control devices.
+
+    Parameters:
+    file_path (str): Path to CSV file containing 'traffic_control_device' and 'injuries_total'
+
+    Returns:
+    dict: A dictionary with 'result' and 'metadata' keys
+    """
+    try:
+        # Load data from CSV file
+        df = pd.read_csv(file_path)
+
+        # Validate required columns exist
+        required_columns = ['traffic_control_device', 'injuries_total']
+        if not all(column in df.columns for column in required_columns):
+            raise ValueError(f"CSV file must contain the following columns: {required_columns}")
+
+        # Group data by 'traffic_control_device'
+        grouped_data = df.groupby('traffic_cont...
+================================================================================
+
+
+================================================================================
+EXTRACTED CODE (before wrapping):
+================================================================================
+from scipy.stats import f_oneway
+from statsmodels.stats.multicomp import pairwise_tukeyhsd
+
+def analyze_traffic_control_injury_impact(file_path: str):
+    """
+    Performs an ANOVA test followed by Tukey HSD post-hoc analysis to compare total injuries across different traffic control devices.
+
+    Parameters:
+    file_path (str): Path to CSV file containing 'traffic_control_device' and 'injuries_total'
+
+    Returns:
+    dict: A dictionary with 'result' and 'metadata' keys
+    """
+    try:
+        # Load data from CSV file
+        df = pd.read_csv(file_path)
+
+        # Validate required columns exist
+        required_columns = ['traffic_control_device', 'injuries_total']
+        if not all(column in df.columns for column in required_columns):
+            raise ValueError(f"CSV file must contain the following columns: {required_columns}")
+
+        # Group data by 'traffic_control_device'
+        grouped_data = df.groupby('traffic_control_device')['injuries_total']...
+================================================================================
+
+
+================================================================================
+WRAPPED CODE (before black formatting):
+================================================================================
+"""Generated MCP tool: analyze_traffic_control_injury_impact"""
+
+from fastmcp import FastMCP
+import pandas as pd
+import time
+from scipy.stats import f_oneway
+from statsmodels.stats.multicomp import pairwise_tukeyhsd
+
+mcp = FastMCP("data_analysis_tools")
+
+
+@mcp.tool()
+def analyze_traffic_control_injury_impact(file_path: str):
+    """
+    Performs an ANOVA test followed by Tukey HSD post-hoc analysis to compare total injuries across different traffic control devices.
+
+    Parameters:
+    file_path (str): Path to CSV file containing 'traffic_control_device' and 'injuries_total'
+
+    Returns:
+    dict: A dictionary with 'result' and 'metadata' keys
+    """
+    try:
+        # Load data from CSV file
+        df = pd.read_csv(file_path)
+
+        # Validate required columns exist
+        required_columns = ['traffic_control_device', 'injuries_total']
+        if not all(column in df.columns for column in required_columns):
+            raise ValueError(f"CSV file must contain the...
+================================================================================
+
+
+================================================================================
+FINAL FORMATTED CODE:
+================================================================================
+"""Generated MCP tool: analyze_traffic_control_injury_impact"""
+
+from fastmcp import FastMCP
+import pandas as pd
+import time
+from scipy.stats import f_oneway
+from statsmodels.stats.multicomp import pairwise_tukeyhsd
+
+mcp = FastMCP("data_analysis_tools")
+
+
+@mcp.tool()
+def analyze_traffic_control_injury_impact(file_path: str):
+    """
+    Performs an ANOVA test followed by Tukey HSD post-hoc analysis to compare total injuries across different traffic control devices.
+
+    Parameters:
+    file_path (str): Path to CSV file containing 'traffic_control_device' and 'injuries_total'
+
+    Returns:
+    dict: A dictionary with 'result' and 'metadata' keys
+    """
+    try:
+        # Load data from CSV file
+        df = pd.read_csv(file_path)
+
+        # Validate required columns exist
+        required_columns = ["traffic_control_device", "injuries_total"]
+        if not all(column in df.columns for column in required_columns):
+            raise ValueError(
+                f"CSV file must contain the following columns: {required_columns}"
+            )
+
+        # Group data by 'traffic_control_device'
+        grouped_data = df.groupby("traffic_control_device")["injuries_total"].apply(
+            list
+        )
+
+        # Check if there are at least two groups
+        if len(grouped_data) < 2:
+            raise ValueError(
+                "There must be at least two different traffic control devices to perform ANOVA."
+            )
+
+        # Run ANOVA to test for differences in injuries across groups
+        anova_result = f_oneway(*grouped_data)
+        f_statistic, p_value = anova_result
+
+        # Calculate eta-squared effect size
+        n = len(df)
+        k = len(grouped_data)
+        ss_between = sum(
+            len(v) * (mean(v) - mean(df["injuries_total"])) ** 2
+            for v in grouped_data.values()
+        )
+        ss_within = sum(
+            sum((x - mean(v)) ** 2 for x in v) for v in grouped_data.values()
+        )
+        eta_squared = ss_between / (ss_between + ss_within)
+
+        # Perform post-hoc Tukey HSD testing with multiple-comparisons correction
+        tukey_hsd_result = pairwise_tukeyhsd(
+            df["injuries_total"], df["traffic_control_device"]
+        )
+
+        # Format results
+        result = {
+            "f_statistic": f_statistic,
+            "p_value": p_value,
+            "eta_squared": eta_squared,
+            "tukey_hsd_summary": tukey_hsd_result.summary().as_text(),
+        }
+
+        metadata = {"file_path": file_path, "num_groups": k, "total_observations": n}
+
+        return {"result": result, "metadata": metadata}
+
+    except Exception as e:
+        return {"result": {}, "metadata": {"error": str(e)}}
+
+================================================================================
+
+
+📍 Event: ['code_generator_node']
+
+================================================================================
+VALIDATION RESULTS:
+================================================================================
+Schema OK: True
+Tests OK: False
+Sandbox OK: False
+
+ERRORS (1):
+  1. Runtime error detected in output: SANDBOX_RESULT: {"result": {}, "metadata": {"error": "'numpy.ndarray' object is not callable"}}
+
+================================================================================
+
+
+📍 Event: ['validator_node']
+
+================================================================================
+REPAIR ATTEMPT #1
+================================================================================
+Errors to fix: 1
+  1. Runtime error detected in output: SANDBOX_RESULT: {"result": {}, "metadata": {"error": "'numpy.ndarray' object is not callable"}}
+
+================================================================================
+
+
+📍 Event: ['repair_node']
+
+================================================================================
+VALIDATION RESULTS:
+================================================================================
+Schema OK: True
+Tests OK: False
+Sandbox OK: False
+
+ERRORS (1):
+  1. Runtime error detected in output: SANDBOX_RESULT: {"result": {}, "metadata": {"error": "operands could not be broadcast together with shapes (11,) (17,) "}}       
+
+================================================================================
+
+
+📍 Event: ['validator_node']
+
+================================================================================
+REPAIR ATTEMPT #2
+================================================================================
+Errors to fix: 1
+  1. Runtime error detected in output: SANDBOX_RESULT: {"result": {}, "metadata": {"error": "operands could not be broadcast together with shapes (11,) (17,) "}}       
+
+================================================================================
+
+
+📍 Event: ['repair_node']
+
+================================================================================
+VALIDATION RESULTS:
+================================================================================
+Schema OK: True
+Tests OK: False
+Sandbox OK: False
+
+ERRORS (1):
+  1. Runtime error detected in output: SANDBOX_RESULT: {"result": {}, "metadata": {"error": "name 'group_mean' is not defined"}}
+
+================================================================================
+
+
+📍 Event: ['validator_node']
+
+================================================================================
+REPAIR ATTEMPT #3
+================================================================================
+Errors to fix: 1
+  1. Runtime error detected in output: SANDBOX_RESULT: {"result": {}, "metadata": {"error": "name 'group_mean' is not defined"}}
+
+================================================================================
+
+
+📍 Event: ['repair_node']
+
+================================================================================
+VALIDATION RESULTS:
+================================================================================
+Schema OK: True
+Tests OK: True
+Sandbox OK: True
+================================================================================
+
+
+📍 Event: ['validator_node']
+
+[EXECUTOR] Module contents: ['FastMCP', 'analyze_traffic_control_injury_impact', 'f_oneway', 'mcp', 'np', 'pairwise_tukeyhsd', 'pd', 'time']
+[EXECUTOR] Checking 'analyze_traffic_control_injury_impact': type=<class 'fastmcp.tools.tool.FunctionTool'>, callable=False, is_function=False
+[EXECUTOR] Found FunctionTool, extracting underlying function...
+[EXECUTOR DEBUG] Result type: <class 'dict'>
+[EXECUTOR DEBUG] Result value: {'result': {'f_statistic': np.float64(23.049247120484434), 'p_value': np.float64(8.662993389566553e-77), 'adjusted_p_values': [0.9999941254805866, 1.0, 0.9999998322288209, 0.9999939315423546, 1.0, 0.9999999445140078, 0.9999999991095095, 0.9999996626771374, 0.9999999999999837, 0.9999997965473103, 0.9999636424929887, 0.9994851380457485, 0.9993875732043713, 0.9966032333757928, 0.9999999948916263, 0.9999999734695385, 0.9993035194582017, 1.0, 0.9994808442209941, 0.7522414367729695, 0.514563554207121, 0.9999163176393807, 0.7455448081785891, 0.9752226213157292, 0.7163429299675454, 0.9792003413444808, 0.9999999997063828, 0.510715090485423, 0.3533666967098352, 0.6116704473681633, 0.9999999997751089, 0.8037336305247251, 0.7556865355545669, 0.22272941866275808, 0.984348753844759, 0.7396293977837118, 0.0227955470797937, 0.9999999999999308, 0.4415287662881774, 0.9999620712983701, 0.6137367312415645, 0.9999861637884244, 0.9470575173941919, 0.33807263070281257, 0.18103242125486763, 0.8689749221131784, 0.6486629161861039, 0.49704247573370663, 0.3330566286344405, 0.00010999801235989093, 0.9999915077382534, 0.9999999949881584, 0.9999999974818076, 0.9999999999999997, 1.0, 1.0, 0.9999534148235688, 0.0019374052996081748, 0.9999995573717612, 0.9995195281924347, 0.9999700719265846, 0.023443740933821178, 0.9999999913880814, 0.9999999999971193, 0.9385342095227169, 0.9392999436889576, 0.9999997080969164, 0.970046564565956, 0.9999999999971143, 0.9999999993307713, 0.961043410159839, 1.3924417174848713e-12, 0.9999999995240972, 0.9999134478395462, 0.9999971834782857, 0.0017140957244783372, 0.0, 0.0, 7.980770933002646e-09, 0.00036241131723757647, 0.9999999995350841, 0.9999999999965459, 0.9999999935192049, 1.0, 0.9999861214961938, 0.9999965938781943, 0.9999008491210064, 0.9998484895221047, 0.9829560673523852, 0.9999999999869944, 0.9999999998474091, 0.9998666729553957, 1.0, 1.0, 0.9999999999994733, 0.9999432272014339, 1.4181312880667818e-06, 0.99986243842462, 0.9876729001525585, 0.9998295044326175, 0.012382428945094004, 0.9999997619956881, 0.9999999999999923, 0.004283915009611006, 0.5274798437493786, 1.0, 0.999999999953054, 0.9214986251969288, 0.9999999975406063, 0.9999977055596395, 0.9999947044129515, 0.5376445572820975, 1.0, 1.0, 0.9999955634285126, 0.999999957374761, 0.9998230799592916, 0.0004633383874398378, 0.9999998351679372, 0.9996607854047651, 0.9999800183616225, 0.016405927549697608, 0.9999994944479352, 0.9999999990817305, 0.9249513709806726, 0.8513058809279455, 0.47782549931550744, 0.9827258309574475, 0.8921157979085539, 0.9935441818728462, 0.2801412235901215, 0.9999980579669302, 0.9999633823402331, 0.3509322990878917, 0.9999999999995492, 0.0004757428628082705, 0.0003106081067975053, 0.29484317972234064, 0.9954929667763246, 5.98639089410824e-08, 8.684478025600129e-09, 0.0, 0.05150638407239061, 0.9999999998027196, 0.9999999924046012, 0.0064583638541797495, 0.9940179066097942, 0.9988287256209976, 0.9999999971166876, 0.5642099940089905, 0.9999999999999273, 0.0028936166612040237, 0.9181111237352693, 0.96236338653651, 1.0, 0.33485903320344823, 0.09729036648654743, 0.9991908998638352, 0.999651964206755, 0.9999999999888034, 0.9634409661147951, 0.016137863132389962, 0.010845922198039482, 0.00010235345232068038, 0.2036257829881455, 0.07228660902062256, 0.0, 0.42121718826277565, 0.0, 0.17889710045661267, 3.325594466474513e-09], 'effect_sizes': np.float64(0.0019784583495879343), 'group_means': {'BICYCLE CROSSING SIGN': 0.5454545454545454, 'DELINEATORS': 0.8235294117647058, 'FLASHING CONTROL SIGNAL': 0.5733333333333334, 'LANE USE MARKING': 0.3660130718954248, 'NO CONTROLS': 0.3282838552257015, 'NO PASSING': 0.5, 'OTHER': 0.382089552238806, 'OTHER RAILROAD CROSSING': 0.391304347826087, 'OTHER REG. SIGN': 0.35911602209944754, 'OTHER WARNING SIGN': 0.47368421052631576, 'PEDESTRIAN CROSSING SIGN': 0.7246963562753036, 'POLICE/FLAGMAN': 0.28846153846153844, 'RAILROAD CROSSING GATE': 0.23076923076923078, 'RR CROSSING SIGN': 0.16666666666666666, 'SCHOOL ZONE': 0.9393939393939394, 'STOP SIGN/FLASHER': 0.40493294531838253, 'TRAFFIC SIGNAL': 0.39045052604401986, 'UNKNOWN': 0.24377104377104378, 'YIELD': 0.5042735042735043}}, 'metadata': {'input_file': 'C:\\Users\\admin\\Desktop\\sweta\\code_generator_interpreter\\MCP_Tool_Code_Interpreter_Generator\\reference_files\\sample_planner_output\\traffic_accidents.csv'}}
+
+📍 Event: ['executor_node']
+
+📍 Event: ['__interrupt__']
+
+================================================================================
+⏸️  PIPELINE PAUSED - AWAITING FEEDBACK
+================================================================================
+Next node: ('feedback_stage1_node',)
+
+🔍 STAGE 1 APPROVAL - Review Execution Output
+--------------------------------------------------------------------------------
+
+[TOOL SPEC]
+  Name: analyze_traffic_control_injury_impact
+  Description: Performs an ANOVA test followed by Tukey HSD post-hoc analysis to compare total injuries across different traffic control devices....
+
+[VALIDATION]
+  Schema OK: True
+  Tests OK: True
+  Sandbox OK: True
+
+[EXECUTION OUTPUT]
+Traceback (most recent call last):
+  File "C:\Users\admin\Desktop\sweta\code_generator_interpreter\MCP_Tool_Code_Interpreter_Generator\test_pipeline_with_feedback.py", line 245, in <module>
+    test_with_feedback()
+  File "C:\Users\admin\Desktop\sweta\code_generator_interpreter\MCP_Tool_Code_Interpreter_Generator\test_pipeline_with_feedback.py", line 103, in test_with_feedback    
+    has_error = bool(exec_out.error)
+                     ^^^^^^^^^^^^^^
+AttributeError: 'dict' object has no attribute 'error'
+(c_venv) (base) PS C:\Users\admin\Desktop\sweta\code_generator_interpreter\MCP_Tool_Code_Interpreter_Generator> 

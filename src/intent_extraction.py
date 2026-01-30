@@ -23,7 +23,7 @@ class IntentExtractor:
             llm_client: Configured Qwen LLM client
         """
         self.llm = llm_client
-        self.prompt_template_path = Path("config/prompts/intent_extraction.txt")
+        self.prompt_template_path = Path("config/prompts/intent_extraction_v2.txt")
     
     def extract(self, query: str, data_path: str) -> Dict[str, Any]:
         """Extract structured intent from user query.
@@ -107,8 +107,19 @@ class IntentExtractor:
             "required": ["has_gap", "operation", "required_columns", "implementation_plan"]
         }
         
+        # System message to enforce following the user's requested analysis
+        system_message = """You are an intent extraction system. Your job is to understand the user's query and create an implementation plan for the EXACT analysis they requested.
+
+CRITICAL RULES:
+1. If the user asks for "ANOVA", your implementation_plan MUST describe ANOVA analysis (scipy.stats.f_oneway), NOT correlation, chi-square, or any other test
+2. If the user asks for "correlation", your implementation_plan MUST describe correlation analysis (scipy.stats.pearsonr), NOT ANOVA
+3. If the user asks for "Tukey HSD", your plan MUST include statsmodels.stats.multicomp.pairwise_tukeyhsd
+4. DO NOT substitute different statistical methods than what the user explicitly requested
+5. Output ONLY valid JSON - no thinking process, no explanations, no markdown
+6. The 'operation' field is REQUIRED - never return null/None for it"""
+        
         # Use Qwen LLM for detailed extraction
-        intent = self.llm.generate_structured(prompt, schema)
+        intent = self.llm.generate_structured(prompt, schema, system_message=system_message)
         
         # CRITICAL: Validate and ground column names to prevent hallucination
         required_cols = intent.get('required_columns', [])
@@ -256,7 +267,29 @@ class IntentExtractor:
         Returns:
             Formatted prompt string
         """
-        # Try to load template, fallback to inline if not found
+        # Check if query contains statistical keywords - use simpler focused prompt
+        statistical_keywords = [
+            'anova', 'f-test', 'f-statistic', 'analysis of variance',
+            't-test', 'tukey', 'bonferroni', 'post-hoc', 'multiple comparison',
+            'chi-square', 'chi2', 'pearson', 'spearman', 'correlation',
+            'regression', 'effect size', "cohen's d", 'eta-squared'
+        ]
+        
+        query_lower = query.lower()
+        has_statistical_keywords = any(keyword in query_lower for keyword in statistical_keywords)
+        
+        if has_statistical_keywords:
+            # Use simpler ANOVA-focused prompt
+            anova_prompt_path = Path("config/prompts/intent_extraction_anova.txt")
+            if anova_prompt_path.exists():
+                with open(anova_prompt_path, encoding='utf-8') as f:
+                    template = f.read()
+                return template.format(
+                    query=query,
+                    columns=columns
+                )
+        
+        # Try to load standard template
         if self.prompt_template_path.exists():
             with open(self.prompt_template_path, encoding='utf-8') as f:
                 template = f.read()
@@ -476,7 +509,8 @@ def intent_node(state: ToolGeneratorState) -> ToolGeneratorState:
     """
     from src.llm_client import create_llm_client
     
-    llm_client = create_llm_client()
+    # Use reasoning model for intent extraction and planning
+    llm_client = create_llm_client(model_type="reasoning")
     intent = extract_intent(state["user_query"], state["data_path"], llm_client)
     gap_detected = detect_capability_gap(intent)
     

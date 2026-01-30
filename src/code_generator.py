@@ -112,15 +112,16 @@ class CodeGenerator:
         return self._extract_function_only(text)
     
     def _extract_function_only(self, code: str) -> str:
-        """Extract ONLY the actual function definition, skipping mocks/placeholders.
+        """Extract ONLY the actual function definition, skipping mocks/placeholders but preserving custom imports.
         
         Args:
             code: Code that may contain mocks, imports, placeholders
             
         Returns:
-            Just the function definition
+            Custom imports + function definition
         """
         lines = code.split('\n')
+        custom_imports = []
         function_lines = []
         in_function = False
         function_indent = 0
@@ -128,6 +129,18 @@ class CodeGenerator:
         
         for i, line in enumerate(lines):
             stripped = line.strip()
+            
+            # Collect custom imports (scipy, statsmodels, matplotlib, numpy, etc.) before function
+            if not in_function and (stripped.startswith('import ') or stripped.startswith('from ')):
+                # Preserve imports that are NOT standard ones we add ourselves
+                is_standard = (
+                    'fastmcp' in stripped.lower() or
+                    stripped == 'import pandas as pd' or
+                    stripped == 'import time'
+                )
+                if not is_standard:
+                    custom_imports.append(line)
+                continue
             
             # Skip mock/placeholder decorator definitions
             if 'def mcp_tool' in stripped or 'def decorator' in stripped or 'class FastMCP' in stripped:
@@ -157,7 +170,12 @@ class CodeGenerator:
                     break
         
         if function_lines:
-            return '\n'.join(function_lines)
+            result = []
+            if custom_imports:
+                result.extend(custom_imports)
+                result.append('')  # Blank line after imports
+            result.extend(function_lines)
+            return '\n'.join(result)
         
         # Fallback
         return code.strip()
@@ -297,32 +315,57 @@ Generate the complete function now:
                 if spec_param_name and spec_param_name != "data_path":
                     code = re.sub(r'\bdata_path\b', spec_param_name, code)
         
-        # Remove any existing imports or decorators from LLM output
+        # Extract imports and clean code
         lines = code.strip().split('\n')
         clean_lines = []
+        custom_imports = []
         skip_until_def = True
         
         for line in lines:
+            stripped = line.strip()
+            
             if skip_until_def:
-                if line.strip().startswith('def '):
+                # Preserve custom imports (scipy, statsmodels, numpy, etc.)
+                if stripped.startswith('import ') or stripped.startswith('from '):
+                    # Check if it's NOT a standard import we'll add ourselves
+                    # Must match the EXACT imports we're adding, not just contain the string
+                    is_standard = (
+                        stripped == 'from fastmcp import FastMCP' or
+                        stripped == 'import pandas as pd' or
+                        stripped == 'import time' or
+                        'fastmcp' in stripped.lower() and 'FastMCP' in stripped
+                    )
+                    if not is_standard:
+                        custom_imports.append(line)
+                    continue
+                
+                # Skip decorators, mcp definitions, and comments until we reach the function
+                if stripped.startswith('def '):
                     skip_until_def = False
-                    # Keep the line as-is, don't add type hints
                     clean_lines.append(line)
-                elif 'import' not in line.lower() and '@' not in line and 'class' not in line.lower() and line.strip():
-                    # Skip placeholder classes/decorators but keep docstrings
-                    if not line.strip().startswith('#'):
-                        continue
+                elif stripped.startswith('@') or 'mcp' in stripped.lower() or 'FastMCP' in stripped:
+                    continue
+                elif stripped and not stripped.startswith('#'):
+                    # Keep docstrings and other content
+                    if '"""' in stripped or "'''" in stripped:
+                        clean_lines.append(line)
             else:
                 clean_lines.append(line)
         
         clean_code = '\n'.join(clean_lines)
         
+        # Build import section
+        import_section = '''from fastmcp import FastMCP
+import pandas as pd
+import time'''
+        
+        if custom_imports:
+            import_section += '\n' + '\n'.join(custom_imports)
+        
         # Build complete code with proper structure
         full_code = f'''"""Generated MCP tool: {tool_name}"""
 
-from fastmcp import FastMCP
-import pandas as pd
-import time
+{import_section}
 
 mcp = FastMCP("data_analysis_tools")
 
@@ -545,7 +588,8 @@ def code_generator_node(state: ToolGeneratorState) -> ToolGeneratorState:
     """
     from src.llm_client import create_llm_client
     
-    llm_client = create_llm_client()
+    # Use coding model for code generation
+    llm_client = create_llm_client(model_type="coding")
     code = generate_code(state["tool_spec"], llm_client)
     
     return {
@@ -556,7 +600,7 @@ def code_generator_node(state: ToolGeneratorState) -> ToolGeneratorState:
 
 
 def repair_node(state: ToolGeneratorState) -> ToolGeneratorState:
-    """LangGraph node: Repair code based on validation errors.
+    """LangGraph node: Repair code based on validation or execution errors.
     
     Args:
         state: Current generator state
@@ -566,21 +610,40 @@ def repair_node(state: ToolGeneratorState) -> ToolGeneratorState:
     """
     from src.llm_client import create_llm_client
     
+    # Collect errors from validation and execution
+    errors = []
+    
+    # Validation errors
+    if state.get("validation_result") and state["validation_result"].errors:
+        errors.extend(state["validation_result"].errors)
+    
+    # Execution errors
+    if state.get("execution_output"):
+        metadata = state["execution_output"].get("metadata", {})
+        if "error" in metadata:
+            exec_error = f"Execution Error: {metadata['error']}"
+            errors.append(exec_error)
+            print(f"\n🔧 Repairing execution error: {metadata['error']}\n")
+    
+    if not errors:
+        print("\n⚠️  No errors found to repair")
+        return state
+    
     # DEBUG: Print repair info
     print("\n" + "="*80)
-    print(f"REPAIR ATTEMPT #{state['repair_attempts'] + 1}")
+    print(f"REPAIR ATTEMPT #{state.get('repair_attempts', 0) + 1}")
     print("="*80)
-    print(f"Errors to fix: {len(state['validation_result'].errors)}")
-    for i, err in enumerate(state['validation_result'].errors, 1):
+    print(f"Errors to fix: {len(errors)}")
+    for i, err in enumerate(errors, 1):
         print(f"  {i}. {err}")
     print("="*80 + "\n")
     
-    llm_client = create_llm_client()
-    errors = state["validation_result"].errors
+    # Use coding model for code repair
+    llm_client = create_llm_client(model_type="coding")
     repaired = repair_code(state["generated_code"], errors, state["tool_spec"], llm_client)
     
     return {
         **state,
         "generated_code": repaired,
-        "repair_attempts": state["repair_attempts"] + 1
+        "repair_attempts": state.get("repair_attempts", 0) + 1
     }

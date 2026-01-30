@@ -16,12 +16,13 @@ class BaseLLMClient(ABC):
     """Abstract base class for LLM clients."""
     
     @abstractmethod
-    def generate(self, prompt: str, temperature: float = 0.7) -> str:
+    def generate(self, prompt: str, temperature: float = 0.7, system_message: str = None) -> str:
         """Generate free-form text response.
         
         Args:
             prompt: Input prompt for the LLM
             temperature: Sampling temperature (0.0-1.0)
+            system_message: Optional system message to guide behavior
             
         Returns:
             Generated text response
@@ -29,12 +30,13 @@ class BaseLLMClient(ABC):
         pass
     
     @abstractmethod
-    def generate_structured(self, prompt: str, schema: Dict) -> Dict:
+    def generate_structured(self, prompt: str, schema: Dict, system_message: str = None) -> Dict:
         """Generate structured JSON response.
         
         Args:
             prompt: Input prompt with instructions for JSON output
             schema: Expected JSON schema (for documentation)
+            system_message: Optional system message to enforce JSON output
             
         Returns:
             Parsed JSON dictionary
@@ -49,11 +51,12 @@ class BaseLLMClient(ABC):
 class QwenLLMClient(BaseLLMClient):
     """LLM client for Qwen 2.5-Coder via vLLM server."""
     
-    def __init__(self, config_path: str = "config/config.yaml"):
+    def __init__(self, config_path: str = "config/config.yaml", model_override: str = None):
         """Initialize Qwen client with configuration.
         
         Args:
             config_path: Path to YAML configuration file
+            model_override: Optional model name to override config (e.g., 'reasoning', 'coding', or full model name)
         """
         config_file = Path(config_path)
         if not config_file.exists():
@@ -67,15 +70,27 @@ class QwenLLMClient(BaseLLMClient):
             base_url=self.config["llm"]["base_url"],
             api_key="not-needed"  # vLLM doesn't require API key
         )
-        self.model = self.config["llm"]["model"]
+        
+        # Determine which model to use
+        if model_override:
+            # Check if it's a task type (reasoning/coding) or a full model name
+            if model_override in ["reasoning", "coding", "default"]:
+                self.model = self.config["llm"]["models"].get(model_override, self.config["llm"]["model"])
+            else:
+                self.model = model_override
+        else:
+            # Use default model
+            self.model = self.config["llm"].get("models", {}).get("default", self.config["llm"]["model"])
+        
         self.default_temperature = self.config["llm"].get("temperature", 0.3)
     
-    def generate(self, prompt: str, temperature: float = None) -> str:
+    def generate(self, prompt: str, temperature: float = None, system_message: str = None) -> str:
         """Generate free-form text response.
         
         Args:
             prompt: Input prompt for the LLM
             temperature: Sampling temperature (uses config default if None)
+            system_message: Optional system message to guide model behavior
             
         Returns:
             Generated text response
@@ -84,21 +99,27 @@ class QwenLLMClient(BaseLLMClient):
             temperature = self.default_temperature
         
         try:
+            messages = []
+            if system_message:
+                messages.append({"role": "system", "content": system_message})
+            messages.append({"role": "user", "content": prompt})
+            
             response = self.client.chat.completions.create(
                 model=self.model,
-                messages=[{"role": "user", "content": prompt}],
+                messages=messages,
                 temperature=temperature
             )
             return response.choices[0].message.content
         except Exception as e:
             raise RuntimeError(f"LLM generation failed: {e}")
     
-    def generate_structured(self, prompt: str, schema: Optional[Dict] = None) -> Dict:
+    def generate_structured(self, prompt: str, schema: Optional[Dict] = None, system_message: str = None) -> Dict:
         """Generate structured JSON response.
         
         Args:
             prompt: Input prompt requesting JSON output
             schema: Expected JSON schema (for documentation, not enforced)
+            system_message: Optional system message to enforce JSON-only output
             
         Returns:
             Parsed JSON dictionary
@@ -106,10 +127,26 @@ class QwenLLMClient(BaseLLMClient):
         Raises:
             ValueError: If response is not valid JSON
         """
-        # Use low temperature for structured output
-        response = self.generate(prompt, temperature=0.2)
+        # Use strict system message for structured output if not provided
+        if system_message is None:
+            system_message = (
+                "You are a JSON generation system. "
+                "Return ONLY valid JSON conforming to the schema. "
+                "DO NOT include any explanatory text, thinking process, commentary, or meta-text. "
+                "DO NOT use <think> tags or similar reasoning markers. "
+                "DO NOT add markdown code fences around the JSON. "
+                "Output must be pure JSON starting with { and ending with }."
+            )
+        
+        # Use very low temperature for structured output
+        response = self.generate(prompt, temperature=0.0, system_message=system_message)
         
         try:
+            # Remove <think> tags if present (common with reasoning models)
+            if "<think>" in response and "</think>" in response:
+                # Extract content after </think>
+                response = response.split("</think>", 1)[1].strip()
+            
             # Try to extract JSON from markdown code blocks if present
             if "```json" in response:
                 # Extract JSON from markdown code block
@@ -122,24 +159,38 @@ class QwenLLMClient(BaseLLMClient):
                 end = response.find("```", start)
                 json_str = response[start:end].strip()
             else:
-                json_str = response.strip()
+                # Look for JSON object boundaries
+                # Find first { and last }
+                first_brace = response.find("{")
+                last_brace = response.rfind("}")
+                
+                if first_brace != -1 and last_brace != -1 and last_brace > first_brace:
+                    json_str = response[first_brace:last_brace+1].strip()
+                else:
+                    json_str = response.strip()
             
             return json.loads(json_str)
         except json.JSONDecodeError as e:
-            raise ValueError(f"Failed to parse JSON response: {e}\nResponse: {response}")
+            # Enhanced error message showing what we tried to parse
+            raise ValueError(
+                f"Failed to parse JSON response: {e}\n"
+                f"Extracted JSON string (first 500 chars): {json_str[:500]}\n"
+                f"Full response (first 1000 chars): {response[:1000]}"
+            )
 
 
 # ============================================================================
 # Factory Function
 # ============================================================================
 
-def create_llm_client(config_path: str = "config/config.yaml") -> BaseLLMClient:
+def create_llm_client(config_path: str = "config/config.yaml", model_type: str = None) -> BaseLLMClient:
     """Factory function to create LLM client.
     
     Args:
         config_path: Path to configuration file
+        model_type: Model type to use ('reasoning', 'coding', 'default') or full model name
         
     Returns:
         Configured LLM client instance
     """
-    return QwenLLMClient(config_path)
+    return QwenLLMClient(config_path, model_override=model_type)

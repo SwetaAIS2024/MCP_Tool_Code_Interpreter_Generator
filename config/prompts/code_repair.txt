@@ -1,40 +1,48 @@
-Fix the following code based on validation errors.
+Fix the following code based on validation or execution errors.
 
 ORIGINAL CODE:
 {code}
 
-VALIDATION ERRORS:
+ERRORS TO FIX:
 {errors}
 
 TOOL SPEC:
 {spec}
 
+COMMON ERROR PATTERNS AND FIXES:
+1. "complex() first argument must be a string or a number, not 'list'" → You're trying to do math with a list instead of numbers. Use numeric operations on list items, not the list itself.
+2. "name 'X' is not defined" → Missing import statement. Add the correct import at the top.
+3. "list object has no attribute 'mean'" → Lists don't have .mean(). Use numpy: np.mean(list) or pandas: pd.Series(list).mean()
+4. "'list' object is not callable" → You're calling a list like a function. Check for misnamed variables.
+
 Instructions:
-1. Fix each error listed above
-2. Maintain the original functionality
-3. Keep the function signature: def function_name(file_path: str):
-4. Ensure code follows best practices
-5. Add any missing error handling
-6. Return a dictionary with 'result' and 'metadata' keys
+1. Read the ERRORS carefully - they tell you exactly what's wrong
+2. If error mentions a missing function/module, add the import
+3. If error mentions wrong data type, convert or process the data correctly
+4. Maintain the original functionality and purpose
+5. Keep the function signature: def function_name(file_path: str):
+6. Ensure code follows best practices
+7. Add any missing error handling
+8. Return a dictionary with 'result' and 'metadata' keys
+9. Test your logic: if you're grouping data and need to calculate mean, use proper pandas/numpy methods
+
+CRITICAL FOR STATISTICAL FUNCTIONS:
+- After groupby().apply(list), you have a Series where each value is a list
+- To calculate statistics on groups: Use grouped.mean(), grouped.std(), etc. - NOT grouped.apply(list).mean()
+- For ANOVA on groups: Extract each group as a list, then pass to f_oneway(*groups)
+- For group statistics: Use the aggregation functions directly on the grouped object
 
 IMPORTANT: Use {{}} or dict() to create dictionaries. Do NOT import or use typing classes.
 
 DO NOT INCLUDE:
-- DO NOT create placeholder decorator functions like "def mcp_tool()" or "def decorator()"
-- DO NOT create mock FastMCP classes or instances
-- DO NOT define TOOL_SPEC dictionaries or constants
+- DO NOT create placeholder decorator functions
+- DO NOT create mock FastMCP classes
 - DO NOT write explanatory text before or after the code
-- DO NOT create any wrapper functions or decorators
-- DO NOT include comments like "# Placeholder for @mcp.tool()"
-- DO NOT add import statements for 'mcp' module
-- DO NOT write "Here's the fixed code:" or any conversational text
-- DO NOT create example usage code or test functions
-- DO NOT define helper decorator functions
+- DO NOT write "Here's the fixed code:" or conversational text
 
 ONLY OUTPUT:
-- The single corrected function implementation
-- Standard library imports (pandas, etc. - NO typing imports)
+- The complete corrected function with all imports
+- Make sure imports are at the top (scipy, statsmodels, numpy, etc.)
 - The function must return a dictionary
-- No decorators, no extra functions, no explanations
 
-Return ONLY the corrected function implementation. Nothing else.
+Return ONLY the corrected code (imports + function). Nothing else.

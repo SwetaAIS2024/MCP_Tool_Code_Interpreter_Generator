@@ -1,7 +1,15 @@
 # LLM Configuration
 llm:
   base_url: "http://localhost:11434/v1"  # Ollama default port
-  model: "qwen2.5-coder:32b"  # Smaller, faster model for testing
+  
+  # Model selection by task
+  models:
+    reasoning: "deepseek-r1:70b"  # For intent extraction and planning
+    coding: "qwen2.5-coder:32b"   # For code generation and repair
+    default: "qwen2.5-coder:32b"  # Fallback model
+  
+  # Legacy single model config (fallback)
+  model: "qwen2.5-coder:32b"
   temperature: 0.3
 
 # Paths

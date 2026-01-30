@@ -1,0 +1,65 @@
+Extract structured intent for data analysis query.
+
+USER QUERY: {query}
+AVAILABLE COLUMNS: {columns}
+
+TASK: Create implementation plan for the analysis requested in the query.
+
+CRITICAL: Read the query carefully and create a plan for the EXACT analysis mentioned:
+- If query says "ANOVA" → Plan must use scipy.stats.f_oneway (one-way ANOVA test)
+- If query says "Tukey HSD" → Plan must use statsmodels.stats.multicomp.pairwise_tukeyhsd
+- If query says "correlation" → Plan must use scipy.stats.pearsonr or spearmanr
+- If query says "t-test" → Plan must use scipy.stats.ttest_ind or ttest_rel
+- If query says "chi-square" → Plan must use scipy.stats.chi2_contingency
+
+DO NOT create a different analysis than what the user requested!
+
+QUERY ANALYSIS:
+1. Does query mention a specific statistical test (ANOVA, t-test, correlation, etc.)?
+   - YES → operation = "custom_transform", has_gap = true
+   - NO → Determine basic operation type (groupby_aggregate, filter, etc.)
+
+2. Create implementation_plan with 5-10 specific steps:
+   - Import required libraries (scipy.stats, statsmodels, etc.)
+   - Load and validate data
+   - Prepare data (grouping, filtering, etc.)
+   - Execute the SPECIFIC statistical method requested
+   - Calculate effect sizes if requested
+   - Format and return results
+
+3. Determine required_columns:
+   - Review your implementation_plan
+   - What data columns does the plan need?
+   - Map to actual column names from AVAILABLE_COLUMNS
+   - Use ONLY columns that exist in AVAILABLE_COLUMNS
+
+OUTPUT FORMAT (JSON):
+{{
+  "operation": "custom_transform",
+  "has_gap": true,
+  "gap_reason": "Requires [specific statistical method]",
+  "implementation_plan": [
+    {{"step": 1, "action": "Import libraries", "details": "Import scipy.stats for [method], statsmodels for [method]"}},
+    {{"step": 2, "action": "Load data", "details": "Read CSV and validate required columns"}},
+    {{"step": 3, "action": "Prepare groups", "details": "Group data by [grouping variable] for ANOVA"}},
+    {{"step": 4, "action": "Run ANOVA", "details": "Use scipy.stats.f_oneway to test differences across groups"}},
+    {{"step": 5, "action": "Post-hoc test", "details": "Use statsmodels.stats.multicomp.pairwise_tukeyhsd for pairwise comparisons"}},
+    {{"step": 6, "action": "Calculate effect sizes", "details": "Compute eta-squared or Cohen's d"}},
+    {{"step": 7, "action": "Format results", "details": "Return F-statistic, p-values, adjusted p-values, effect sizes"}}
+  ],
+  "required_columns": ["crash_hour", "injuries_total"],
+  "missing_columns": [],
+  "group_by": [],
+  "metrics": [],
+  "filters": [],
+  "edge_cases": ["Check for minimum group size", "Handle missing values"],
+  "validation_rules": ["Verify numeric data types", "Check for sufficient sample size"],
+  "assumptions": ["Groups are independent", "Dependent variable is approximately normal"],
+  "clarifications_needed": []
+}}
+
+REMEMBER:
+- Output ONLY valid JSON
+- Match the statistical method to what the user requested
+- Use actual column names from AVAILABLE_COLUMNS
+- Be specific in implementation_plan (mention exact function names)

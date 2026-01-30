@@ -12,7 +12,11 @@ Requirements:
 2. Function signature must be: def {tool_name}(file_path: str):
 3. Add comprehensive error handling
 4. Return a dictionary with 'result' and 'metadata' keys
-5. Follow the implementation plan step-by-step
+5. **CRITICAL**: Follow the IMPLEMENTATION PLAN and WHAT IT DOES exactly - implement the EXACT statistical method specified
+   - If it says "ANOVA", use scipy.stats.f_oneway or similar (NOT pearsonr, NOT correlation)
+   - If it says "correlation", use scipy.stats.pearsonr (NOT ANOVA, NOT t-test)
+   - If it says "Tukey HSD", use statsmodels.stats.multicomp.pairwise_tukeyhsd
+   - DO NOT substitute different statistical methods than specified
 6. Handle edge cases gracefully
 7. Add docstring with examples
 8. CRITICAL: Use ONLY the columns listed in REQUIRED COLUMNS above - do NOT invent or assume other column names

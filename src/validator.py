@@ -143,21 +143,58 @@ class Validator:
             # Execute in sandbox
             result = self.sandbox.execute(code, test_data_path, timeout=30)
             
+            # Check basic execution failure
             if not result["success"]:
                 errors.append(f"Sandbox execution failed: {result['stderr']}")
                 return False, errors
+            
+            # Check for import errors in stderr (even if returncode is 0)
+            stderr = result.get("stderr", "")
+            if stderr:
+                import_error_patterns = [
+                    "ModuleNotFoundError",
+                    "ImportError",
+                    "name '.*' is not defined",
+                    "No module named"
+                ]
+                for pattern in import_error_patterns:
+                    if re.search(pattern, stderr, re.IGNORECASE):
+                        errors.append(f"Import/dependency error detected: {stderr[:300]}")
+                        return False, errors
+            
+            # CRITICAL: Check stdout for runtime errors that were caught by try/except
+            # Generated code returns {"result": {}, "metadata": {"error": "..."}} on errors
+            stdout = result.get("stdout", "")
+            
+            # Try to parse stdout as JSON/dict to check for errors in metadata
+            if stdout.strip():
+                try:
+                    # Look for error patterns in stdout
+                    error_indicators = [
+                        '"error"',
+                        "'error'",
+                        "Traceback",
+                        "Exception:",
+                        "Error:",
+                        "complex() first argument",
+                        "list' object has no attribute",
+                        "name '.*' is not defined"
+                    ]
+                    
+                    for indicator in error_indicators:
+                        if re.search(indicator, stdout, re.IGNORECASE):
+                            errors.append(f"Runtime error detected in output: {stdout[:500]}")
+                            return False, errors
+                except:
+                    pass
             
             # Check execution time
             if result["execution_time_ms"] > 30000:
                 errors.append(f"Execution too slow: {result['execution_time_ms']}ms")
             
             # SEMANTIC VALIDATION: Check if execution returned errors about missing columns
-            # This catches cases where code is syntactically valid but semantically wrong
-            stdout = result.get("stdout", "")
-            stderr = result.get("stderr", "")
-            
-            # Check for common error patterns in output
-            error_patterns = [
+            combined_output = (stdout + " " + stderr).lower()
+            column_error_patterns = [
                 "missing required columns",
                 "keyerror:",
                 "column.*not found",
@@ -165,16 +202,11 @@ class Validator:
                 "invalid column"
             ]
             
-            combined_output = (stdout + " " + stderr).lower()
-            for pattern in error_patterns:
-                if pattern in combined_output:
+            for pattern in column_error_patterns:
+                if re.search(pattern, combined_output, re.IGNORECASE):
                     errors.append(f"Semantic error detected: execution returned column-related error")
-                    errors.append(f"Output: {stdout[:200]}")  # First 200 chars
+                    errors.append(f"Output: {stdout[:200]}")
                     return False, errors
-            
-            # Parse output to verify return type
-            # Note: This is a simplified check. In production, we'd execute the function
-            # and check the actual return value
             
             return len(errors) == 0, errors
         
