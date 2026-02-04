@@ -1,0 +1,170 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0" version="29.3.7">
+  <diagram name="Code Generator Pipeline" id="pipeline">
+    <mxGraphModel dx="1657" dy="1186" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1169" pageHeight="1654" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1" value="MCP Tool Code Generator Pipeline" vertex="1">
+          <mxGeometry height="40" width="530" x="320" y="-100" as="geometry" />
+        </mxCell>
+        <mxCell id="start" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontStyle=1" value="START&#xa;(User Query + Data Path)" vertex="1">
+          <mxGeometry height="60" width="210" x="480" y="-5" as="geometry" />
+        </mxCell>
+        <mxCell id="intent" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;verticalAlign=top;fontSize=11;spacingLeft=10;spacingTop=5" value="Intent Extraction Node&#xa;&#xa;• Parse user query&#xa;• Extract columns from CSV&#xa;• Validate column existence&#xa;• Fuzzy match hallucinated columns&#xa;&#xa;LLM: Reasoning Model (deepseek-r1)" vertex="1">
+          <mxGeometry height="120" width="290" x="440" y="102" as="geometry" />
+        </mxCell>
+        <mxCell id="route_intent" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10" value="route_after_intent()&#xa;&#xa;Missing columns?" vertex="1">
+          <mxGeometry height="100" width="160" x="505" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="spec" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;verticalAlign=top;fontSize=11;spacingLeft=10;spacingTop=5" value="Spec Generator Node&#xa;⭐ PLAN CREATION HAPPENS HERE ⭐&#xa;&#xa;• Generate ToolSpec&#xa;• Define parameters&#xa;• Create return schema&#xa;• CREATE IMPLEMENTATION PLAN&#xa;• Design step-by-step logic&#xa;&#xa;LLM: Reasoning Model" vertex="1">
+          <mxGeometry height="150" width="293" x="438.5" y="416" as="geometry" />
+        </mxCell>
+        <mxCell id="codegen" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;verticalAlign=top;fontSize=11;spacingLeft=10;spacingTop=5" value="Code Generator Node&#xa;&#xa;• Uses the PLAN from SpecGenerator&#xa;• Generate Python code&#xa;• Add MCP decorator&#xa;• Format with Black&#xa;• Extract from LLM response&#xa;&#xa;LLM: Coding Model (qwen2.5-coder)" vertex="1">
+          <mxGeometry height="140" width="290" x="438.5" y="598" as="geometry" />
+        </mxCell>
+        <mxCell id="validator" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;verticalAlign=top;fontSize=11;spacingLeft=10;spacingTop=5" value="Validator Node&#xa;&#xa;• Schema validation (AST)&#xa;• Test case validation&#xa;• Sandbox execution test&#xa;• Collect errors/warnings" vertex="1">
+          <mxGeometry height="100" width="290" x="440" y="770" as="geometry" />
+        </mxCell>
+        <mxCell id="route_validation" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10" value="route_after_validation()&#xa;&#xa;Valid? / Repair attempts?" vertex="1">
+          <mxGeometry height="100" width="190" x="490" y="910" as="geometry" />
+        </mxCell>
+        <mxCell id="repair" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;align=left;verticalAlign=top;fontSize=11;spacingLeft=10;spacingTop=5" value="Repair Node&#xa;&#xa;• Send errors to LLM&#xa;• Generate fixed code&#xa;• Increment repair counter&#xa;&#xa;LLM: Coding Model&#xa;Max attempts: 3" vertex="1">
+          <mxGeometry height="120" width="240" x="120" y="900" as="geometry" />
+        </mxCell>
+        <mxCell id="executor" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;verticalAlign=top;fontSize=11;spacingLeft=10;spacingTop=5" value="Executor Node&#xa;&#xa;• Load generated function&#xa;• Execute with data&#xa;• Capture results&#xa;• Handle errors&#xa;• Convert numpy types" vertex="1">
+          <mxGeometry height="110" width="290" x="440" y="1050" as="geometry" />
+        </mxCell>
+        <mxCell id="route_execution" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10" value="route_after_execution()&#xa;&#xa;Error? / Repair attempts?" vertex="1">
+          <mxGeometry height="100" width="190" x="490" y="1200" as="geometry" />
+        </mxCell>
+        <mxCell id="feedback1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;verticalAlign=top;fontSize=11;spacingLeft=10;spacingTop=5;fontStyle=1" value="Feedback Stage 1 Node&#xa;(INTERRUPT)&#xa;&#xa;• Show validation results&#xa;• Show execution output&#xa;• Human approval required&#xa;&#xa;Approval → stage1_approved = True" vertex="1">
+          <mxGeometry height="120" width="290" x="440" y="1340" as="geometry" />
+        </mxCell>
+        <mxCell id="route_stage1" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10" value="route_after_stage1()&#xa;&#xa;stage1_approved?" vertex="1">
+          <mxGeometry height="100" width="160" x="505" y="1500" as="geometry" />
+        </mxCell>
+        <mxCell id="feedback2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;verticalAlign=top;fontSize=11;spacingLeft=10;spacingTop=5;fontStyle=1" value="Feedback Stage 2 Node&#xa;(INTERRUPT)&#xa;&#xa;• Show generated code&#xa;• Review for promotion&#xa;• Human approval required&#xa;&#xa;Approval → stage2_approved = True" vertex="1">
+          <mxGeometry height="120" width="290" x="440" y="1640" as="geometry" />
+        </mxCell>
+        <mxCell id="route_stage2" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10" value="route_after_stage2()&#xa;&#xa;stage2_approved?" vertex="1">
+          <mxGeometry height="100" width="160" x="505" y="1800" as="geometry" />
+        </mxCell>
+        <mxCell id="promoter" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;verticalAlign=top;fontSize=11;spacingLeft=10;spacingTop=5" value="Promoter Node&#xa;&#xa;• Save to tools/active/&#xa;• Update registry.json&#xa;• Version management&#xa;• Handle conflicts" vertex="1">
+          <mxGeometry height="100" width="290" x="440" y="1940" as="geometry" />
+        </mxCell>
+        <mxCell id="end" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontStyle=1" value="END&#xa;(Tool in Registry)" vertex="1">
+          <mxGeometry height="60" width="210" x="480" y="2080" as="geometry" />
+        </mxCell>
+        <mxCell id="end_reject" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;fontStyle=1" value="END&#xa;(Rejected)" vertex="1">
+          <mxGeometry height="60" width="150" x="830" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="end_reject_stage1" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;fontStyle=1" value="END&#xa;(Rejected Stage 1)" vertex="1">
+          <mxGeometry height="60" width="150" x="830" y="1520" as="geometry" />
+        </mxCell>
+        <mxCell id="end_reject_stage2" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;fontStyle=1" value="END&#xa;(Rejected Stage 2)" vertex="1">
+          <mxGeometry height="60" width="150" x="830" y="1820" as="geometry" />
+        </mxCell>
+        <mxCell id="edge1" edge="1" parent="1" source="start" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="intent">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge2" edge="1" parent="1" source="intent" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="route_intent">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge3" edge="1" parent="1" source="route_intent" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;fontSize=10" target="spec" value="No missing&#xa;columns">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge4" edge="1" parent="1" source="route_intent" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;fontSize=10" target="end_reject" value="Critical columns&#xa;missing">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge5" edge="1" parent="1" source="spec" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="codegen">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge6" edge="1" parent="1" source="codegen" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="validator">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge7" edge="1" parent="1" source="validator" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="route_validation">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge8" edge="1" parent="1" source="route_validation" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;fontSize=10" target="executor" value="Valid">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge9" edge="1" parent="1" source="route_validation" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;entryX=1;entryY=0.5;fontSize=10" target="repair" value="Invalid &amp;&#xa;attempts &lt; 3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge10" edge="1" parent="1" source="repair" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;entryX=0;entryY=0.5;fontSize=10" target="validator" value="Loop back">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="240" y="820" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge11" edge="1" parent="1" source="executor" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="route_execution">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge12" edge="1" parent="1" source="route_execution" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;fontSize=10" target="feedback1" value="Success or&#xa;max attempts">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge13" edge="1" parent="1" source="route_execution" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;entryX=0;entryY=0.5;fontSize=10" target="repair" value="Error &amp;&#xa;attempts &lt; 3">
+          <mxGeometry relative="1" x="-0.5" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="80" y="1250" />
+              <mxPoint x="80" y="960" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge14" edge="1" parent="1" source="feedback1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="route_stage1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge15" edge="1" parent="1" source="route_stage1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;fontSize=10" target="feedback2" value="Approved">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge16" edge="1" parent="1" source="route_stage1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;fontSize=10" target="end_reject_stage1" value="Rejected">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge17" edge="1" parent="1" source="feedback2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="route_stage2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge18" edge="1" parent="1" source="route_stage2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;fontSize=10" target="promoter" value="Approved">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge19" edge="1" parent="1" source="route_stage2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;fontSize=10" target="end_reject_stage2" value="Rejected">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge20" edge="1" parent="1" source="promoter" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="end">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_bg" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;dashed=1" value="" vertex="1">
+          <mxGeometry height="300" width="280" x="40" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1" value="Legend" vertex="1">
+          <mxGeometry height="30" width="80" x="60" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_process" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10" value="Process Node" vertex="1">
+          <mxGeometry height="30" width="120" x="60" y="130" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_interrupt" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;fontStyle=1" value="Interrupt Node" vertex="1">
+          <mxGeometry height="30" width="120" x="60" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_repair" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10" value="Repair Loop" vertex="1">
+          <mxGeometry height="30" width="120" x="60" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_decision" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10" value="Decision" vertex="1">
+          <mxGeometry height="50" width="80" x="80" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_text" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9" value="• Blue: LLM-powered nodes&#xa;• Pink: Human feedback&#xa;• Orange: Auto-repair&#xa;• Yellow: Routing logic&#xa;• Max 3 repair attempts" vertex="1">
+          <mxGeometry height="40" width="220" x="60" y="310" as="geometry" />
+        </mxCell>
+        <mxCell id="components_bg" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;dashed=1" value="" vertex="1">
+          <mxGeometry height="260" width="280" x="40" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="components_title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1" value="Key Components" vertex="1">
+          <mxGeometry height="30" width="180" x="60" y="410" as="geometry" />
+        </mxCell>
+        <mxCell id="components_text" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=9" value="LLM Models:&#xa;• Reasoning: deepseek-r1:70b&#xa;• Coding: qwen2.5-coder:32b&#xa;&#xa;State Management:&#xa;• LangGraph StateGraph&#xa;• MemorySaver checkpointer&#xa;&#xa;Sandbox:&#xa;• Docker container&#xa;• 60s timeout&#xa;• UTF-8 encoding&#xa;&#xa;Logging:&#xa;• Python logging module&#xa;• 4 verbosity levels&#xa;• File + console output" vertex="1">
+          <mxGeometry height="145" width="220" x="60" y="445" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
