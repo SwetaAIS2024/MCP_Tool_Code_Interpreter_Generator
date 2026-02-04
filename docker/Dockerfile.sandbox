@@ -15,5 +15,4 @@ RUN useradd -m -u 1000 sandboxuser && \
 USER sandboxuser
 
 # No network access, limited resources
-# These are enforced by docker-compose
-CMD ["python", "/sandbox/temp_code/tool.py"]
+# Command will be specified by docker-compose run

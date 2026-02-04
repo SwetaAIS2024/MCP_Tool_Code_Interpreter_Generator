@@ -77,6 +77,31 @@ def build_graph(checkpointer: Optional[MemorySaver] = None) -> StateGraph:
         interrupt_before=["feedback_stage1_node", "feedback_stage2_node"]
     )
     
+    # Generate graph visualization
+    try:
+        from pathlib import Path
+        
+        # Get graph structure
+        graph_structure = graph.get_graph()
+        
+        # Save Mermaid diagram
+        mermaid = graph_structure.draw_mermaid()
+        mermaid_file = Path("pipeline_graph.mmd")
+        mermaid_file.parent.mkdir(parents=True, exist_ok=True)
+        mermaid_file.write_text(mermaid)
+        
+        # Try to generate PNG
+        try:
+            png_data = graph_structure.draw_mermaid_png()
+            png_file = Path("pipeline_graph.png")
+            png_file.write_bytes(png_data)
+            print(f"📊 Graph visualization saved to: {png_file}")
+        except Exception:
+            print(f"📊 Graph Mermaid diagram saved to: {mermaid_file}")
+            print("   (Paste into https://mermaid.live for visualization)")
+    except Exception as e:
+        print(f"⚠️  Could not generate graph visualization: {e}")
+    
     return graph
 
 

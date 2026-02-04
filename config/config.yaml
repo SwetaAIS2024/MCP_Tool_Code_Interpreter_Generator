@@ -27,8 +27,9 @@ validation:
 
 # Sandbox
 sandbox:
-  mode: "subprocess"  # or "docker"
-  timeout_seconds: 30
+  # mode: "subprocess"  # or "docker"
+  mode: "docker"
+  timeout_seconds: 60  # Increased for Docker container startup
   memory_limit_mb: 512
 
 # Logging

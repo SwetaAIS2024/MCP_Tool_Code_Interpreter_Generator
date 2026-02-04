@@ -120,8 +120,20 @@ def test_with_feedback():
             print("\n" + "-" * 80)
             response = input("Approve execution output? (yes/no): ").strip()
             
-            # Update state with response as the feedback node
-            graph.update_state(config, {"user_response_stage1": response}, as_node="feedback_stage1_node")
+            # Parse response and update state with both the response and approval flag
+            approved = response.strip().lower() in ["yes", "y", "approve", "approved", "accept", "ok", "okay"]
+            
+            # Update state and verify
+            graph.update_state(config, {
+                "user_response_stage1": response,
+                "stage1_approved": approved
+            })
+            
+            # DEBUG: Verify state was updated
+            verify_snapshot = graph.get_state(config)
+            print(f"\n[DEBUG] After update_state:")
+            print(f"  user_response_stage1: '{verify_snapshot.values.get('user_response_stage1')}'")
+            print(f"  stage1_approved: {verify_snapshot.values.get('stage1_approved')}")
             
         elif "feedback_stage2" in str(snapshot.next):
             print("\n🔍 STAGE 2 APPROVAL - Promote to Registry")
@@ -142,8 +154,12 @@ def test_with_feedback():
             print("\n" + "-" * 80)
             response = input("Promote to registry? (yes/no): ").strip()
             
-            # Update state with response as the feedback node
-            graph.update_state(config, {"user_response_stage2": response}, as_node="feedback_stage2_node")
+            # Parse response and update state with both the response and approval flag
+            approved = response.strip().lower() in ["yes", "y", "approve", "approved", "accept", "ok", "okay"]
+            graph.update_state(config, {
+                "user_response_stage2": response,
+                "stage2_approved": approved
+            })
         
         # Continue execution
         print("\n▶️  Resuming pipeline...")
@@ -152,9 +168,17 @@ def test_with_feedback():
             for key, value in event.items():
                 if isinstance(value, dict):
                     current_state.update(value)
+                    # Debug: Check approval flags after each event
+                    if "stage1_approved" in value:
+                        print(f"   → stage1_approved set to: {value['stage1_approved']}")
+                    if "stage2_approved" in value:
+                        print(f"   → stage2_approved set to: {value['stage2_approved']}")
         
         # Get new snapshot
         snapshot = graph.get_state(config)
+        print(f"   → After resume, next nodes: {snapshot.next}")
+        print(f"   → Current stage1_approved: {snapshot.values.get('stage1_approved')}")
+        print(f"   → Current stage2_approved: {snapshot.values.get('stage2_approved')}")
     
     # Final results
     print("\n" + "=" * 80)

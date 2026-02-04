@@ -221,7 +221,11 @@ def _convert_numpy_types(obj):
     elif isinstance(obj, np.ndarray):
         return obj.tolist()
     elif isinstance(obj, dict):
-        return {key: _convert_numpy_types(value) for key, value in obj.items()}
+        # Convert both keys and values - keys might also be numpy types
+        return {
+            _convert_numpy_types(key): _convert_numpy_types(value) 
+            for key, value in obj.items()
+        }
     elif isinstance(obj, (list, tuple)):
         return [_convert_numpy_types(item) for item in obj]
     else:

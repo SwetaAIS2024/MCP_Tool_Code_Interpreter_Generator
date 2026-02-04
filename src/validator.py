@@ -291,6 +291,7 @@ def route_after_validation(state: ToolGeneratorState) -> str:
     elif state.get("repair_attempts", 0) < 3:
         return "repair_node"
     else:
-        # Max repair attempts reached, end the flow
-        from langgraph.graph import END
-        return END
+        # Max repair attempts reached, proceed to executor anyway
+        # Let execution/feedback catch any remaining issues
+        print("\n⚠️  Max repair attempts reached, proceeding to execution...")
+        return "executor_node"

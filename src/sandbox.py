@@ -286,18 +286,49 @@ class DockerSandboxExecutor(BaseSandbox):
         if timeout is None:
             timeout = self.timeout
         
+        # Strip MCP-specific code for sandbox testing
+        code = self._strip_mcp_code(code)
+        
         # Write code to temp file
         code_file = self.workspace / "temp_code" / "tool.py"
+        code_file.parent.mkdir(parents=True, exist_ok=True)
         code_file.write_text(code)
         
+        # Copy data file to sandbox directory for mounting
+        data_file = Path(data_path)
+        if not data_file.exists():
+            return {
+                "success": False,
+                "stdout": "",
+                "stderr": f"Data file not found: {data_path}",
+                "returncode": -1,
+                "execution_time_ms": 0
+            }
+        
+        sandbox_data_file = self.workspace / "temp_data" / data_file.name
+        sandbox_data_file.parent.mkdir(parents=True, exist_ok=True)
+        
+        import shutil
+        shutil.copy2(data_file, sandbox_data_file)
+        
         try:
-            # Run docker-compose
+            # Run docker-compose with data path
             start = time.time()
             
+            # Use container-relative path for data
+            container_data_path = f"/sandbox/temp_data/{data_file.name}"
+            
             result = subprocess.run(
-                ['docker-compose', '-f', 'docker/docker-compose.sandbox.yml', 'up', '--abort-on-container-exit'],
+                [
+                    'docker-compose', '-f', 'docker/docker-compose.sandbox.yml',
+                    'run', '--rm',
+                    'sandbox',
+                    'python', '/sandbox/temp_code/tool.py', container_data_path
+                ],
                 capture_output=True,
                 text=True,
+                encoding='utf-8',
+                errors='replace',
                 timeout=timeout,
                 cwd=Path.cwd()
             )
@@ -307,7 +338,9 @@ class DockerSandboxExecutor(BaseSandbox):
             # Cleanup
             subprocess.run(
                 ['docker-compose', '-f', 'docker/docker-compose.sandbox.yml', 'down'],
-                capture_output=True
+                capture_output=True,
+                encoding='utf-8',
+                errors='replace'
             )
             
             return {
@@ -322,7 +355,9 @@ class DockerSandboxExecutor(BaseSandbox):
             # Force cleanup on timeout
             subprocess.run(
                 ['docker-compose', '-f', 'docker/docker-compose.sandbox.yml', 'down'],
-                capture_output=True
+                capture_output=True,
+                encoding='utf-8',
+                errors='replace'
             )
             
             return {
@@ -343,11 +378,61 @@ class DockerSandboxExecutor(BaseSandbox):
             }
         
         finally:
-            # Cleanup temp file
+            # Cleanup temp files
             try:
                 code_file.unlink()
             except Exception:
                 pass
+            try:
+                sandbox_data_file.unlink()
+            except Exception:
+                pass
+    
+    def _strip_mcp_code(self, code: str) -> str:
+        """Strip MCP-specific imports and decorators for sandbox testing.
+        
+        Args:
+            code: Full code with MCP decorators
+            
+        Returns:
+            Code with MCP parts removed and test invocation added
+        """
+        # Reuse the implementation from SubprocessSandboxExecutor
+        lines = code.split('\n')
+        cleaned_lines = []
+        function_name = None
+        
+        for line in lines:
+            stripped = line.strip()
+            if any([
+                'from fastmcp import' in line,
+                'import fastmcp' in line,
+                'mcp = FastMCP' in line,
+                stripped == '@mcp.tool()' or stripped.startswith('@mcp.tool('),
+                stripped.startswith('"""Generated MCP tool:'),
+                stripped == 'import time'
+            ]):
+                continue
+            
+            if stripped.startswith('def ') and '(' in stripped and function_name is None:
+                func_def = stripped.split('def ')[1].split('(')[0].strip()
+                function_name = func_def
+            
+            cleaned_lines.append(line)
+        
+        if function_name:
+            test_code = f'''
+# Test invocation
+if __name__ == "__main__":
+    import sys
+    import json
+    data_path = sys.argv[1] if len(sys.argv) > 1 else "test_data.csv"
+    result = {function_name}(data_path)
+    print("SANDBOX_RESULT:", json.dumps(result, default=str))
+'''
+            cleaned_lines.append(test_code)
+        
+        return '\n'.join(cleaned_lines)
     
     def _load_policy(self, config_path: str) -> Dict[str, Any]:
         """Load sandbox policy."""

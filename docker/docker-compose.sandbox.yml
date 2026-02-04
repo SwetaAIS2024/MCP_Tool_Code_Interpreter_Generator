@@ -9,7 +9,8 @@ services:
     mem_limit: 512m
     cpus: 0.5
     volumes:
-      - ../tools/sandbox:/sandbox:ro
+      - ../tools/sandbox:/sandbox
+      # Data volume will be added dynamically by executor
     environment:
       - PYTHONUNBUFFERED=1
     read_only: true

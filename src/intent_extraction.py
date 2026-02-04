@@ -530,6 +530,8 @@ def route_after_intent(state: ToolGeneratorState) -> str:
     Returns:
         Next node name
     """
+    from langgraph.graph import END
+    
     # HARD STOP GATE: Check if columns are properly grounded
     required_cols = state.get("required_columns", [])
     missing_cols = state.get("missing_columns", [])
@@ -546,7 +548,7 @@ def route_after_intent(state: ToolGeneratorState) -> str:
         state["errors"] = state.get("errors", []) + [
             "Column grounding failed: no valid columns found for groupby operation"
         ]
-        return "END"  # Stop pipeline - needs clarification
+        return END  # Stop pipeline - needs clarification
     
     # Gate 2: If critical columns are missing and not resolved, stop
     if len(missing_cols) > 0 and len(required_cols) == 0:
@@ -558,7 +560,7 @@ def route_after_intent(state: ToolGeneratorState) -> str:
         state["errors"] = state.get("errors", []) + [
             f"Cannot ground columns: {missing_cols} not found in dataset"
         ]
-        return "END"  # Stop pipeline - needs clarification
+        return END  # Stop pipeline - needs clarification
     
     # Gate 3: Warn if partial resolution (some columns grounded, some missing)
     if len(missing_cols) > 0:
