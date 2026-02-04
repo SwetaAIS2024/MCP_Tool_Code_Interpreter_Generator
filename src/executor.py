@@ -7,6 +7,9 @@ from pathlib import Path
 from typing import Dict, Any, Callable
 from concurrent.futures import TimeoutError, ThreadPoolExecutor
 from src.models import RunArtifacts, ToolGeneratorState
+from src.logger_config import get_logger, log_section, log_success, log_error
+
+logger = get_logger(__name__)
 
 
 # ============================================================================
@@ -57,8 +60,8 @@ class ToolExecutor:
                 timeout=self.timeout
             )
             
-            print(f"[EXECUTOR DEBUG] Result type: {type(result)}")
-            print(f"[EXECUTOR DEBUG] Result value: {result}")
+            logger.debug(f"Result type: {type(result)}")
+            logger.debug(f"Result value: {result}")
             
             # Ensure result is a dictionary (wrap if necessary)
             if not isinstance(result, dict):
@@ -68,7 +71,7 @@ class ToolExecutor:
                         "note": "Result was not returned as dict, auto-wrapped"
                     }
                 }
-                print(f"[EXECUTOR DEBUG] Auto-wrapped non-dict result into dict")
+                logger.debug("Auto-wrapped non-dict result into dict")
             else:
                 wrapped_result = result
             
@@ -125,18 +128,18 @@ class ToolExecutor:
         
         # DEBUG: Print what's in the module
         all_attrs = [name for name in dir(module) if not name.startswith('_')]
-        print(f"\n[EXECUTOR] Module contents: {all_attrs}")
+        logger.debug(f"Module contents: {all_attrs}")
         
         # Find the actual function - look for user-defined functions
         import types
         for attr_name in dir(module):
             if not attr_name.startswith('_') and attr_name not in ['mcp', 'FastMCP', 'pd', 'pandas', 'time']:
                 attr = getattr(module, attr_name)
-                print(f"[EXECUTOR] Checking '{attr_name}': type={type(attr)}, callable={callable(attr)}, is_function={isinstance(attr, types.FunctionType)}")
+                logger.debug(f"Checking '{attr_name}': type={type(attr)}, callable={callable(attr)}, is_function={isinstance(attr, types.FunctionType)}")
                 
                 # Check if it's a FunctionTool from FastMCP (decorated function)
                 if type(attr).__name__ == 'FunctionTool':
-                    print(f"[EXECUTOR] Found FunctionTool, extracting underlying function...")
+                    logger.debug("Found FunctionTool, extracting underlying function...")
                     # The FunctionTool has the original function stored
                     if hasattr(attr, 'func'):
                         return attr.func
@@ -153,7 +156,7 @@ class ToolExecutor:
                 
                 # Check if it's callable (decorated functions might not be FunctionType)
                 if callable(attr) and not isinstance(attr, type):
-                    print(f"[EXECUTOR] Found callable: {attr_name}")
+                    logger.debug(f"Found callable: {attr_name}")
                     return attr
         
         raise ValueError("No executable function found in module")
@@ -305,15 +308,15 @@ def route_after_execution(state: ToolGeneratorState) -> str:
     
     # If there's an error and we haven't exceeded repair attempts, try repair
     if has_error and repair_attempts < max_repair_attempts:
-        print(f"\n⚠️  Execution error detected (attempt {repair_attempts + 1}/{max_repair_attempts})")
-        print(f"Error: {error_msg}")
-        print("🔧 Attempting automatic code repair...\n")
+        logger.warning(f"⚠️  Execution error detected (attempt {repair_attempts + 1}/{max_repair_attempts})")
+        logger.error(f"Error: {error_msg}")
+        logger.info("🔧 Attempting automatic code repair...")
         return "repair_node"
     
     # If repair attempts exceeded or no error, proceed to human feedback
     if has_error and repair_attempts >= max_repair_attempts:
-        print(f"\n❌ Maximum repair attempts ({max_repair_attempts}) exceeded")
-        print("Proceeding to human feedback for manual review\n")
+        logger.error(f"❌ Maximum repair attempts ({max_repair_attempts}) exceeded")
+        logger.info("Proceeding to human feedback for manual review")
     
     # Always proceed to user feedback for final review
     return "feedback_stage1_node"

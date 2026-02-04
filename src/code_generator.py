@@ -5,6 +5,9 @@ from pathlib import Path
 from typing import List
 from src.models import ToolSpec, ValidationReport, ToolGeneratorState
 from src.llm_client import QwenLLMClient
+from src.logger_config import get_logger, log_section
+
+logger = get_logger(__name__)
 
 
 # ============================================================================
@@ -35,58 +38,43 @@ class CodeGenerator:
         # Build prompt for code generation
         prompt = self._build_prompt(spec)
         
-        # DEBUG: Print prompt to see what's being sent
-        print("\n" + "="*80)
-        print("CODE GENERATION PROMPT:")
-        print("="*80)
-        print(prompt[:1000] + "..." if len(prompt) > 1000 else prompt)
-        print("="*80 + "\n")
+        # Debug: Log prompt
+        log_section(logger, "CODE GENERATION PROMPT")
+        logger.debug(prompt[:1000] + "..." if len(prompt) > 1000 else prompt)
         
         # Generate code with low temperature for consistency
         raw_code = self.llm.generate(prompt, temperature=0.2)
         
-        # DEBUG: Print raw LLM response
-        print("\n" + "="*80)
-        print("RAW LLM RESPONSE:")
-        print("="*80)
-        print(raw_code[:1000] + "..." if len(raw_code) > 1000 else raw_code)
-        print("="*80 + "\n")
+        # Debug: Log raw response
+        log_section(logger, "RAW LLM RESPONSE")
+        logger.debug(raw_code[:1000] + "..." if len(raw_code) > 1000 else raw_code)
         
         # Extract code from markdown blocks or conversational text
         code = self._extract_code(raw_code)
         
-        # DEBUG: Print extracted code
-        print("\n" + "="*80)
-        print("EXTRACTED CODE (before wrapping):")
-        print("="*80)
-        print(code[:1000] + "..." if len(code) > 1000 else code)
-        print("="*80 + "\n")
+        # Debug: Log extracted code
+        log_section(logger, "EXTRACTED CODE (before wrapping)")
+        logger.debug(code[:1000] + "..." if len(code) > 1000 else code)
         
         # Wrap with MCP decorator and imports
         full_code = self._wrap_with_mcp(code, spec.tool_name, spec.parameters)
         
-        # DEBUG: Print wrapped code before formatting
-        print("\n" + "="*80)
-        print("WRAPPED CODE (before black formatting):")
-        print("="*80)
-        print(full_code[:1000] + "..." if len(full_code) > 1000 else full_code)
-        print("="*80 + "\n")
+        # Debug: Log wrapped code
+        log_section(logger, "WRAPPED CODE (before black formatting)")
+        logger.debug(full_code[:1000] + "..." if len(full_code) > 1000 else full_code)
         
         # Format with black
         try:
             formatted_code = black.format_str(full_code, mode=black.FileMode())
             
-            # DEBUG: Print final formatted code
-            print("\n" + "="*80)
-            print("FINAL FORMATTED CODE:")
-            print("="*80)
-            print(formatted_code)
-            print("="*80 + "\n")
+            # Debug: Log final formatted code
+            log_section(logger, "FINAL FORMATTED CODE")
+            logger.debug(formatted_code)
             
             return formatted_code
         except Exception as e:
             # If black fails, return unformatted code
-            print(f"Warning: Black formatting failed: {e}")
+            logger.warning(f"Black formatting failed: {e}")
             return full_code
     
     def _extract_code(self, text: str) -> str:

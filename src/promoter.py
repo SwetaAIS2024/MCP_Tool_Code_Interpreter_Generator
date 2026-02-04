@@ -15,6 +15,9 @@ from datetime import datetime
 import shutil
 
 from .models import ToolSpec, RegistryMetadata, ToolGeneratorState
+from .logger_config import get_logger, log_section, log_success
+
+logger = get_logger(__name__)
 
 
 class ToolPromoter:
@@ -179,14 +182,11 @@ def promoter_node(state: ToolGeneratorState) -> ToolGeneratorState:
         state=dict(state)  # Pass full state for logging
     )
     
-    print("\n" + "="*80)
-    print("🎉 TOOL PROMOTED TO REGISTRY")
-    print("="*80)
-    print(f"Tool Name: {promoted['name']}")
-    print(f"Version: {promoted['version']}")
-    print(f"Active Path: {promoted['path']}")
-    print(f"Registry: {promoted['registry_path']}")
-    print("="*80 + "\n")
+    log_section(logger, "🎉 TOOL PROMOTED TO REGISTRY")
+    logger.info(f"Tool Name: {promoted['name']}")
+    logger.info(f"Version: {promoted['version']}")
+    logger.info(f"Active Path: {promoted['path']}")
+    logger.info(f"Registry: {promoted['registry_path']}")
     
     return {
         **state,

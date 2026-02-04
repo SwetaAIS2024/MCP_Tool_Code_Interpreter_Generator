@@ -4,6 +4,9 @@ from pathlib import Path
 from typing import Dict, Any
 from src.models import ToolSpec, ToolGeneratorState
 from src.llm_client import QwenLLMClient
+from src.logger_config import get_logger, log_section, log_error
+
+logger = get_logger(__name__)
 
 
 # ============================================================================
@@ -235,12 +238,9 @@ def spec_generator_node(state: ToolGeneratorState) -> ToolGeneratorState:
     # Reject spec generation if critical columns are missing
     groupby_operations = ["groupby_aggregate", "group_by", "pivot", "time_series_aggregate"]
     if operation in groupby_operations and len(required_cols) == 0:
-        print("\n" + "="*80)
-        print("SPEC GENERATION REJECTED")
-        print("="*80)
-        print(f"Cannot generate spec for '{operation}' without required columns")
-        print(f"Missing columns: {missing_cols}")
-        print("="*80 + "\n")
+        log_section(logger, "SPEC GENERATION REJECTED")
+        log_error(logger, f"Cannot generate spec for '{operation}' without required columns")
+        logger.error(f"Missing columns: {missing_cols}")
         
         # Return state with error
         return {
@@ -252,9 +252,9 @@ def spec_generator_node(state: ToolGeneratorState) -> ToolGeneratorState:
     
     # Warn if proceeding with missing columns
     if len(missing_cols) > 0:
-        print(f"\n⚠️ WARNING: Generating spec with incomplete column set")
-        print(f"   Available: {required_cols}")
-        print(f"   Missing: {missing_cols}\n")
+        logger.warning("⚠️ WARNING: Generating spec with incomplete column set")
+        logger.warning(f"   Available: {required_cols}")
+        logger.warning(f"   Missing: {missing_cols}")
     
     # Use reasoning model for spec generation/planning
     llm_client = create_llm_client(model_type="reasoning")

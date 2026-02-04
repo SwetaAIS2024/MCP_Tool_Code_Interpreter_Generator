@@ -7,6 +7,9 @@ from typing import Dict, Any, Optional, List, Tuple
 from difflib import SequenceMatcher
 from src.models import ToolGeneratorState
 from src.llm_client import QwenLLMClient
+from src.logger_config import get_logger, log_section
+
+logger = get_logger(__name__)
 
 
 # ============================================================================
@@ -41,12 +44,9 @@ class IntentExtractor:
         dtypes = {col: str(dtype) for col, dtype in df_preview.dtypes.to_dict().items()}
         sample_values = {col: df_preview[col].head(3).tolist() for col in columns}
         
-        # DEBUG: Print available columns
-        print("\n" + "="*80)
-        print("INTENT EXTRACTION - AVAILABLE COLUMNS:")
-        print("="*80)
-        print(f"Columns: {columns}")
-        print("="*80 + "\n")
+        # Log available columns
+        log_section(logger, "INTENT EXTRACTION - AVAILABLE COLUMNS")
+        logger.debug(f"Columns: {columns}")
         
         # Build comprehensive analysis prompt
         prompt = self._build_prompt(query, data_path, columns, dtypes, sample_values)
@@ -127,12 +127,10 @@ CRITICAL RULES:
         
         hallucinated_cols = [col for col in required_cols if col not in columns]
         if hallucinated_cols:
-            print("\n" + "="*80)
-            print("COLUMN GROUNDING - Resolving hallucinated columns")
-            print("="*80)
-            print(f"Hallucinated columns: {hallucinated_cols}")
-            print(f"Available columns: {columns}")
-            print("\nAttempting fuzzy matching...")
+            log_section(logger, "COLUMN GROUNDING - Resolving hallucinated columns")
+            logger.warning(f"Hallucinated columns: {hallucinated_cols}")
+            logger.info(f"Available columns: {columns}")
+            logger.info("Attempting fuzzy matching...")
             
             # Try to ground hallucinated columns to actual columns
             grounded, unresolved = self._ground_columns(query, columns, hallucinated_cols)
@@ -149,20 +147,16 @@ CRITICAL RULES:
                     missing_cols.append(col)
             intent['missing_columns'] = missing_cols
             
-            print(f"\nGROUNDING RESULTS:")
-            print(f"  Valid columns (already existed): {valid_cols}")
-            print(f"  Grounded columns (fuzzy matched): {grounded}")
-            print(f"  Unresolved columns (moved to missing): {unresolved}")
-            print("="*80 + "\n")
+            logger.info("GROUNDING RESULTS:")
+            logger.info(f"  Valid columns (already existed): {valid_cols}")
+            logger.info(f"  Grounded columns (fuzzy matched): {grounded}")
+            logger.info(f"  Unresolved columns (moved to missing): {unresolved}")
         
-        # DEBUG: Print extracted intent
-        print("\n" + "="*80)
-        print("EXTRACTED INTENT:")
-        print("="*80)
-        print(f"Required columns: {intent.get('required_columns', [])}")
-        print(f"Missing columns: {intent.get('missing_columns', [])}")
-        print(f"Operation: {intent.get('operation')}")
-        print("="*80 + "\n")
+        # Log extracted intent
+        log_section(logger, "EXTRACTED INTENT")
+        logger.info(f"Required columns: {intent.get('required_columns', [])}")
+        logger.info(f"Missing columns: {intent.get('missing_columns', [])}")
+        logger.info(f"Operation: {intent.get('operation')}")
         
         return intent
     

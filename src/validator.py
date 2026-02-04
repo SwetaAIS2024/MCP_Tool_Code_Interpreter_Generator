@@ -5,6 +5,9 @@ import re
 from typing import List, Optional, Dict, Any    
 from src.models import ToolSpec, ValidationReport, ToolGeneratorState
 from src.sandbox import create_sandbox
+from src.logger_config import get_logger, log_section, log_success, log_error
+
+logger = get_logger(__name__)
 
 
 # ============================================================================
@@ -253,22 +256,19 @@ def validator_node(state: ToolGeneratorState) -> ToolGeneratorState:
         state.get("data_path")
     )
     
-    # DEBUG: Print validation results
-    print("\n" + "="*80)
-    print("VALIDATION RESULTS:")
-    print("="*80)
-    print(f"Schema OK: {result.schema_ok}")
-    print(f"Tests OK: {result.tests_ok}")
-    print(f"Sandbox OK: {result.sandbox_ok}")
+    # Log validation results
+    log_section(logger, "VALIDATION RESULTS")
+    logger.info(f"Schema OK: {result.schema_ok}")
+    logger.info(f"Tests OK: {result.tests_ok}")
+    logger.info(f"Sandbox OK: {result.sandbox_ok}")
     if result.errors:
-        print(f"\nERRORS ({len(result.errors)}):")
+        log_error(logger, f"ERRORS ({len(result.errors)}):")
         for i, err in enumerate(result.errors, 1):
-            print(f"  {i}. {err}")
+            logger.error(f"  {i}. {err}")
     if result.warnings:
-        print(f"\nWARNINGS ({len(result.warnings)}):")
+        logger.warning(f"\nWARNINGS ({len(result.warnings)}):")
         for i, warn in enumerate(result.warnings, 1):
-            print(f"  {i}. {warn}")
-    print("="*80 + "\n")
+            logger.warning(f"  {i}. {warn}")
     
     return {
         **state,
@@ -293,5 +293,5 @@ def route_after_validation(state: ToolGeneratorState) -> str:
     else:
         # Max repair attempts reached, proceed to executor anyway
         # Let execution/feedback catch any remaining issues
-        print("\n⚠️  Max repair attempts reached, proceeding to execution...")
+        logger.warning("⚠️  Max repair attempts reached, proceeding to execution...")
         return "executor_node"

@@ -1,6 +1,7 @@
 """End-to-end pipeline test with interactive feedback."""
 
 import sys
+import argparse
 from pathlib import Path
 
 # Add src to path
@@ -8,26 +9,35 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from src.pipeline import build_graph
 from src.models import ToolGeneratorState
+from src.logger_config import PipelineLogger, get_logger, log_section
 
 
-def test_with_feedback():
-    """Test pipeline with user feedback at interrupt points."""
+# Setup logger
+logger = get_logger(__name__)
+
+
+def test_with_feedback(verbosity: str = "normal"):
+    """Test pipeline with user feedback at interrupt points.
+    
+    Args:
+        verbosity: Logging verbosity level (quiet, normal, verbose, debug)
+    """
+    # Configure logging
+    pipeline_logger = PipelineLogger()
+    pipeline_logger.setup(verbosity=verbosity)
     
     # Check if test data exists
     test_data = Path("reference_files/sample_planner_output/traffic_accidents.csv")
     
     if not test_data.exists():
-        print(f"Error: Test data not found at {test_data}")
+        logger.error(f"Test data not found at {test_data}")
         return
     
     # Test query
-    # query = "Show me the top 5 accident types by count"
     query = "Run ANOVA across groups, then perform a Tukey HSD post-hoc (multiple-comparisons correction required) and report adjusted p-values and effect sizes."
     data_path = str(test_data.resolve())  # Use absolute path for sandbox
     
-    print("=" * 80)
-    print("TESTING PIPELINE WITH FEEDBACK")
-    print("=" * 80)
+    log_section(logger, "TESTING PIPELINE WITH FEEDBACK")
     print(f"Query: {query}")
     print(f"Data: {data_path}")
     print("=" * 80)
@@ -58,7 +68,7 @@ def test_with_feedback():
     current_state = initial_state
     
     for event in graph.stream(initial_state, config):
-        print(f"\n📍 Event: {list(event.keys())}")
+        print(f"\n Event: {list(event.keys())}")
         
         # Update current state
         for key, value in event.items():
@@ -70,13 +80,13 @@ def test_with_feedback():
     
     while snapshot.next:
         print("\n" + "=" * 80)
-        print("⏸️  PIPELINE PAUSED - AWAITING FEEDBACK")
+        print("PIPELINE PAUSED - AWAITING FEEDBACK")
         print("=" * 80)
         print(f"Next node: {snapshot.next}")
         
         # Show current state
         if "feedback_stage1" in str(snapshot.next):
-            print("\n🔍 STAGE 1 APPROVAL - Review Execution Output")
+            print("\nSTAGE 1 APPROVAL - Review Execution Output")
             print("-" * 80)
             
             # Show tool spec
@@ -104,17 +114,17 @@ def test_with_feedback():
                 empty_result = not exec_out.get("result") or exec_out.get("result") == {}
                 
                 if has_error:
-                    print(f"  ⚠️  EXECUTION FAILED")
+                    print(f"  EXECUTION FAILED")
                     print(f"  Error: {exec_out.get('error')}")
                 elif empty_result:
-                    print(f"  ⚠️  EXECUTION RETURNED EMPTY RESULT")
+                    print(f"  EXECUTION RETURNED EMPTY RESULT")
                     print(f"  This likely indicates a problem with the code logic.")
                 
                 print(f"  Result: {str(exec_out.get('result'))[:200]}")
                 print(f"  Execution Time: {exec_out.get('execution_time_ms', 0):.2f}ms")
                 
                 if has_error or empty_result:
-                    print(f"\n  💡 Recommendation: REJECT this output")
+                    print(f"\n  Recommendation: REJECT this output")
             
             # Get user input
             print("\n" + "-" * 80)
@@ -136,7 +146,7 @@ def test_with_feedback():
             print(f"  stage1_approved: {verify_snapshot.values.get('stage1_approved')}")
             
         elif "feedback_stage2" in str(snapshot.next):
-            print("\n🔍 STAGE 2 APPROVAL - Promote to Registry")
+            print("\nSTAGE 2 APPROVAL - Promote to Registry")
             print("-" * 80)
             
             # Show generated code preview
@@ -162,9 +172,9 @@ def test_with_feedback():
             })
         
         # Continue execution
-        print("\n▶️  Resuming pipeline...")
+        print("\nResuming pipeline...")
         for event in graph.stream(None, config, stream_mode="updates"):
-            print(f"📍 Event: {list(event.keys())}")
+            print(f"Event: {list(event.keys())}")
             for key, value in event.items():
                 if isinstance(value, dict):
                     current_state.update(value)
@@ -182,7 +192,7 @@ def test_with_feedback():
     
     # Final results
     print("\n" + "=" * 80)
-    print("✅ PIPELINE COMPLETED")
+    print("PIPELINE COMPLETED")
     print("=" * 80)
     
     if current_state.get("promoted_tool"):
@@ -194,7 +204,7 @@ def test_with_feedback():
         print(f"  Logs Path: {tool.get('logs_path')}")
         print(f"  Registry Path: {tool.get('registry_path')}")
     else:
-        print("\n⚠️  Tool was not promoted to registry")
+        print("\n Tool was not promoted to registry")
     
     print("\n" + "=" * 80)
 
@@ -236,17 +246,17 @@ def test_auto_approve():
     
     # Stream with auto-approval
     for event in graph.stream(initial_state, config):
-        print(f"📍 Event: {list(event.keys())}")
+        print(f"Event: {list(event.keys())}")
     
     # Auto-approve at each interrupt
     snapshot = graph.get_state(config)
     
     while snapshot.next:
-        print(f"\n⏸️  Auto-approving: {snapshot.next}")
+        print(f"\nAuto-approving: {snapshot.next}")
         
         # Continue from interrupt - this runs the pending node
         for event in graph.stream(None, config, stream_mode="updates"):
-            print(f"📍 Event during continue: {list(event.keys())}")
+            print(f"Event during continue: {list(event.keys())}")
             
             # Check if this is a feedback node completing
             if "feedback_stage1_node" in event:
@@ -257,13 +267,45 @@ def test_auto_approve():
         
         snapshot = graph.get_state(config)
     
-    print("\n✅ Pipeline completed (auto-approved)")
+    logger.info("\nPipeline completed (auto-approved)")
 
 
 if __name__ == "__main__":
-    import sys
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(
+        description="Test MCP tool generation pipeline with human-in-the-loop feedback"
+    )
+    parser.add_argument(
+        "-v", "--verbose",
+        action="store_const",
+        const="verbose",
+        dest="verbosity",
+        help="Enable verbose output (show all details)"
+    )
+    parser.add_argument(
+        "-d", "--debug",
+        action="store_const",
+        const="debug",
+        dest="verbosity",
+        help="Enable debug output (show everything including internals)"
+    )
+    parser.add_argument(
+        "-q", "--quiet",
+        action="store_const",
+        const="quiet",
+        dest="verbosity",
+        help="Quiet mode (only show warnings and errors)"
+    )
+    parser.add_argument(
+        "--auto",
+        action="store_true",
+        help="Auto-approve all feedback stages (for testing)"
+    )
+    parser.set_defaults(verbosity="normal")
     
-    if len(sys.argv) > 1 and sys.argv[1] == "--auto":
+    args = parser.parse_args()
+    
+    if args.auto:
         test_auto_approve()
     else:
-        test_with_feedback()
+        test_with_feedback(verbosity=args.verbosity)

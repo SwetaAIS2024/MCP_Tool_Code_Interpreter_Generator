@@ -18,6 +18,9 @@ from .models import ToolGeneratorState
 from .intent_extraction import intent_node, route_after_intent
 from .spec_generator import spec_generator_node
 from .code_generator import code_generator_node, repair_node
+from .logger_config import get_logger
+
+logger = get_logger(__name__)
 from .validator import validator_node, route_after_validation
 from .executor import executor_node, route_after_execution
 from .feedback_handler import (
@@ -95,12 +98,12 @@ def build_graph(checkpointer: Optional[MemorySaver] = None) -> StateGraph:
             png_data = graph_structure.draw_mermaid_png()
             png_file = Path("pipeline_graph.png")
             png_file.write_bytes(png_data)
-            print(f"📊 Graph visualization saved to: {png_file}")
+            logger.info(f"📊 Graph visualization saved to: {png_file}")
         except Exception:
-            print(f"📊 Graph Mermaid diagram saved to: {mermaid_file}")
-            print("   (Paste into https://mermaid.live for visualization)")
+            logger.info(f"📊 Graph Mermaid diagram saved to: {mermaid_file}")
+            logger.info("   (Paste into https://mermaid.live for visualization)")
     except Exception as e:
-        print(f"⚠️  Could not generate graph visualization: {e}")
+        logger.warning(f"⚠️  Could not generate graph visualization: {e}")
     
     return graph
 

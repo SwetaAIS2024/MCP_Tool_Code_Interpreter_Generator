@@ -35,6 +35,42 @@
         }
       ],
       "return_type": "Dict[str, Any]"
+    },
+    {
+      "name": "custom_transform_anova_traffic_control_injuries_v2",
+      "original_name": "custom_transform_anova_traffic_control_injuries",
+      "version": "1.0.0",
+      "description": "Performs ANOVA and Tukey HSD post-hoc analysis to compare injuries across traffic control devices.",
+      "created_at": "2026-02-04T17:52:17.855769",
+      "timestamp": "20260204_175217",
+      "logs_path": "tools/logs/custom_transform_anova_traffic_control_injuries_v2_20260204_175217",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]"
+    },
+    {
+      "name": "analyze_traffic_control_injury_impact_v3",
+      "original_name": "analyze_traffic_control_injury_impact",
+      "version": "1.0.0",
+      "description": "Performs an ANOVA test followed by Tukey HSD post-hoc analysis to compare total injuries across different traffic control devices.",
+      "created_at": "2026-02-04T18:06:21.591782",
+      "timestamp": "20260204_180621",
+      "logs_path": "tools/logs/analyze_traffic_control_injury_impact_v3_20260204_180621",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file containing 'traffic_control_device' and 'injuries_total'",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]"
     }
   ]
 }
