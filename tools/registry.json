@@ -71,6 +71,111 @@
         }
       ],
       "return_type": "Dict[str, Any]"
+    },
+    {
+      "name": "custom_transform_anova_traffic_control_injuries_v3",
+      "original_name": "custom_transform_anova_traffic_control_injuries",
+      "version": "1.0.0",
+      "description": "Performs ANOVA and Tukey HSD post-hoc analysis to compare injuries across traffic control devices.",
+      "created_at": "2026-02-06T10:33:35.213133",
+      "timestamp": "20260206_103335",
+      "logs_path": "tools/logs/custom_transform_anova_traffic_control_injuries_v3_20260206_103335",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]"
+    },
+    {
+      "name": "custom_transform_anova_traffic_control_injuries_v4",
+      "original_name": "custom_transform_anova_traffic_control_injuries",
+      "version": "1.0.0",
+      "description": "Performs ANOVA and Tukey HSD post-hoc analysis to compare injuries across traffic control devices.",
+      "created_at": "2026-02-06T11:10:45.669423",
+      "timestamp": "20260206_111045",
+      "logs_path": "tools/logs/custom_transform_anova_traffic_control_injuries_v4_20260206_111045",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]"
+    },
+    {
+      "name": "analyze_traffic_control_injury_impact_v4",
+      "original_name": "analyze_traffic_control_injury_impact",
+      "version": "1.0.0",
+      "description": "Performs an ANOVA test followed by Tukey HSD post-hoc analysis to compare total injuries across different traffic control devices.",
+      "created_at": "2026-02-06T11:24:07.107162",
+      "timestamp": "20260206_112407",
+      "logs_path": "tools/logs/analyze_traffic_control_injury_impact_v4_20260206_112407",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file containing 'traffic_control_device' and 'injuries_total'",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]"
+    },
+    {
+      "name": "custom_transform_anova_traffic_control_injuries_v5",
+      "original_name": "custom_transform_anova_traffic_control_injuries",
+      "version": "1.0.0",
+      "description": "Performs ANOVA and Tukey HSD post-hoc analysis to compare injuries across traffic control devices.",
+      "created_at": "2026-02-06T11:28:28.015470",
+      "timestamp": "20260206_112828",
+      "logs_path": "tools/logs/custom_transform_anova_traffic_control_injuries_v5_20260206_112828",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]"
+    },
+    {
+      "name": "custom_transform_anova_traffic_control_injuries_v6",
+      "original_name": "custom_transform_anova_traffic_control_injuries",
+      "version": "1.0.0",
+      "description": "Performs ANOVA and Tukey HSD post-hoc analysis to compare injuries across traffic control devices.",
+      "created_at": "2026-02-06T15:16:26.841440",
+      "timestamp": "20260206_151626",
+      "logs_path": "tools/logs/custom_transform_anova_traffic_control_injuries_v6_20260206_151626",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]"
+    },
+    {
+      "name": "custom_transform_anova_traffic_control_injuries_v7",
+      "original_name": "custom_transform_anova_traffic_control_injuries",
+      "description": "Performs ANOVA and Tukey HSD post-hoc analysis to compare injuries across traffic control devices.",
+      "created_at": "2026-02-06T15:26:01.953623",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]"
     }
   ]
 }

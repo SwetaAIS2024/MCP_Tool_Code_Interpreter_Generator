@@ -112,11 +112,7 @@ class ToolGeneratorState(TypedDict):
     repair_attempts: int
     
     # Execution
-    execution_output: Optional[RunArtifacts]
-    
-    # Feedback
-    stage1_approved: bool
-    stage2_approved: bool
+    execution_output: Optional[Dict[str, Any]]
     
     # Final
     promoted_tool: Optional[Dict]

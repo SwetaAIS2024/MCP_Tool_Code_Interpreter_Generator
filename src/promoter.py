@@ -49,11 +49,10 @@ class ToolPromoter:
             state: Full pipeline state for logging
             
         Returns:
-            Dict with promotion details (name, path, version, logs_path)
+            Dict with promotion details (name, path, registry_path)
         """
         # Extract values from spec (handle both dict and ToolSpec object)
         tool_name = spec["tool_name"] if isinstance(spec, dict) else spec.tool_name
-        version = spec["version"] if isinstance(spec, dict) else spec.version
         
         # Handle version conflicts
         final_name = self._resolve_name(tool_name)
@@ -69,7 +68,6 @@ class ToolPromoter:
         return {
             "name": final_name,
             "path": str(active_path),
-            "version": version,
             "registry_path": str(self.registry_file)
         }
     
@@ -112,13 +110,11 @@ class ToolPromoter:
         # Extract values from spec (handle both dict and ToolSpec object)
         if isinstance(spec, dict):
             original_name = spec["tool_name"]
-            version = spec["version"]
             description = spec["description"]
             parameters = spec["parameters"]  # Already in dict form
             return_type = spec.get("return_type", "dict")
         else:
             original_name = spec.tool_name
-            version = spec.version
             description = spec.description
             # Parameters might be dicts even in ToolSpec objects
             params = spec.parameters if hasattr(spec, 'parameters') else []
@@ -140,11 +136,8 @@ class ToolPromoter:
         metadata = {
             "name": tool_name,
             "original_name": original_name,
-            "version": version,
             "description": description,
             "created_at": datetime.now().isoformat(),
-            "timestamp": timestamp,
-            "logs_path": f"tools/logs/{tool_name}_{timestamp}",
             "parameters": parameters,
             "return_type": return_type
         }
@@ -184,7 +177,6 @@ def promoter_node(state: ToolGeneratorState) -> ToolGeneratorState:
     
     log_section(logger, "🎉 TOOL PROMOTED TO REGISTRY")
     logger.info(f"Tool Name: {promoted['name']}")
-    logger.info(f"Version: {promoted['version']}")
     logger.info(f"Active Path: {promoted['path']}")
     logger.info(f"Registry: {promoted['registry_path']}")
     

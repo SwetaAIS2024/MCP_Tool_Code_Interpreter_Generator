@@ -313,10 +313,10 @@ def route_after_execution(state: ToolGeneratorState) -> str:
         logger.info("🔧 Attempting automatic code repair...")
         return "repair_node"
     
-    # If repair attempts exceeded or no error, proceed to human feedback
+    # If repair attempts exceeded or no error, proceed to promoter
     if has_error and repair_attempts >= max_repair_attempts:
         logger.error(f"❌ Maximum repair attempts ({max_repair_attempts}) exceeded")
-        logger.info("Proceeding to human feedback for manual review")
+        logger.info("Proceeding to promoter for final processing")
     
-    # Always proceed to user feedback for final review
-    return "feedback_stage1_node"
+    # Always proceed directly to promoter (no human feedback)
+    return "promoter_node"

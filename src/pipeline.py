@@ -23,12 +23,6 @@ from .logger_config import get_logger
 logger = get_logger(__name__)
 from .validator import validator_node, route_after_validation
 from .executor import executor_node, route_after_execution
-from .feedback_handler import (
-    feedback_stage1_node,
-    feedback_stage2_node,
-    route_after_stage1,
-    route_after_stage2
-)
 from .promoter import promoter_node
 
 
@@ -56,8 +50,6 @@ def build_graph(checkpointer: Optional[MemorySaver] = None) -> StateGraph:
     workflow.add_node("validator_node", validator_node)
     workflow.add_node("repair_node", repair_node)
     workflow.add_node("executor_node", executor_node)
-    workflow.add_node("feedback_stage1_node", feedback_stage1_node)
-    workflow.add_node("feedback_stage2_node", feedback_stage2_node)
     workflow.add_node("promoter_node", promoter_node)
     
     # Set entry point
@@ -70,15 +62,10 @@ def build_graph(checkpointer: Optional[MemorySaver] = None) -> StateGraph:
     workflow.add_conditional_edges("validator_node", route_after_validation)
     workflow.add_edge("repair_node", "validator_node")
     workflow.add_conditional_edges("executor_node", route_after_execution)
-    workflow.add_conditional_edges("feedback_stage1_node", route_after_stage1)
-    workflow.add_conditional_edges("feedback_stage2_node", route_after_stage2)
     workflow.add_edge("promoter_node", END)
     
-    # Compile with interrupts for human feedback
-    graph = workflow.compile(
-        checkpointer=checkpointer,
-        interrupt_before=["feedback_stage1_node", "feedback_stage2_node"]
-    )
+    # Compile without interrupts (direct execution flow)
+    graph = workflow.compile(checkpointer=checkpointer)
     
     # Generate graph visualization
     try:
@@ -132,8 +119,6 @@ def run_pipeline(user_query: str, data_path: str) -> Dict[str, Any]:
         "validation_result": None,
         "repair_attempts": 0,
         "execution_output": None,
-        "stage1_approved": False,
-        "stage2_approved": False,
         "promoted_tool": None,
         "messages": []
     }
