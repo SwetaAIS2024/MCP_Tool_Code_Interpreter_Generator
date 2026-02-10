@@ -15,6 +15,12 @@ CRITICAL: You MUST follow the IMPLEMENTATION PLAN exactly. Do NOT create a diffe
 - If the plan says "Tukey HSD post-hoc", the spec MUST include post-hoc testing
 - The 'what_it_does' field MUST describe exactly what's in the IMPLEMENTATION PLAN
 
+⚠️ STATISTICAL INJECTION GUARD:
+- DO NOT add statistical tests (ANOVA, t-test, chi-square, correlation) if NOT in IMPLEMENTATION PLAN
+- DO NOT add chi-square unless IMPLEMENTATION PLAN explicitly requests it
+- DO NOT add p-values, significance tests unless IMPLEMENTATION PLAN requests them
+- If operation is "groupby_aggregate" or "pivot", create ONLY descriptive aggregation (NO statistical tests)
+
 Create a ToolSpec with:
 1. tool_name: A descriptive snake_case name based on operation and columns
 2. description: Clear explanation matching the IMPLEMENTATION PLAN

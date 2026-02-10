@@ -104,10 +104,19 @@ class SpecGenerator:
         # Format implementation_plan as readable text
         impl_plan = intent.get("implementation_plan", [])
         if isinstance(impl_plan, list) and impl_plan:
-            formatted_plan = "\n".join(
-                f"Step {step.get('step', i+1)}: {step.get('action', 'Unknown')} - {step.get('details', '')}"
-                for i, step in enumerate(impl_plan)
-            )
+            formatted_steps = []
+            for i, step in enumerate(impl_plan):
+                if isinstance(step, dict):
+                    # Handle dict format: {"step": 1, "action": "...", "details": "..."}
+                    formatted_steps.append(
+                        f"Step {step.get('step', i+1)}: {step.get('action', 'Unknown')} - {step.get('details', '')}"
+                    )
+                elif isinstance(step, str):
+                    # Handle string format: "Step description"
+                    formatted_steps.append(f"Step {i+1}: {step}")
+                else:
+                    formatted_steps.append(f"Step {i+1}: {str(step)}")
+            formatted_plan = "\n".join(formatted_steps)
         else:
             formatted_plan = str(impl_plan)
         

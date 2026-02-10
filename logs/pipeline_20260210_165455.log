@@ -1,0 +1,301 @@
+2026-02-10 16:54:55 - DEBUG - src.logger_config - setup:82 - Logging configured: verbosity=normal, file=logs\pipeline_20260210_165455.log
+2026-02-10 16:54:55 - INFO - __main__ - log_section:117 - 
+================================================================================
+2026-02-10 16:54:55 - INFO - __main__ - log_section:118 - TESTING PIPELINE WITH FEEDBACK
+2026-02-10 16:54:55 - INFO - __main__ - log_section:119 - ================================================================================
+
+2026-02-10 16:54:55 - DEBUG - urllib3.connectionpool - _new_conn:1049 - Starting new HTTPS connection (1): mermaid.ink:443
+2026-02-10 16:54:56 - DEBUG - urllib3.connectionpool - _make_request:544 - https://mermaid.ink:443 "GET /img/LS0tCmNvbmZpZzoKICBmbG93Y2hhcnQ6CiAgICBjdXJ2ZTogbGluZWFyCi0tLQpncmFwaCBURDsKCV9fc3RhcnRfXyg8cD5fX3N0YXJ0X188L3A+KQoJaW50ZW50X25vZGUoaW50ZW50X25vZGUpCglzcGVjX2dlbmVyYXRvcl9ub2RlKHNwZWNfZ2VuZXJhdG9yX25vZGUpCgljb2RlX2dlbmVyYXRvcl9ub2RlKGNvZGVfZ2VuZXJhdG9yX25vZGUpCgl2YWxpZGF0b3Jfbm9kZSh2YWxpZGF0b3Jfbm9kZSkKCXJlcGFpcl9ub2RlKHJlcGFpcl9ub2RlKQoJZXhlY3V0b3Jfbm9kZShleGVjdXRvcl9ub2RlKQoJcHJvbW90ZXJfbm9kZShwcm9tb3Rlcl9ub2RlKQoJX19lbmRfXyg8cD5fX2VuZF9fPC9wPikKCV9fc3RhcnRfXyAtLT4gaW50ZW50X25vZGU7CglpbnRlbnRfbm9kZSAtLT4gX19lbmRfXzsKCWNsYXNzRGVmIGRlZmF1bHQgZmlsbDojZjJmMGZmLGxpbmUtaGVpZ2h0OjEuMgoJY2xhc3NEZWYgZmlyc3QgZmlsbC1vcGFjaXR5OjAKCWNsYXNzRGVmIGxhc3QgZmlsbDojYmZiNmZjCg==?type=png&bgColor=%21white HTTP/1.1" 200 19612
+2026-02-10 16:54:56 - INFO - src.pipeline - build_graph:88 - 📊 Graph visualization saved to: pipeline_graph.png
+2026-02-10 16:54:56 - INFO - src.intent_extraction - log_section:117 - 
+================================================================================
+2026-02-10 16:54:56 - INFO - src.intent_extraction - log_section:118 - INTENT EXTRACTION - AVAILABLE COLUMNS
+2026-02-10 16:54:56 - INFO - src.intent_extraction - log_section:119 - ================================================================================
+
+2026-02-10 16:54:56 - DEBUG - src.intent_extraction - extract:49 - Columns: ['crash_date', 'traffic_control_device', 'weather_condition', 'lighting_condition', 'first_crash_type', 'trafficway_type', 'alignment', 'roadway_surface_cond', 'road_defect', 'crash_type', 'intersection_related_i', 'damage', 'prim_contributory_cause', 'num_units', 'most_severe_injury', 'injuries_total', 'injuries_fatal', 'injuries_incapacitating', 'injuries_non_incapacitating', 'injuries_reported_not_evident', 'injuries_no_indication', 'crash_hour', 'crash_day_of_week', 'crash_month']
+2026-02-10 16:54:56 - DEBUG - openai._base_client - _build_request:485 - Request options: {'method': 'post', 'url': '/chat/completions', 'files': None, 'idempotency_key': 'stainless-python-retry-97a4c01f-d72e-48c5-965a-751ec865f0db', 'content': None, 'json_data': {'messages': [{'role': 'system', 'content': 'You are an intent extraction system. Your job is to understand the user\'s query and create an implementation plan for the EXACT analysis they requested.\n\nCRITICAL RULES:\n1. If the user asks for "ANOVA", your implementation_plan MUST describe ANOVA analysis (scipy.stats.f_oneway), NOT correlation, chi-square, or any other test\n2. If the user asks for "correlation", your implementation_plan MUST describe correlation analysis (scipy.stats.pearsonr), NOT ANOVA\n3. If the user asks for "Tukey HSD", your plan MUST include statsmodels.stats.multicomp.pairwise_tukeyhsd\n4. DO NOT substitute different statistical methods than what the user explicitly requested\n5. Output ONLY valid JSON - no thinking process, no explanations, no markdown\n6. The \'operation\' field is REQUIRED - never return null/None for it'}, {'role': 'user', 'content': 'You are the IntentExtractor module for an MCP Tool Code Interpreter Generator.\n\nYour job is to convert a natural language data analysis query into STRICT JSON intent for tool generation.\n\n====================\nOUTPUT RULES\n====================\n- Return ONLY valid JSON\n- No explanations, no markdown, no commentary\n- Response must start with { and end with }\n- Use ONLY column names from AVAILABLE_COLUMNS\n\n====================\nCORE TASK\n====================\n\nGiven:\nUSER_QUERY: compare injuries by traffic control device\nAVAILABLE_COLUMNS: [\'crash_date\', \'traffic_control_device\', \'weather_condition\', \'lighting_condition\', \'first_crash_type\', \'trafficway_type\', \'alignment\', \'roadway_surface_cond\', \'road_defect\', \'crash_type\', \'intersection_related_i\', \'damage\', \'prim_contributory_cause\', \'num_units\', \'most_severe_injury\', \'injuries_total\', \'injuries_fatal\', \'injuries_incapacitating\', \'injuries_non_incapacitating\', \'injuries_reported_not_evident\', \'injuries_no_indication\', \'crash_hour\', \'crash_day_of_week\', \'crash_month\']\n\nYou must determine:\n- operation\n- has_gap\n- gap_reason\n- required_columns\n- missing_columns\n- implementation_plan\n\n====================\nSTEP 1 — COLUMN MATCHING (DO FIRST)\n====================\n\nFind dataset columns needed for the query using substring matching.\n\nRules:\n1. Split query into meaningful words (ignore: the, and, by, across, for, with, etc.)\n2. If a query word appears inside a column name → select that column\n3. Prefer most specific matches:\n   injuries_fatal > injuries_incapacitating > injuries_total\n4. Domain mappings:\n   fatal → injuries_fatal\n   weather → weather_condition\n   injury (generic) → injuries_total (unless fatal specified)\n5. Never select time columns unless query mentions:\n   time, hour, day, date, month, year\n6. If concept exists in query but no column matches → add to missing_columns\n\nrequired_columns = matched columns from this step\n\n====================\nSTEP 2 — OPERATION DETECTION\n====================\n\n⚠️ CRITICAL GUARDS — CHECK FIRST:\n\n1. PIVOT GUARD:\n   DO NOT use pivot or crosstab UNLESS query explicitly contains:\n   - "pivot"\n   - "crosstab"\n   - "matrix"\n   - "heatmap"\n\n2. STATISTICAL INJECTION GUARD:\n   DO NOT introduce statistical tests UNLESS query explicitly mentions:\n   - ANOVA, F-test, F-statistic\n   - t-test, Student\'s t\n   - chi-square, chi2, contingency, independence test\n   - correlation, Pearson, Spearman\n   - regression, linear model\n   - significance test, p-value, hypothesis test\n\n3. CHI-SQUARE HARD BLOCK:\n   NEVER use chi-square UNLESS query explicitly asks for:\n   "chi-square", "chi2", "contingency test", "independence test"\n\nOPERATION SELECTION PRIORITY:\n\nSTEP 2A: Check for explicit statistical keywords\nIf query contains:\nANOVA, t-test, chi-square, correlation, regression, Tukey, post-hoc, p-value, effect size\n→ operation = "custom_transform"\n→ has_gap = true\n→ gap_reason = "Statistical or advanced analysis required"\n\nSTEP 2B: Check for variation/comparison patterns\nIf query contains:\n- "variation across", "variation by", "variations across"\n- "differences across", "differences by"\n- "compare across", "compare by"\n- "distribution across", "distribution by"\n→ operation = "groupby_aggregate"\n→ has_gap = false\n\nSTEP 2C: Detect basic operations\n- "filter", "where", "only", "exclude" → filter\n- "top N", "count by", "most common" → groupby_aggregate\n- "summary", "describe", "statistics" → describe_summary\n- "pivot", "crosstab", "matrix" (EXPLICIT only) → pivot\n- "trend", "over time", "time series" → time_series_aggregate\n\nSTEP 2D: DEFAULT BEHAVIOR\nIf comparing numeric metric across categorical groups:\n→ operation = "groupby_aggregate"\n→ has_gap = false\n\nElse:\n→ operation = "custom_transform"\n\n====================\nSTEP 3 — IMPLEMENTATION PLAN\n====================\n\nCreate 5–8 clear execution steps using ONLY required_columns.\n\nIf statistical method is mentioned:\nPlan MUST describe that exact method.\nExample:\nANOVA → scipy.stats.f_oneway\nCorrelation → scipy.stats.pearsonr\nTukey → statsmodels pairwise_tukeyhsd\n\nNever substitute statistical methods.\n\n====================\nSTEP 4 — FINAL JSON STRUCTURE\n====================\n\nReturn JSON with fields:\n\n{\n  "has_gap": boolean,\n  "gap_reason": string,\n  "operation": string,\n  "required_columns": [],\n  "missing_columns": [],\n  "implementation_plan": [],\n  "filters": [],\n  "group_by": [],\n  "metrics": [],\n  "sort_by": [],\n  "sort_order": "ascending" | "descending",\n  "limit": number | null,\n  "output_format": "table" | "summary" | "json" | "chart_spec",\n  "edge_cases": [],\n  "validation_rules": [],\n  "assumptions": [],\n  "clarifications_needed": []\n}\n'}], 'model': 'deepseek-r1:70b', 'temperature': 0.0}}
+2026-02-10 16:54:56 - DEBUG - openai._base_client - request:998 - Sending HTTP Request: POST http://localhost:11434/v1/chat/completions
+2026-02-10 16:54:56 - DEBUG - httpcore.connection - trace:47 - connect_tcp.started host='localhost' port=11434 local_address=None timeout=5.0 socket_options=None
+2026-02-10 16:54:58 - DEBUG - httpcore.connection - trace:47 - connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001E989C7A240>
+2026-02-10 16:54:58 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.started request=<Request [b'POST']>
+2026-02-10 16:54:58 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.complete
+2026-02-10 16:54:58 - DEBUG - httpcore.http11 - trace:47 - send_request_body.started request=<Request [b'POST']>
+2026-02-10 16:54:58 - DEBUG - httpcore.http11 - trace:47 - send_request_body.complete
+2026-02-10 16:54:58 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.started request=<Request [b'POST']>
+2026-02-10 16:55:50 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json'), (b'Date', b'Tue, 10 Feb 2026 08:55:50 GMT'), (b'Transfer-Encoding', b'chunked')])
+2026-02-10 16:55:50 - INFO - httpx - _send_single_request:1025 - HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-10 16:55:50 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.started request=<Request [b'POST']>
+2026-02-10 16:55:50 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.complete
+2026-02-10 16:55:50 - DEBUG - httpcore.http11 - trace:47 - response_closed.started
+2026-02-10 16:55:50 - DEBUG - httpcore.http11 - trace:47 - response_closed.complete
+2026-02-10 16:55:50 - DEBUG - openai._base_client - request:1036 - HTTP Response: POST http://localhost:11434/v1/chat/completions "200 OK" Headers({'content-type': 'application/json', 'date': 'Tue, 10 Feb 2026 08:55:50 GMT', 'transfer-encoding': 'chunked'})
+2026-02-10 16:55:50 - DEBUG - openai._base_client - request:1044 - request_id: None
+2026-02-10 16:55:50 - INFO - src.intent_extraction - log_section:117 - 
+================================================================================
+2026-02-10 16:55:50 - INFO - src.intent_extraction - log_section:118 - EXTRACTED INTENT
+2026-02-10 16:55:50 - INFO - src.intent_extraction - log_section:119 - ================================================================================
+
+2026-02-10 16:55:50 - INFO - src.intent_extraction - extract:157 - Required columns: ['traffic_control_device', 'injuries_total', 'injuries_fatal', 'injuries_incapacitating', 'injuries_non_incapacitating']
+2026-02-10 16:55:50 - INFO - src.intent_extraction - extract:158 - Missing columns: []
+2026-02-10 16:55:50 - INFO - src.intent_extraction - extract:159 - Operation: groupby_aggregate
+2026-02-10 16:55:50 - DEBUG - openai._base_client - _build_request:485 - Request options: {'method': 'post', 'url': '/chat/completions', 'files': None, 'idempotency_key': 'stainless-python-retry-1ca727f1-217d-46bc-b8a0-858e8985bc63', 'content': None, 'json_data': {'messages': [{'role': 'system', 'content': 'You are a JSON generation system. Return ONLY valid JSON conforming to the schema. DO NOT include any explanatory text, thinking process, commentary, or meta-text. DO NOT use <think> tags or similar reasoning markers. DO NOT add markdown code fences around the JSON. Output must be pure JSON starting with { and ending with }.'}, {'role': 'user', 'content': 'Generate a complete ToolSpec for the following data analysis operation.\n\nOPERATION: groupby_aggregate\nREQUIRED COLUMNS: [\'traffic_control_device\', \'injuries_total\', \'injuries_fatal\', \'injuries_incapacitating\', \'injuries_non_incapacitating\']\nGROUP BY: [\'traffic_control_device\']\nMETRICS: [\'sum(injuries_total)\', \'sum(injuries_fatal)\', \'sum(injuries_incapacitating)\', \'sum(injuries_non_incapacitating)\']\nFILTERS: []\nIMPLEMENTATION PLAN: Step 1: Group the data by \'traffic_control_device\'\nStep 2: Calculate the total number of injuries for each group using \'injuries_total\'\nStep 3: Calculate the number of fatal injuries for each group using \'injuries_fatal\'\nStep 4: Calculate the number of incapacitating injuries for each group using \'injuries_incapacitating\'\nStep 5: Calculate the number of non-incapacitating injuries for each group using \'injuries_non_incapacitating\'\nStep 6: Sort the results by \'traffic_control_device\' in ascending order\nEDGE CASES: []\nVALIDATION RULES: []\n\nCRITICAL: You MUST follow the IMPLEMENTATION PLAN exactly. Do NOT create a different analysis or make assumptions.\n- If the plan says "ANOVA", you MUST create a spec for ANOVA analysis (NOT correlation, NOT t-test)\n- If the plan says "correlation", you MUST create a spec for correlation analysis (NOT ANOVA)\n- If the plan says "Tukey HSD post-hoc", the spec MUST include post-hoc testing\n- The \'what_it_does\' field MUST describe exactly what\'s in the IMPLEMENTATION PLAN\n\n⚠️ STATISTICAL INJECTION GUARD:\n- DO NOT add statistical tests (ANOVA, t-test, chi-square, correlation) if NOT in IMPLEMENTATION PLAN\n- DO NOT add chi-square unless IMPLEMENTATION PLAN explicitly requests it\n- DO NOT add p-values, significance tests unless IMPLEMENTATION PLAN requests them\n- If operation is "groupby_aggregate" or "pivot", create ONLY descriptive aggregation (NO statistical tests)\n\nCreate a ToolSpec with:\n1. tool_name: A descriptive snake_case name based on operation and columns\n2. description: Clear explanation matching the IMPLEMENTATION PLAN\n3. input_schema: JSON Schema for input parameters (file_path is required)\n4. output_schema: JSON Schema for output structure (Dict with \'result\' and \'metadata\')\n5. parameters: List of parameter definitions [{"name": "file_path", "type": "str", "description": "Path to CSV file", "required": true}]\n6. when_to_use: When this tool should be selected based on the IMPLEMENTATION PLAN\n7. what_it_does: Technical description that EXACTLY follows the IMPLEMENTATION PLAN step-by-step\n8. returns: Description of return value structure\n9. prerequisites: String listing the exact required column names from REQUIRED COLUMNS in comma-separated format\n\nReturn JSON matching ToolSpec structure.\n'}], 'model': 'deepseek-r1:70b', 'temperature': 0.0}}
+2026-02-10 16:55:50 - DEBUG - openai._base_client - request:998 - Sending HTTP Request: POST http://localhost:11434/v1/chat/completions
+2026-02-10 16:55:50 - DEBUG - httpcore.connection - trace:47 - connect_tcp.started host='localhost' port=11434 local_address=None timeout=5.0 socket_options=None
+2026-02-10 16:55:52 - DEBUG - httpcore.connection - trace:47 - connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001E989C7AE70>
+2026-02-10 16:55:52 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.started request=<Request [b'POST']>
+2026-02-10 16:55:52 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.complete
+2026-02-10 16:55:52 - DEBUG - httpcore.http11 - trace:47 - send_request_body.started request=<Request [b'POST']>
+2026-02-10 16:55:52 - DEBUG - httpcore.http11 - trace:47 - send_request_body.complete
+2026-02-10 16:55:52 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.started request=<Request [b'POST']>
+2026-02-10 16:57:06 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json'), (b'Date', b'Tue, 10 Feb 2026 08:57:06 GMT'), (b'Transfer-Encoding', b'chunked')])
+2026-02-10 16:57:06 - INFO - httpx - _send_single_request:1025 - HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-10 16:57:06 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.started request=<Request [b'POST']>
+2026-02-10 16:57:06 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.complete
+2026-02-10 16:57:06 - DEBUG - httpcore.http11 - trace:47 - response_closed.started
+2026-02-10 16:57:06 - DEBUG - httpcore.http11 - trace:47 - response_closed.complete
+2026-02-10 16:57:06 - DEBUG - openai._base_client - request:1036 - HTTP Response: POST http://localhost:11434/v1/chat/completions "200 OK" Headers({'content-type': 'application/json', 'date': 'Tue, 10 Feb 2026 08:57:06 GMT', 'transfer-encoding': 'chunked'})
+2026-02-10 16:57:06 - DEBUG - openai._base_client - request:1044 - request_id: None
+2026-02-10 16:57:06 - DEBUG - httpcore.connection - trace:47 - close.started
+2026-02-10 16:57:06 - DEBUG - httpcore.connection - trace:47 - close.complete
+2026-02-10 16:57:06 - INFO - src.code_generator - log_section:117 - 
+================================================================================
+2026-02-10 16:57:06 - INFO - src.code_generator - log_section:118 - CODE GENERATION PROMPT
+2026-02-10 16:57:06 - INFO - src.code_generator - log_section:119 - ================================================================================
+
+2026-02-10 16:57:06 - DEBUG - src.code_generator - generate:43 - Generate Python function code for this tool specification.
+
+TOOL NAME: traffic_control_device_injury_aggregation
+DESCRIPTION: Groups data by 'traffic_control_device' and calculates total injuries, fatal injuries, incapacitating injuries, and non-incapacitating injuries for each group.
+PARAMETERS: [
+  {
+    "name": "file_path",
+    "type": "str",
+    "description": "Path to CSV file containing the data",
+    "required": true
+  }
+]
+REQUIRED COLUMNS: traffic_control_device, injuries_total, injuries_fatal, injuries_incapacitating, injuries_non_incapacitating
+IMPLEMENTATION PLAN: Step 1: Group the data by 'traffic_control_device' Step 2: Calculate the total number of injuries for each group using 'injuries_total' Step 3: Calculate the number of fatal injuries for each group using 'injuries_fatal' Step 4: Calculate the number of incapacitating injuries for each group using 'injuries_incapacitating' Step 5: Calculate the number of non-incapacitating injuries for each group using 'injuries_non...
+2026-02-10 16:57:06 - DEBUG - openai._base_client - _build_request:485 - Request options: {'method': 'post', 'url': '/chat/completions', 'files': None, 'idempotency_key': 'stainless-python-retry-7b80a542-e868-4763-bc33-328899dae8c9', 'content': None, 'json_data': {'messages': [{'role': 'user', 'content': 'Generate Python function code for this tool specification.\n\nTOOL NAME: traffic_control_device_injury_aggregation\nDESCRIPTION: Groups data by \'traffic_control_device\' and calculates total injuries, fatal injuries, incapacitating injuries, and non-incapacitating injuries for each group.\nPARAMETERS: [\n  {\n    "name": "file_path",\n    "type": "str",\n    "description": "Path to CSV file containing the data",\n    "required": true\n  }\n]\nREQUIRED COLUMNS: traffic_control_device, injuries_total, injuries_fatal, injuries_incapacitating, injuries_non_incapacitating\nIMPLEMENTATION PLAN: Step 1: Group the data by \'traffic_control_device\' Step 2: Calculate the total number of injuries for each group using \'injuries_total\' Step 3: Calculate the number of fatal injuries for each group using \'injuries_fatal\' Step 4: Calculate the number of incapacitating injuries for each group using \'injuries_incapacitating\' Step 5: Calculate the number of non-incapacitating injuries for each group using \'injuries_non_incapacitating\' Step 6: Sort the results by \'traffic_control_device\' in ascending order\nWHAT IT DOES: Step 1: Group the data by \'traffic_control_device\' Step 2: Calculate the total number of injuries for each group using \'injuries_total\' Step 3: Calculate the number of fatal injuries for each group using \'injuries_fatal\' Step 4: Calculate the number of incapacitating injuries for each group using \'injuries_incapacitating\' Step 5: Calculate the number of non-incapacitating injuries for each group using \'injuries_non_incapacitating\' Step 6: Sort the results by \'traffic_control_device\' in ascending order\n\nRequirements:\n1. Use pandas for data manipulation\n2. Function signature must be: def traffic_control_device_injury_aggregation(file_path: str):\n3. Add comprehensive error handling\n4. Return a dictionary with \'result\' and \'metadata\' keys\n5. **CRITICAL**: Follow the IMPLEMENTATION PLAN and WHAT IT DOES exactly - implement the EXACT statistical method specified\n   - If it says "ANOVA", use scipy.stats.f_oneway or similar (NOT pearsonr, NOT correlation)\n   - If it says "correlation", use scipy.stats.pearsonr (NOT ANOVA, NOT t-test)\n   - If it says "Tukey HSD", use statsmodels.stats.multicomp.pairwise_tukeyhsd\n   - DO NOT substitute different statistical methods than specified\n   - **STATISTICAL INJECTION GUARD**: DO NOT add statistical tests if IMPLEMENTATION PLAN does not request them\n     * If operation is groupby_aggregate → Create simple aggregation (mean, sum, count) ONLY\n     * If operation is pivot → Create pivot table ONLY (NO chi-square, NO statistical tests)\n     * DO NOT add chi-square unless explicitly requested\n     * DO NOT add ANOVA unless explicitly requested\n     * DO NOT add p-values unless explicitly requested\n6. **STATISTICAL TEST RESULTS FORMATTING**:\n   - For ANOVA: Return f_statistic, p_value, effect_size (eta_squared)\n   - For Tukey HSD post-hoc: DO NOT use dict(zip(tukey.pvalues, tukey.groupsunique)) - this is WRONG\n     * Extract pairwise comparisons properly:\n       ```python\n       tukey_table = pd.DataFrame(tukey.summary().data[1:], columns=tukey.summary().data[0])\n       tukey_pairs = tukey_table[["group1", "group2", "meandiff", "p-adj", "lower", "upper", "reject"]].to_dict("records")\n       ```\n     * Return as list of comparison dicts with keys: group1, group2, meandiff, p_adj, lower, upper, reject\n   - For correlation: Return correlation_coefficient, p_value\n   - Always handle NaN values: df = df[required_columns].dropna()\n   - Guard for minimum samples: Filter groups with <2 samples, ensure >=2 groups remain\n7. **MATPLOTLIB CONFIGURATION**: If using matplotlib/seaborn for plotting:\n   - Import matplotlib FIRST before any other plotting libraries\n   - Set non-interactive backend: import matplotlib; matplotlib.use(\'Agg\')\n   - Then import pyplot: import matplotlib.pyplot as plt\n   - This prevents tkinter cleanup errors in non-GUI environments\n8. Handle edge cases gracefully\n9. Add docstring with examples\n10. CRITICAL: Use ONLY the columns listed in REQUIRED COLUMNS above - do NOT invent or assume other column names\n\nInclude:\n- pandas DataFrame input handling\n- Error handling for missing columns, invalid data types\n- Clear variable names\n- Comments for complex operations\n- Return structure: {"result": {}, "metadata": {}}\n\nIMPORTANT: Use {} or dict() to create dictionaries. Do NOT use typing classes like Dict() to instantiate objects.\n\nDO NOT INCLUDE:\n- DO NOT create placeholder decorator functions like "def mcp_tool()" or "def decorator()"\n- DO NOT create mock FastMCP classes or instances\n- DO NOT define TOOL_SPEC dictionaries or constants\n- DO NOT write explanatory text before or after the code\n- DO NOT create any wrapper functions or decorators\n- DO NOT include comments like "# Placeholder for @mcp.tool()"\n- DO NOT add import statements for \'mcp\' module\n- DO NOT write "Here\'s the code:" or any conversational text\n- DO NOT create example usage code or test functions\n- DO NOT define helper decorator functions\n\nONLY OUTPUT:\n- The single function implementation named traffic_control_device_injury_aggregation\n- Standard library imports (pandas, numpy, scipy, etc.)\n- **CRITICAL IMPORT ORDER**: If using matplotlib, follow this exact pattern:\n  ```python\n  import matplotlib\n  matplotlib.use(\'Agg\')  # Set non-interactive backend BEFORE importing pyplot\n  import matplotlib.pyplot as plt\n  ```\n- The function must start with: def traffic_control_device_injury_aggregation(file_path: str):\n- No decorators, no extra functions, no explanations\n\nGenerate ONLY the function implementation. Nothing else.\n'}], 'model': 'qwen2.5-coder:32b', 'temperature': 0.2}}
+2026-02-10 16:57:06 - DEBUG - openai._base_client - request:998 - Sending HTTP Request: POST http://localhost:11434/v1/chat/completions
+2026-02-10 16:57:06 - DEBUG - httpcore.connection - trace:47 - connect_tcp.started host='localhost' port=11434 local_address=None timeout=5.0 socket_options=None
+2026-02-10 16:57:09 - DEBUG - httpcore.connection - trace:47 - connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001E989C7AFC0>
+2026-02-10 16:57:09 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.started request=<Request [b'POST']>
+2026-02-10 16:57:09 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.complete
+2026-02-10 16:57:09 - DEBUG - httpcore.http11 - trace:47 - send_request_body.started request=<Request [b'POST']>
+2026-02-10 16:57:09 - DEBUG - httpcore.http11 - trace:47 - send_request_body.complete
+2026-02-10 16:57:09 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.started request=<Request [b'POST']>
+2026-02-10 16:57:25 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json'), (b'Date', b'Tue, 10 Feb 2026 08:57:25 GMT'), (b'Transfer-Encoding', b'chunked')])
+2026-02-10 16:57:25 - INFO - httpx - _send_single_request:1025 - HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-10 16:57:25 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.started request=<Request [b'POST']>
+2026-02-10 16:57:25 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.complete
+2026-02-10 16:57:25 - DEBUG - httpcore.http11 - trace:47 - response_closed.started
+2026-02-10 16:57:25 - DEBUG - httpcore.http11 - trace:47 - response_closed.complete
+2026-02-10 16:57:25 - DEBUG - openai._base_client - request:1036 - HTTP Response: POST http://localhost:11434/v1/chat/completions "200 OK" Headers({'content-type': 'application/json', 'date': 'Tue, 10 Feb 2026 08:57:25 GMT', 'transfer-encoding': 'chunked'})
+2026-02-10 16:57:25 - DEBUG - openai._base_client - request:1044 - request_id: None
+2026-02-10 16:57:25 - INFO - src.code_generator - log_section:117 - 
+================================================================================
+2026-02-10 16:57:25 - INFO - src.code_generator - log_section:118 - RAW LLM RESPONSE
+2026-02-10 16:57:25 - INFO - src.code_generator - log_section:119 - ================================================================================
+
+2026-02-10 16:57:25 - DEBUG - src.code_generator - generate:50 - ```python
+import pandas as pd
+import numpy as np
+
+def traffic_control_device_injury_aggregation(file_path: str):
+    try:
+        # Load the data from CSV file
+        df = pd.read_csv(file_path)
+        
+        # Define required columns
+        required_columns = ['traffic_control_device', 'injuries_total', 'injuries_fatal', 
+                            'injuries_incapacitating', 'injuries_non_incapacitating']
+        
+        # Check if all required columns are present in the DataFrame
+        missing_columns = set(required_columns) - set(df.columns)
+        if missing_columns:
+            raise ValueError(f"Missing required columns: {missing_columns}")
+        
+        # Drop rows with NaN values in any of the required columns
+        df = df[required_columns].dropna()
+        
+        # Group by 'traffic_control_device' and calculate sums for each injury type
+        grouped_data = df.groupby('traffic_control_device').agg({
+            'injuries_total': 'sum',
+            'injurie...
+2026-02-10 16:57:25 - INFO - src.code_generator - log_section:117 - 
+================================================================================
+2026-02-10 16:57:25 - INFO - src.code_generator - log_section:118 - EXTRACTED CODE (before wrapping)
+2026-02-10 16:57:25 - INFO - src.code_generator - log_section:119 - ================================================================================
+
+2026-02-10 16:57:25 - DEBUG - src.code_generator - generate:57 - import numpy as np
+
+def traffic_control_device_injury_aggregation(file_path: str):
+    try:
+        # Load the data from CSV file
+        df = pd.read_csv(file_path)
+        
+        # Define required columns
+        required_columns = ['traffic_control_device', 'injuries_total', 'injuries_fatal', 
+                            'injuries_incapacitating', 'injuries_non_incapacitating']
+        
+        # Check if all required columns are present in the DataFrame
+        missing_columns = set(required_columns) - set(df.columns)
+        if missing_columns:
+            raise ValueError(f"Missing required columns: {missing_columns}")
+        
+        # Drop rows with NaN values in any of the required columns
+        df = df[required_columns].dropna()
+        
+        # Group by 'traffic_control_device' and calculate sums for each injury type
+        grouped_data = df.groupby('traffic_control_device').agg({
+            'injuries_total': 'sum',
+            'injuries_fatal': 'sum',
+            '...
+2026-02-10 16:57:25 - INFO - src.code_generator - log_section:117 - 
+================================================================================
+2026-02-10 16:57:25 - INFO - src.code_generator - log_section:118 - WRAPPED CODE (before black formatting)
+2026-02-10 16:57:25 - INFO - src.code_generator - log_section:119 - ================================================================================
+
+2026-02-10 16:57:25 - DEBUG - src.code_generator - generate:64 - """Generated MCP tool: traffic_control_device_injury_aggregation"""
+
+from fastmcp import FastMCP
+import pandas as pd
+import time
+import numpy as np
+
+mcp = FastMCP("data_analysis_tools")
+
+
+@mcp.tool()
+def traffic_control_device_injury_aggregation(file_path: str):
+    try:
+        # Load the data from CSV file
+        df = pd.read_csv(file_path)
+        
+        # Define required columns
+        required_columns = ['traffic_control_device', 'injuries_total', 'injuries_fatal', 
+                            'injuries_incapacitating', 'injuries_non_incapacitating']
+        
+        # Check if all required columns are present in the DataFrame
+        missing_columns = set(required_columns) - set(df.columns)
+        if missing_columns:
+            raise ValueError(f"Missing required columns: {missing_columns}")
+        
+        # Drop rows with NaN values in any of the required columns
+        df = df[required_columns].dropna()
+        
+        # Group by 'traffic_control_device' and calculate...
+2026-02-10 16:57:26 - INFO - src.code_generator - log_section:117 - 
+================================================================================
+2026-02-10 16:57:26 - INFO - src.code_generator - log_section:118 - FINAL FORMATTED CODE
+2026-02-10 16:57:26 - INFO - src.code_generator - log_section:119 - ================================================================================
+
+2026-02-10 16:57:26 - DEBUG - src.code_generator - generate:72 - """Generated MCP tool: traffic_control_device_injury_aggregation"""
+
+from fastmcp import FastMCP
+import pandas as pd
+import time
+import numpy as np
+
+mcp = FastMCP("data_analysis_tools")
+
+
+@mcp.tool()
+def traffic_control_device_injury_aggregation(file_path: str):
+    try:
+        # Load the data from CSV file
+        df = pd.read_csv(file_path)
+
+        # Define required columns
+        required_columns = [
+            "traffic_control_device",
+            "injuries_total",
+            "injuries_fatal",
+            "injuries_incapacitating",
+            "injuries_non_incapacitating",
+        ]
+
+        # Check if all required columns are present in the DataFrame
+        missing_columns = set(required_columns) - set(df.columns)
+        if missing_columns:
+            raise ValueError(f"Missing required columns: {missing_columns}")
+
+        # Drop rows with NaN values in any of the required columns
+        df = df[required_columns].dropna()
+
+        # Group by 'traffic_control_device' and calculate sums for each injury type
+        grouped_data = (
+            df.groupby("traffic_control_device")
+            .agg(
+                {
+                    "injuries_total": "sum",
+                    "injuries_fatal": "sum",
+                    "injuries_incapacitating": "sum",
+                    "injuries_non_incapacitating": "sum",
+                }
+            )
+            .reset_index()
+        )
+
+        # Sort the results by 'traffic_control_device' in ascending order
+        grouped_data = grouped_data.sort_values(
+            by="traffic_control_device", ascending=True
+        )
+
+        # Prepare the result dictionary
+        result_dict = grouped_data.to_dict(orient="records")
+
+        # Prepare metadata
+        metadata = {"total_groups": len(grouped_data), "file_path": file_path}
+
+        return {"result": result_dict, "metadata": metadata}
+
+    except FileNotFoundError:
+        return {"error": f"File not found: {file_path}", "metadata": {}}
+    except pd.errors.EmptyDataError:
+        return {"error": "The file is empty", "metadata": {}}
+    except ValueError as ve:
+        return {"error": str(ve), "metadata": {}}
+    except Exception as e:
+        return {"error": f"An unexpected error occurred: {str(e)}", "metadata": {}}
+
+2026-02-10 16:57:26 - INFO - src.code_generator - code_generator_node:597 - 📝 Generated code saved to draft: tools\draft\traffic_control_device_injury_aggregation_20260210_165726.py
+2026-02-10 16:57:29 - INFO - src.validator - log_section:117 - 
+================================================================================
+2026-02-10 16:57:29 - INFO - src.validator - log_section:118 - VALIDATION RESULTS
+2026-02-10 16:57:29 - INFO - src.validator - log_section:119 - ================================================================================
+
+2026-02-10 16:57:29 - INFO - src.validator - validator_node:301 - Schema OK: True
+2026-02-10 16:57:29 - INFO - src.validator - validator_node:302 - Tests OK: True
+2026-02-10 16:57:29 - INFO - src.validator - validator_node:303 - Sandbox OK: True
+2026-02-10 16:57:29 - DEBUG - httpcore.connection - trace:47 - close.started
+2026-02-10 16:57:29 - DEBUG - httpcore.connection - trace:47 - close.complete
+2026-02-10 16:57:29 - DEBUG - httpcore.connection - trace:47 - close.started
+2026-02-10 16:57:29 - DEBUG - httpcore.connection - trace:47 - close.complete
+2026-02-10 16:57:30 - DEBUG - mcp.server.lowlevel.server - __init__:162 - Initializing server 'data_analysis_tools'
+2026-02-10 16:57:30 - DEBUG - mcp.server.lowlevel.server - decorator:439 - Registering handler for ListToolsRequest
+2026-02-10 16:57:30 - DEBUG - mcp.server.lowlevel.server - decorator:301 - Registering handler for ListResourcesRequest
+2026-02-10 16:57:30 - DEBUG - mcp.server.lowlevel.server - decorator:321 - Registering handler for ListResourceTemplatesRequest
+2026-02-10 16:57:30 - DEBUG - mcp.server.lowlevel.server - decorator:263 - Registering handler for PromptListRequest
+2026-02-10 16:57:30 - DEBUG - mcp.server.lowlevel.server - decorator:519 - Registering handler for CallToolRequest
+2026-02-10 16:57:30 - DEBUG - src.executor - _load_function:136 - Module contents: ['FastMCP', 'mcp', 'np', 'pd', 'time', 'traffic_control_device_injury_aggregation']
+2026-02-10 16:57:30 - DEBUG - src.executor - _load_function:143 - Checking 'np': type=<class 'module'>, callable=False, is_function=False
+2026-02-10 16:57:30 - DEBUG - src.executor - _load_function:143 - Checking 'traffic_control_device_injury_aggregation': type=<class 'fastmcp.tools.tool.FunctionTool'>, callable=False, is_function=False
+2026-02-10 16:57:30 - DEBUG - src.executor - _load_function:147 - Found FunctionTool, extracting underlying function...
+2026-02-10 16:57:30 - DEBUG - src.executor - _load_function:154 - Successfully extracted function from FunctionTool via 'fn'
+2026-02-10 16:57:31 - DEBUG - src.executor - execute:68 - Result type: <class 'dict'>
+2026-02-10 16:57:31 - DEBUG - src.executor - execute:69 - Result value: {'result': [{'traffic_control_device': 'BICYCLE CROSSING SIGN', 'injuries_total': 6, 'injuries_fatal': 0, 'injuries_incapacitating': 1, 'injuries_non_incapacitating': 3}, {'traffic_control_device': 'DELINEATORS', 'injuries_total': 14, 'injuries_fatal': 0, 'injuries_incapacitating': 0, 'injuries_non_incapacitating': 4}, {'traffic_control_device': 'FLASHING CONTROL SIGNAL', 'injuries_total': 86, 'injuries_fatal': 0, 'injuries_incapacitating': 8, 'injuries_non_incapacitating': 57}, {'traffic_control_device': 'LANE USE MARKING', 'injuries_total': 56, 'injuries_fatal': 0, 'injuries_incapacitating': 14, 'injuries_non_incapacitating': 16}, {'traffic_control_device': 'NO CONTROLS', 'injuries_total': 9687, 'injuries_fatal': 73, 'injuries_incapacitating': 1046, 'injuries_non_incapacitating': 5574}, {'traffic_control_device': 'NO PASSING', 'injuries_total': 6, 'injuries_fatal': 0, 'injuries_incapacitating': 2, 'injuries_non_incapacitating': 3}, {'traffic_control_device': 'OTHER', 'injuries_total': 256, 'injuries_fatal': 1, 'injuries_incapacitating': 31, 'injuries_non_incapacitating': 145}, {'traffic_control_device': 'OTHER RAILROAD CROSSING', 'injuries_total': 9, 'injuries_fatal': 0, 'injuries_incapacitating': 1, 'injuries_non_incapacitating': 1}, {'traffic_control_device': 'OTHER REG. SIGN', 'injuries_total': 65, 'injuries_fatal': 0, 'injuries_incapacitating': 15, 'injuries_non_incapacitating': 30}, {'traffic_control_device': 'OTHER WARNING SIGN', 'injuries_total': 45, 'injuries_fatal': 0, 'injuries_incapacitating': 5, 'injuries_non_incapacitating': 21}, {'traffic_control_device': 'PEDESTRIAN CROSSING SIGN', 'injuries_total': 179, 'injuries_fatal': 2, 'injuries_incapacitating': 29, 'injuries_non_incapacitating': 100}, {'traffic_control_device': 'POLICE/FLAGMAN', 'injuries_total': 30, 'injuries_fatal': 0, 'injuries_incapacitating': 5, 'injuries_non_incapacitating': 23}, {'traffic_control_device': 'RAILROAD CROSSING GATE', 'injuries_total': 18, 'injuries_fatal': 1, 'injuries_incapacitating': 2, 'injuries_non_incapacitating': 7}, {'traffic_control_device': 'RR CROSSING SIGN', 'injuries_total': 3, 'injuries_fatal': 0, 'injuries_incapacitating': 0, 'injuries_non_incapacitating': 1}, {'traffic_control_device': 'SCHOOL ZONE', 'injuries_total': 31, 'injuries_fatal': 1, 'injuries_incapacitating': 4, 'injuries_non_incapacitating': 21}, {'traffic_control_device': 'STOP SIGN/FLASHER', 'injuries_total': 19898, 'injuries_fatal': 58, 'injuries_incapacitating': 1768, 'injuries_non_incapacitating': 11562}, {'traffic_control_device': 'TRAFFIC SIGNAL', 'injuries_total': 48394, 'injuries_fatal': 247, 'injuries_incapacitating': 4898, 'injuries_non_incapacitating': 27950}, {'traffic_control_device': 'UNKNOWN', 'injuries_total': 1086, 'injuries_fatal': 4, 'injuries_incapacitating': 120, 'injuries_non_incapacitating': 655}, {'traffic_control_device': 'YIELD', 'injuries_total': 236, 'injuries_fatal': 2, 'injuries_incapacitating': 26, 'injuries_non_incapacitating': 134}], 'metadata': {'total_groups': 19, 'file_path': 'C:\\Users\\admin\\Desktop\\sweta\\code_generator_interpreter\\MCP_Tool_Code_Interpreter_Generator\\reference_files\\sample_planner_output\\traffic_accidents.csv'}}
+2026-02-10 16:57:31 - INFO - src.executor - executor_node:303 - 💾 Execution results saved to: output\draft\traffic_control_device_injury_aggregation_20260210_165726_output.json
+2026-02-10 16:57:31 - INFO - src.promoter - promote:85 - 💾 Moved output file to: output\active\traffic_control_device_injury_aggregation_20260210_165726_output.json
+2026-02-10 16:57:31 - INFO - src.promoter - log_section:117 - 
+================================================================================
+2026-02-10 16:57:31 - INFO - src.promoter - log_section:118 - 🎉 TOOL PROMOTED TO ACTIVE REGISTRY
+2026-02-10 16:57:31 - INFO - src.promoter - log_section:119 - ================================================================================
+
+2026-02-10 16:57:31 - INFO - src.promoter - promoter_node:196 - Tool Name: traffic_control_device_injury_aggregation_20260210_165726
+2026-02-10 16:57:31 - INFO - src.promoter - promoter_node:198 - Draft Path: tools\draft\traffic_control_device_injury_aggregation_20260210_165726.py
+2026-02-10 16:57:31 - INFO - src.promoter - promoter_node:199 - Active Path: tools\active\traffic_control_device_injury_aggregation_20260210_165726.py
+2026-02-10 16:57:31 - INFO - src.promoter - promoter_node:201 - Output Path: output\active\traffic_control_device_injury_aggregation_20260210_165726_output.json
+2026-02-10 16:57:31 - INFO - src.promoter - promoter_node:202 - Registry: tools\registry.json
+2026-02-10 16:57:31 - INFO - src.promoter - promoter_node:203 - ✅ Tool successfully executed and promoted to active

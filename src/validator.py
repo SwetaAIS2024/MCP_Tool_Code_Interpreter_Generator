@@ -21,13 +21,14 @@ class Validator:
         """Initialize validator with sandbox."""
         self.sandbox = create_sandbox()
     
-    def validate(self, code: str, spec: ToolSpec, test_data_path: Optional[str] = None) -> ValidationReport:
+    def validate(self, code: str, spec: ToolSpec, test_data_path: Optional[str] = None, operation: Optional[str] = None) -> ValidationReport:
         """Perform multi-stage validation.
         
         Args:
             code: Generated Python code
             spec: Original ToolSpec
             test_data_path: Optional path to test data
+            operation: Optional operation type from extracted_intent
             
         Returns:
             ValidationReport with results
@@ -47,7 +48,7 @@ class Validator:
             )
         
         # Stage 2: Schema compliance
-        schema_ok, schema_errors = self._validate_schema(code, spec)
+        schema_ok, schema_errors = self._validate_schema(code, spec, operation)
         errors.extend(schema_errors)
         
         # Stage 3: Sandbox execution
@@ -90,17 +91,19 @@ class Validator:
             errors.append(f"Parse error: {str(e)}")
             return False, errors
     
-    def _validate_schema(self, code: str, spec: ToolSpec) -> tuple[bool, List[str]]:
+    def _validate_schema(self, code: str, spec: ToolSpec, operation: Optional[str] = None) -> tuple[bool, List[str]]:
         """Validate code matches ToolSpec schema.
         
         Args:
             code: Python code
             spec: ToolSpec
+            operation: Optional operation type from extracted_intent
             
         Returns:
             Tuple of (is_valid, error_messages)
         """
         errors = []
+        warnings = []
         
         # Check function name exists
         if f"def {spec.tool_name}" not in code:
@@ -127,6 +130,36 @@ class Validator:
                 param_name = param["name"]
                 if param_name not in code:
                     errors.append(f"Missing required parameter: {param_name}")
+        
+        # ⚠️ CONSISTENCY GUARDS - Prevent statistical injection
+        what_it_does = spec.what_it_does.lower()
+        
+        # Guard 1: Block chi-square injection for non-statistical operations
+        if operation in ['groupby_aggregate', 'pivot', 'filter', 'describe_summary']:
+            statistical_patterns = [
+                'chi2_contingency', 'chi_square', 'chi2',
+                'scipy.stats.chi', 'from scipy.stats import chi'
+            ]
+            for pattern in statistical_patterns:
+                if pattern in code.lower():
+                    errors.append(f"Statistical injection detected: '{pattern}' found in code but operation is '{operation}' (non-statistical)")
+        
+        # Guard 2: Block ANOVA injection for non-statistical operations
+        if operation in ['groupby_aggregate', 'pivot', 'filter', 'describe_summary']:
+            if 'f_oneway' in code.lower() and 'anova' not in what_it_does:
+                errors.append(f"Statistical injection detected: ANOVA (f_oneway) found but not requested in spec")
+        
+        # Guard 3: Verify statistical tests match spec requirements
+        if 'anova' in what_it_does and 'f_oneway' not in code:
+            errors.append("Spec requires ANOVA but code does not contain f_oneway")
+        
+        if 'chi-square' in what_it_does or 'chi2' in what_it_does:
+            if 'chi2_contingency' not in code:
+                errors.append("Spec requires chi-square but code does not contain chi2_contingency")
+        
+        if 'correlation' in what_it_does:
+            if not any(x in code for x in ['pearsonr', 'spearmanr', 'kendalltau']):
+                errors.append("Spec requires correlation but code does not contain correlation function")
         
         return len(errors) == 0, errors
     
@@ -222,19 +255,20 @@ class Validator:
 # Helper Functions
 # ============================================================================
 
-def validate(code: str, spec: ToolSpec, test_data_path: Optional[str] = None) -> ValidationReport:
+def validate(code: str, spec: ToolSpec, test_data_path: Optional[str] = None, operation: Optional[str] = None) -> ValidationReport:
     """Validate generated code.
     
     Args:
         code: Python code to validate
         spec: ToolSpec
         test_data_path: Optional test data path
+        operation: Optional operation type from extracted_intent
         
     Returns:
         ValidationReport
     """
     validator = Validator()
-    return validator.validate(code, spec, test_data_path)
+    return validator.validate(code, spec, test_data_path, operation)
 
 
 # ============================================================================
@@ -250,10 +284,16 @@ def validator_node(state: ToolGeneratorState) -> ToolGeneratorState:
     Returns:
         Updated state with validation_result
     """
+    # Extract operation from extracted_intent if available
+    operation = None
+    if "extracted_intent" in state and state["extracted_intent"]:
+        operation = state["extracted_intent"].get("operation")
+    
     result = validate(
         state["generated_code"], 
         state["tool_spec"],
-        state.get("data_path")
+        state.get("data_path"),
+        operation
     )
     
     # Log validation results

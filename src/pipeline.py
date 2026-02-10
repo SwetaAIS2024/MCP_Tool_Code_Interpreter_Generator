@@ -116,6 +116,7 @@ def run_pipeline(user_query: str, data_path: str) -> Dict[str, Any]:
         "has_gap": False,
         "tool_spec": None,
         "generated_code": None,
+        "draft_path": None,
         "validation_result": None,
         "repair_attempts": 0,
         "execution_output": None,

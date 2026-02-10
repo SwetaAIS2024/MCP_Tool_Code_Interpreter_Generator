@@ -1,181 +1,140 @@
 {
   "tools": [
     {
-      "name": "analyze_traffic_control_injury_impact_v2",
-      "original_name": "analyze_traffic_control_injury_impact",
-      "version": "1.0.0",
-      "description": "Performs an ANOVA test followed by Tukey HSD post-hoc analysis to compare total injuries across different traffic control devices.",
-      "created_at": "2026-02-04T16:53:42.710814",
-      "timestamp": "20260204_165342",
-      "logs_path": "tools/logs/analyze_traffic_control_injury_impact_v2_20260204_165342",
+      "name": "traffic_control_device_injury_aggregation_20260210_165343",
+      "description": "Groups data by 'traffic_control_device' and calculates total injuries, fatal injuries, incapacitating injuries, and non-incapacitating injuries for each group.",
+      "user_query": "compare injuries by traffic control device",
+      "tool_path": "tools\\active\\traffic_control_device_injury_aggregation_20260210_165343.py",
+      "log_file": "logs\\pipeline_20260210_165112.log",
       "parameters": [
         {
           "name": "file_path",
           "type": "str",
-          "description": "Path to CSV file containing 'traffic_control_device' and 'injuries_total'",
+          "description": "Path to CSV file containing the data",
           "required": true
         }
       ],
-      "return_type": "Dict[str, Any]"
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\traffic_control_device_injury_aggregation_20260210_165343_output.json"
     },
     {
-      "name": "custom_transform_anova_traffic_control_injuries",
-      "original_name": "custom_transform_anova_traffic_control_injuries",
-      "version": "1.0.0",
-      "description": "Performs ANOVA and Tukey HSD post-hoc analysis to compare injuries across traffic control devices.",
-      "created_at": "2026-02-04T17:03:09.209357",
-      "timestamp": "20260204_170309",
-      "logs_path": "tools/logs/custom_transform_anova_traffic_control_injuries_20260204_170309",
+      "name": "traffic_control_device_injury_aggregation_20260210_165726",
+      "description": "Groups data by 'traffic_control_device' and calculates total injuries, fatal injuries, incapacitating injuries, and non-incapacitating injuries for each group.",
+      "user_query": "compare injuries by traffic control device",
+      "tool_path": "tools\\active\\traffic_control_device_injury_aggregation_20260210_165726.py",
+      "log_file": "logs\\pipeline_20260210_165455.log",
       "parameters": [
         {
           "name": "file_path",
           "type": "str",
-          "description": "Path to CSV file",
+          "description": "Path to CSV file containing the data",
           "required": true
         }
       ],
-      "return_type": "Dict[str, Any]"
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\traffic_control_device_injury_aggregation_20260210_165726_output.json"
     },
     {
-      "name": "custom_transform_anova_traffic_control_injuries_v2",
-      "original_name": "custom_transform_anova_traffic_control_injuries",
-      "version": "1.0.0",
-      "description": "Performs ANOVA and Tukey HSD post-hoc analysis to compare injuries across traffic control devices.",
-      "created_at": "2026-02-04T17:52:17.855769",
-      "timestamp": "20260204_175217",
-      "logs_path": "tools/logs/custom_transform_anova_traffic_control_injuries_v2_20260204_175217",
+      "name": "groupby_weather_injuries_20260210_170209",
+      "description": "Groups data by weather condition and calculates the count of fatal injuries for each group, sorted in descending order.",
+      "user_query": "analyze fatal injury variations across weather conditions",
+      "tool_path": "tools\\active\\groupby_weather_injuries_20260210_170209.py",
+      "log_file": "logs\\pipeline_20260210_170016.log",
       "parameters": [
         {
           "name": "file_path",
           "type": "str",
-          "description": "Path to CSV file",
+          "description": "Path to CSV file containing the data",
           "required": true
         }
       ],
-      "return_type": "Dict[str, Any]"
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\groupby_weather_injuries_20260210_170209_output.json"
     },
     {
-      "name": "analyze_traffic_control_injury_impact_v3",
-      "original_name": "analyze_traffic_control_injury_impact",
-      "version": "1.0.0",
-      "description": "Performs an ANOVA test followed by Tukey HSD post-hoc analysis to compare total injuries across different traffic control devices.",
-      "created_at": "2026-02-04T18:06:21.591782",
-      "timestamp": "20260204_180621",
-      "logs_path": "tools/logs/analyze_traffic_control_injury_impact_v3_20260204_180621",
+      "name": "groupby_weather_injuries_20260210_170435",
+      "description": "Groups data by weather condition and calculates the count of fatal injuries for each group, sorted in descending order.",
+      "user_query": "analyze fatal injury variations across weather conditions",
+      "tool_path": "tools\\active\\groupby_weather_injuries_20260210_170435.py",
+      "log_file": "logs\\pipeline_20260210_170242.log",
       "parameters": [
         {
           "name": "file_path",
           "type": "str",
-          "description": "Path to CSV file containing 'traffic_control_device' and 'injuries_total'",
+          "description": "Path to CSV file containing the data",
           "required": true
         }
       ],
-      "return_type": "Dict[str, Any]"
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\groupby_weather_injuries_20260210_170435_output.json"
     },
     {
-      "name": "custom_transform_anova_traffic_control_injuries_v3",
-      "original_name": "custom_transform_anova_traffic_control_injuries",
-      "version": "1.0.0",
-      "description": "Performs ANOVA and Tukey HSD post-hoc analysis to compare injuries across traffic control devices.",
-      "created_at": "2026-02-06T10:33:35.213133",
-      "timestamp": "20260206_103335",
-      "logs_path": "tools/logs/custom_transform_anova_traffic_control_injuries_v3_20260206_103335",
+      "name": "anova_tukeyhsd_traffic_injuries_20260210_171102",
+      "description": "Performs ANOVA with Tukey HSD post-hoc test to compare total injuries across different traffic control devices.",
+      "user_query": "Run ANOVA across groups, then perform a Tukey HSD post-hoc (multiple-comparisons correction required) and report adjusted p-values and effect sizes.",
+      "tool_path": "tools\\active\\anova_tukeyhsd_traffic_injuries_20260210_171102.py",
+      "log_file": "logs\\pipeline_20260210_170801.log",
       "parameters": [
         {
           "name": "file_path",
           "type": "str",
-          "description": "Path to CSV file",
+          "description": "Path to CSV file containing data",
           "required": true
         }
       ],
-      "return_type": "Dict[str, Any]"
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\anova_tukeyhsd_traffic_injuries_20260210_171102_output.json"
     },
     {
-      "name": "custom_transform_anova_traffic_control_injuries_v4",
-      "original_name": "custom_transform_anova_traffic_control_injuries",
-      "version": "1.0.0",
-      "description": "Performs ANOVA and Tukey HSD post-hoc analysis to compare injuries across traffic control devices.",
-      "created_at": "2026-02-06T11:10:45.669423",
-      "timestamp": "20260206_111045",
-      "logs_path": "tools/logs/custom_transform_anova_traffic_control_injuries_v4_20260206_111045",
+      "name": "anova_tukeyhsd_traffic_injuries_20260210_171557",
+      "description": "Performs ANOVA with Tukey HSD post-hoc test to compare total injuries across different traffic control devices.",
+      "user_query": "Run ANOVA across groups, then perform a Tukey HSD post-hoc (multiple-comparisons correction required) and report adjusted p-values and effect sizes.",
+      "tool_path": "tools\\active\\anova_tukeyhsd_traffic_injuries_20260210_171557.py",
+      "log_file": "logs\\pipeline_20260210_171302.log",
       "parameters": [
         {
           "name": "file_path",
           "type": "str",
-          "description": "Path to CSV file",
+          "description": "Path to CSV file containing data",
           "required": true
         }
       ],
-      "return_type": "Dict[str, Any]"
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\anova_tukeyhsd_traffic_injuries_20260210_171557_output.json"
     },
     {
-      "name": "analyze_traffic_control_injury_impact_v4",
-      "original_name": "analyze_traffic_control_injury_impact",
-      "version": "1.0.0",
-      "description": "Performs an ANOVA test followed by Tukey HSD post-hoc analysis to compare total injuries across different traffic control devices.",
-      "created_at": "2026-02-06T11:24:07.107162",
-      "timestamp": "20260206_112407",
-      "logs_path": "tools/logs/analyze_traffic_control_injury_impact_v4_20260206_112407",
+      "name": "anova_tukeyhsd_traffic_injuries_20260210_172203",
+      "description": "Performs ANOVA with Tukey HSD post-hoc test to compare total injuries across different traffic control devices.",
+      "user_query": "Run ANOVA across groups, then perform a Tukey HSD post-hoc (multiple-comparisons correction required) and report adjusted p-values and effect sizes.",
+      "tool_path": "tools\\active\\anova_tukeyhsd_traffic_injuries_20260210_172203.py",
+      "log_file": "logs\\pipeline_20260210_171905.log",
       "parameters": [
         {
           "name": "file_path",
           "type": "str",
-          "description": "Path to CSV file containing 'traffic_control_device' and 'injuries_total'",
+          "description": "Path to CSV file containing data",
           "required": true
         }
       ],
-      "return_type": "Dict[str, Any]"
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\anova_tukeyhsd_traffic_injuries_20260210_172203_output.json"
     },
     {
-      "name": "custom_transform_anova_traffic_control_injuries_v5",
-      "original_name": "custom_transform_anova_traffic_control_injuries",
-      "version": "1.0.0",
-      "description": "Performs ANOVA and Tukey HSD post-hoc analysis to compare injuries across traffic control devices.",
-      "created_at": "2026-02-06T11:28:28.015470",
-      "timestamp": "20260206_112828",
-      "logs_path": "tools/logs/custom_transform_anova_traffic_control_injuries_v5_20260206_112828",
+      "name": "anova_tukeyhsd_traffic_injuries_20260210_172817",
+      "description": "Performs ANOVA with Tukey HSD post-hoc test to compare total injuries across different traffic control devices.",
+      "user_query": "Run ANOVA across groups, then perform a Tukey HSD post-hoc (multiple-comparisons correction required) and report adjusted p-values and effect sizes.",
+      "tool_path": "tools\\active\\anova_tukeyhsd_traffic_injuries_20260210_172817.py",
+      "log_file": "logs\\pipeline_20260210_172517.log",
       "parameters": [
         {
           "name": "file_path",
           "type": "str",
-          "description": "Path to CSV file",
+          "description": "Path to CSV file containing data",
           "required": true
         }
       ],
-      "return_type": "Dict[str, Any]"
-    },
-    {
-      "name": "custom_transform_anova_traffic_control_injuries_v6",
-      "original_name": "custom_transform_anova_traffic_control_injuries",
-      "version": "1.0.0",
-      "description": "Performs ANOVA and Tukey HSD post-hoc analysis to compare injuries across traffic control devices.",
-      "created_at": "2026-02-06T15:16:26.841440",
-      "timestamp": "20260206_151626",
-      "logs_path": "tools/logs/custom_transform_anova_traffic_control_injuries_v6_20260206_151626",
-      "parameters": [
-        {
-          "name": "file_path",
-          "type": "str",
-          "description": "Path to CSV file",
-          "required": true
-        }
-      ],
-      "return_type": "Dict[str, Any]"
-    },
-    {
-      "name": "custom_transform_anova_traffic_control_injuries_v7",
-      "original_name": "custom_transform_anova_traffic_control_injuries",
-      "description": "Performs ANOVA and Tukey HSD post-hoc analysis to compare injuries across traffic control devices.",
-      "created_at": "2026-02-06T15:26:01.953623",
-      "parameters": [
-        {
-          "name": "file_path",
-          "type": "str",
-          "description": "Path to CSV file",
-          "required": true
-        }
-      ],
-      "return_type": "Dict[str, Any]"
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\anova_tukeyhsd_traffic_injuries_20260210_172817_output.json"
     }
   ]
 }

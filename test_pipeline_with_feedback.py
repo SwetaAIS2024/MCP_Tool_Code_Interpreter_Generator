@@ -16,11 +16,12 @@ from src.logger_config import PipelineLogger, get_logger, log_section
 logger = get_logger(__name__)
 
 
-def test_with_feedback(verbosity: str = "normal"):
+def test_with_feedback(verbosity: str = "normal", query: str = None):
     """Test pipeline with user feedback at interrupt points.
     
     Args:
         verbosity: Logging verbosity level (quiet, normal, verbose, debug)
+        query: User query for tool generation (optional)
     """
     # Configure logging
     pipeline_logger = PipelineLogger()
@@ -33,8 +34,10 @@ def test_with_feedback(verbosity: str = "normal"):
         logger.error(f"Test data not found at {test_data}")
         return
     
-    # Test query
-    query = "Run ANOVA across groups, then perform a Tukey HSD post-hoc (multiple-comparisons correction required) and report adjusted p-values and effect sizes."
+    # Use provided query or default
+    if query is None:
+        query = "Run ANOVA across groups, then perform a Tukey HSD post-hoc (multiple-comparisons correction required) and report adjusted p-values and effect sizes."
+    
     data_path = str(test_data.resolve())  # Use absolute path for sandbox
     
     log_section(logger, "TESTING PIPELINE WITH FEEDBACK")
@@ -54,6 +57,7 @@ def test_with_feedback(verbosity: str = "normal"):
         "has_gap": False,
         "tool_spec": None,
         "generated_code": None,
+        "draft_path": None,
         "validation_result": None,
         "repair_attempts": 0,
         "execution_output": None,
@@ -86,6 +90,8 @@ def test_with_feedback(verbosity: str = "normal"):
         tool = current_state["promoted_tool"]
         print(f"  Name: {tool.get('name')}")
         print(f"  Active Path: {tool.get('path')}")
+        if tool.get('output_path'):
+            print(f"  Output Path: {tool.get('output_path')}")
         print(f"  Logs Path: {tool.get('logs_path')}")
         print(f"  Registry Path: {tool.get('registry_path')}")
     else:
@@ -95,7 +101,17 @@ def test_with_feedback(verbosity: str = "normal"):
     if current_state.get("execution_output"):
         exec_out = current_state["execution_output"]
         print("\n[EXECUTION OUTPUT]")
-        print(f"  Result: {str(exec_out.get('result'))[:200]}")
+        
+        # Pretty print the full result with proper formatting
+        result = exec_out.get('result')
+        if result:
+            import json
+            try:
+                print(f"  Result: {json.dumps(result, indent=2, default=str)}")
+            except:
+                # Fallback to regular string representation
+                print(f"  Result: {str(result)}")
+        
         print(f"  Execution Time: {exec_out.get('execution_time_ms', 0):.2f}ms")
         if exec_out.get('error'):
             print(f"  Error: {exec_out.get('error')}")
@@ -127,6 +143,7 @@ def test_auto_approve():
         "has_gap": False,
         "tool_spec": None,
         "generated_code": None,
+        "draft_path": None,
         "validation_result": None,
         "repair_attempts": 0,
         "execution_output": None,
@@ -147,6 +164,11 @@ if __name__ == "__main__":
     # Parse command line arguments
     parser = argparse.ArgumentParser(
         description="Test MCP tool generation pipeline"
+    )
+    parser.add_argument(
+        "query",
+        nargs="?",
+        help="User query for tool generation (optional, uses default if not provided)"
     )
     parser.add_argument(
         "-v", "--verbose",
@@ -181,4 +203,4 @@ if __name__ == "__main__":
     if args.auto:
         test_auto_approve()
     else:
-        test_with_feedback(verbosity=args.verbosity)
+        test_with_feedback(verbosity=args.verbosity, query=args.query)

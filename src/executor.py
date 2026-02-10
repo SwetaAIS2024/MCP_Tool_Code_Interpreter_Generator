@@ -3,9 +3,11 @@
 import importlib.util
 import time
 import tempfile
+import json
 from pathlib import Path
 from typing import Dict, Any, Callable
 from concurrent.futures import TimeoutError, ThreadPoolExecutor
+from datetime import datetime
 from src.models import RunArtifacts, ToolGeneratorState
 from src.logger_config import get_logger, log_section, log_success, log_error
 
@@ -40,12 +42,15 @@ class ToolExecutor:
         start = time.time()
         
         try:
-            # Write code to temporary file
+            # Write code to draft folder (where all generated tools are stored)
+            draft_dir = Path("tools/draft")
+            draft_dir.mkdir(parents=True, exist_ok=True)
+            
             with tempfile.NamedTemporaryFile(
                 mode='w',
                 suffix='.py',
                 delete=False,
-                dir="tools/staged"
+                dir=str(draft_dir)
             ) as f:
                 code_path = Path(f.name)
                 f.write(code)
@@ -133,7 +138,7 @@ class ToolExecutor:
         # Find the actual function - look for user-defined functions
         import types
         for attr_name in dir(module):
-            if not attr_name.startswith('_') and attr_name not in ['mcp', 'FastMCP', 'pd', 'pandas', 'time']:
+            if not attr_name.startswith('_') and attr_name not in ['mcp', 'FastMCP', 'pd', 'pandas', 'time', 'sns', 'plt', 'seaborn', 'matplotlib', 'chi2_contingency']:
                 attr = getattr(module, attr_name)
                 logger.debug(f"Checking '{attr_name}': type={type(attr)}, callable={callable(attr)}, is_function={isinstance(attr, types.FunctionType)}")
                 
@@ -141,20 +146,24 @@ class ToolExecutor:
                 if type(attr).__name__ == 'FunctionTool':
                     logger.debug("Found FunctionTool, extracting underlying function...")
                     # The FunctionTool has the original function stored
-                    if hasattr(attr, 'func'):
-                        return attr.func
-                    elif hasattr(attr, 'fn'):
-                        return attr.fn
-                    elif hasattr(attr, '_func'):
-                        return attr._func
-                    # Try to get it from __dict__
-                    for key in ['func', 'fn', '_func', 'function']:
+                    # Try common attribute names for the wrapped function
+                    for key in ['func', 'fn', '_func', 'function', '_fn', '__wrapped__']:
                         if hasattr(attr, key):
                             func = getattr(attr, key)
                             if callable(func):
+                                logger.debug(f"Successfully extracted function from FunctionTool via '{key}'")
                                 return func
+                    # If we can't extract, try calling the FunctionTool directly
+                    # but this might not work as expected
+                    logger.warning("Could not extract function from FunctionTool, trying direct call")
+                    return attr
                 
-                # Check if it's callable (decorated functions might not be FunctionType)
+                # Check if it's a regular function
+                if isinstance(attr, types.FunctionType):
+                    logger.debug(f"Found regular function: {attr_name}")
+                    return attr
+                
+                # Check if it's any other callable (but not a class)
                 if callable(attr) and not isinstance(attr, type):
                     logger.debug(f"Found callable: {attr_name}")
                     return attr
@@ -246,7 +255,7 @@ def executor_node(state: ToolGeneratorState) -> ToolGeneratorState:
         state: Current generator state
         
     Returns:
-        Updated state with execution_output
+        Updated state with execution_output and draft_output_path
     """
     result = execute_tool(
         state["generated_code"],
@@ -261,9 +270,42 @@ def executor_node(state: ToolGeneratorState) -> ToolGeneratorState:
     # Convert numpy types to Python native types
     result_dict = _convert_numpy_types(result_dict)
     
+    # Save execution results to output/draft
+    output_draft_dir = Path("output/draft")
+    output_draft_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Extract timestamp from draft_path or generate new one
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    if state.get('draft_path'):
+        draft_filename = Path(state['draft_path']).stem
+        # Extract timestamp from filename (last 15 chars: YYYYMMDD_HHMMSS)
+        if len(draft_filename) > 15 and draft_filename[-15:-7].isdigit():
+            timestamp = draft_filename[-15:]
+    
+    # Get tool name from spec
+    tool_spec = state.get('tool_spec', {})
+    tool_name = tool_spec.get('tool_name', 'tool') if isinstance(tool_spec, dict) else getattr(tool_spec, 'tool_name', 'tool')
+    
+    # Save as JSON with timestamp
+    output_filename = f"{tool_name}_{timestamp}_output.json"
+    output_path = output_draft_dir / output_filename
+    
+    # Add metadata to output
+    output_data = {
+        "tool_name": f"{tool_name}_{timestamp}",
+        "user_query": state.get('user_query', ''),
+        "execution_timestamp": datetime.now().isoformat(),
+        "data_path": state.get('data_path', ''),
+        **result_dict
+    }
+    
+    output_path.write_text(json.dumps(output_data, indent=2, default=str))
+    logger.info(f"💾 Execution results saved to: {output_path}")
+    
     return {
         **state,
-        "execution_output": result_dict
+        "execution_output": result_dict,
+        "draft_output_path": str(output_path)
     }
 
 
@@ -311,12 +353,17 @@ def route_after_execution(state: ToolGeneratorState) -> str:
         logger.warning(f"⚠️  Execution error detected (attempt {repair_attempts + 1}/{max_repair_attempts})")
         logger.error(f"Error: {error_msg}")
         logger.info("🔧 Attempting automatic code repair...")
+        
+        # Store the error message in a way repair_node can access it
+        # Update the state to ensure repair node can see the error
         return "repair_node"
     
-    # If repair attempts exceeded or no error, proceed to promoter
+    # If repair attempts exceeded, end the pipeline
     if has_error and repair_attempts >= max_repair_attempts:
         logger.error(f"❌ Maximum repair attempts ({max_repair_attempts}) exceeded")
-        logger.info("Proceeding to promoter for final processing")
+        logger.error(f"Final error: {error_msg}")
+        logger.info("⚠️  Tool generation failed - ending pipeline")
+        return END
     
     # Always proceed directly to promoter (no human feedback)
     return "promoter_node"

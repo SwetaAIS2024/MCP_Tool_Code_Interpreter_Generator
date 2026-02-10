@@ -1,0 +1,59 @@
+{
+  "tool_name": "anova_tukeyhsd_traffic_injuries_20260210_171557",
+  "user_query": "Run ANOVA across groups, then perform a Tukey HSD post-hoc (multiple-comparisons correction required) and report adjusted p-values and effect sizes.",
+  "execution_timestamp": "2026-02-10T17:18:24.995858",
+  "data_path": "C:\\Users\\admin\\Desktop\\sweta\\code_generator_interpreter\\MCP_Tool_Code_Interpreter_Generator\\reference_files\\sample_planner_output\\traffic_accidents.csv",
+  "result": {
+    "result": {
+      "F_statistic": 23.049247120484434,
+      "ANOVA_p_value": 8.662993389566553e-77,
+      "adjusted_p_values": {
+        "BICYCLE CROSSING SIGN": 0.9999941254805866,
+        "DELINEATORS": 1.0,
+        "FLASHING CONTROL SIGNAL": 0.9999998322288209,
+        "LANE USE MARKING": 0.9999939315423546,
+        "NO CONTROLS": 1.0,
+        "NO PASSING": 0.9999999445140078,
+        "OTHER": 0.9999999991095095,
+        "OTHER RAILROAD CROSSING": 0.9999996626771374,
+        "OTHER REG. SIGN": 0.9999999999999837,
+        "OTHER WARNING SIGN": 0.9999997965473103,
+        "PEDESTRIAN CROSSING SIGN": 0.9999636424929887,
+        "POLICE/FLAGMAN": 0.9994851380457485,
+        "RAILROAD CROSSING GATE": 0.9993875732043713,
+        "RR CROSSING SIGN": 0.9966032333757928,
+        "SCHOOL ZONE": 0.9999999948916263,
+        "STOP SIGN/FLASHER": 0.9999999734695385,
+        "TRAFFIC SIGNAL": 0.9993035194582017,
+        "UNKNOWN": 1.0,
+        "YIELD": 0.9994808442209941
+      },
+      "eta_squared": 0.0019784583495879343,
+      "group_means": {
+        "BICYCLE CROSSING SIGN": 0.5454545454545454,
+        "DELINEATORS": 0.8235294117647058,
+        "FLASHING CONTROL SIGNAL": 0.5733333333333334,
+        "LANE USE MARKING": 0.3660130718954248,
+        "NO CONTROLS": 0.3282838552257015,
+        "NO PASSING": 0.5,
+        "OTHER": 0.382089552238806,
+        "OTHER RAILROAD CROSSING": 0.391304347826087,
+        "OTHER REG. SIGN": 0.35911602209944754,
+        "OTHER WARNING SIGN": 0.47368421052631576,
+        "PEDESTRIAN CROSSING SIGN": 0.7246963562753036,
+        "POLICE/FLAGMAN": 0.28846153846153844,
+        "RAILROAD CROSSING GATE": 0.23076923076923078,
+        "RR CROSSING SIGN": 0.16666666666666666,
+        "SCHOOL ZONE": 0.9393939393939394,
+        "STOP SIGN/FLASHER": 0.40493294531838253,
+        "TRAFFIC SIGNAL": 0.39045052604401986,
+        "UNKNOWN": 0.24377104377104378,
+        "YIELD": 0.5042735042735043
+      }
+    },
+    "metadata": {}
+  },
+  "summary_markdown": null,
+  "execution_time_ms": 13860.25619506836,
+  "error": null
+}

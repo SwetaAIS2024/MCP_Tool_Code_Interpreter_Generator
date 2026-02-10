@@ -1,0 +1,150 @@
+{
+  "tool_name": "traffic_control_device_injury_aggregation_20260210_165343",
+  "user_query": "compare injuries by traffic control device",
+  "execution_timestamp": "2026-02-10T16:53:48.058455",
+  "data_path": "C:\\Users\\admin\\Desktop\\sweta\\code_generator_interpreter\\MCP_Tool_Code_Interpreter_Generator\\reference_files\\sample_planner_output\\traffic_accidents.csv",
+  "result": {
+    "result": [
+      {
+        "traffic_control_device": "BICYCLE CROSSING SIGN",
+        "injuries_total": 6,
+        "injuries_fatal": 0,
+        "injuries_incapacitating": 1,
+        "injuries_non_incapacitating": 3
+      },
+      {
+        "traffic_control_device": "DELINEATORS",
+        "injuries_total": 14,
+        "injuries_fatal": 0,
+        "injuries_incapacitating": 0,
+        "injuries_non_incapacitating": 4
+      },
+      {
+        "traffic_control_device": "FLASHING CONTROL SIGNAL",
+        "injuries_total": 86,
+        "injuries_fatal": 0,
+        "injuries_incapacitating": 8,
+        "injuries_non_incapacitating": 57
+      },
+      {
+        "traffic_control_device": "LANE USE MARKING",
+        "injuries_total": 56,
+        "injuries_fatal": 0,
+        "injuries_incapacitating": 14,
+        "injuries_non_incapacitating": 16
+      },
+      {
+        "traffic_control_device": "NO CONTROLS",
+        "injuries_total": 9687,
+        "injuries_fatal": 73,
+        "injuries_incapacitating": 1046,
+        "injuries_non_incapacitating": 5574
+      },
+      {
+        "traffic_control_device": "NO PASSING",
+        "injuries_total": 6,
+        "injuries_fatal": 0,
+        "injuries_incapacitating": 2,
+        "injuries_non_incapacitating": 3
+      },
+      {
+        "traffic_control_device": "OTHER",
+        "injuries_total": 256,
+        "injuries_fatal": 1,
+        "injuries_incapacitating": 31,
+        "injuries_non_incapacitating": 145
+      },
+      {
+        "traffic_control_device": "OTHER RAILROAD CROSSING",
+        "injuries_total": 9,
+        "injuries_fatal": 0,
+        "injuries_incapacitating": 1,
+        "injuries_non_incapacitating": 1
+      },
+      {
+        "traffic_control_device": "OTHER REG. SIGN",
+        "injuries_total": 65,
+        "injuries_fatal": 0,
+        "injuries_incapacitating": 15,
+        "injuries_non_incapacitating": 30
+      },
+      {
+        "traffic_control_device": "OTHER WARNING SIGN",
+        "injuries_total": 45,
+        "injuries_fatal": 0,
+        "injuries_incapacitating": 5,
+        "injuries_non_incapacitating": 21
+      },
+      {
+        "traffic_control_device": "PEDESTRIAN CROSSING SIGN",
+        "injuries_total": 179,
+        "injuries_fatal": 2,
+        "injuries_incapacitating": 29,
+        "injuries_non_incapacitating": 100
+      },
+      {
+        "traffic_control_device": "POLICE/FLAGMAN",
+        "injuries_total": 30,
+        "injuries_fatal": 0,
+        "injuries_incapacitating": 5,
+        "injuries_non_incapacitating": 23
+      },
+      {
+        "traffic_control_device": "RAILROAD CROSSING GATE",
+        "injuries_total": 18,
+        "injuries_fatal": 1,
+        "injuries_incapacitating": 2,
+        "injuries_non_incapacitating": 7
+      },
+      {
+        "traffic_control_device": "RR CROSSING SIGN",
+        "injuries_total": 3,
+        "injuries_fatal": 0,
+        "injuries_incapacitating": 0,
+        "injuries_non_incapacitating": 1
+      },
+      {
+        "traffic_control_device": "SCHOOL ZONE",
+        "injuries_total": 31,
+        "injuries_fatal": 1,
+        "injuries_incapacitating": 4,
+        "injuries_non_incapacitating": 21
+      },
+      {
+        "traffic_control_device": "STOP SIGN/FLASHER",
+        "injuries_total": 19898,
+        "injuries_fatal": 58,
+        "injuries_incapacitating": 1768,
+        "injuries_non_incapacitating": 11562
+      },
+      {
+        "traffic_control_device": "TRAFFIC SIGNAL",
+        "injuries_total": 48394,
+        "injuries_fatal": 247,
+        "injuries_incapacitating": 4898,
+        "injuries_non_incapacitating": 27950
+      },
+      {
+        "traffic_control_device": "UNKNOWN",
+        "injuries_total": 1086,
+        "injuries_fatal": 4,
+        "injuries_incapacitating": 120,
+        "injuries_non_incapacitating": 655
+      },
+      {
+        "traffic_control_device": "YIELD",
+        "injuries_total": 236,
+        "injuries_fatal": 2,
+        "injuries_incapacitating": 26,
+        "injuries_non_incapacitating": 134
+      }
+    ],
+    "metadata": {
+      "total_groups": 19,
+      "file_path": "C:\\Users\\admin\\Desktop\\sweta\\code_generator_interpreter\\MCP_Tool_Code_Interpreter_Generator\\reference_files\\sample_planner_output\\traffic_accidents.csv"
+    }
+  },
+  "summary_markdown": null,
+  "execution_time_ms": 1886.1546516418457,
+  "error": null
+}

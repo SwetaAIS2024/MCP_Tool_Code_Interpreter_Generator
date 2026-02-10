@@ -17,9 +17,32 @@ Requirements:
    - If it says "correlation", use scipy.stats.pearsonr (NOT ANOVA, NOT t-test)
    - If it says "Tukey HSD", use statsmodels.stats.multicomp.pairwise_tukeyhsd
    - DO NOT substitute different statistical methods than specified
-6. Handle edge cases gracefully
-7. Add docstring with examples
-8. CRITICAL: Use ONLY the columns listed in REQUIRED COLUMNS above - do NOT invent or assume other column names
+   - **STATISTICAL INJECTION GUARD**: DO NOT add statistical tests if IMPLEMENTATION PLAN does not request them
+     * If operation is groupby_aggregate → Create simple aggregation (mean, sum, count) ONLY
+     * If operation is pivot → Create pivot table ONLY (NO chi-square, NO statistical tests)
+     * DO NOT add chi-square unless explicitly requested
+     * DO NOT add ANOVA unless explicitly requested
+     * DO NOT add p-values unless explicitly requested
+6. **STATISTICAL TEST RESULTS FORMATTING**:
+   - For ANOVA: Return f_statistic, p_value, effect_size (eta_squared)
+   - For Tukey HSD post-hoc: DO NOT use dict(zip(tukey.pvalues, tukey.groupsunique)) - this is WRONG
+     * Extract pairwise comparisons properly:
+       ```python
+       tukey_table = pd.DataFrame(tukey.summary().data[1:], columns=tukey.summary().data[0])
+       tukey_pairs = tukey_table[["group1", "group2", "meandiff", "p-adj", "lower", "upper", "reject"]].to_dict("records")
+       ```
+     * Return as list of comparison dicts with keys: group1, group2, meandiff, p_adj, lower, upper, reject
+   - For correlation: Return correlation_coefficient, p_value
+   - Always handle NaN values: df = df[required_columns].dropna()
+   - Guard for minimum samples: Filter groups with <2 samples, ensure >=2 groups remain
+7. **MATPLOTLIB CONFIGURATION**: If using matplotlib/seaborn for plotting:
+   - Import matplotlib FIRST before any other plotting libraries
+   - Set non-interactive backend: import matplotlib; matplotlib.use('Agg')
+   - Then import pyplot: import matplotlib.pyplot as plt
+   - This prevents tkinter cleanup errors in non-GUI environments
+8. Handle edge cases gracefully
+9. Add docstring with examples
+10. CRITICAL: Use ONLY the columns listed in REQUIRED COLUMNS above - do NOT invent or assume other column names
 
 Include:
 - pandas DataFrame input handling
@@ -44,7 +67,13 @@ DO NOT INCLUDE:
 
 ONLY OUTPUT:
 - The single function implementation named {tool_name}
-- Standard library imports (pandas, etc. - NO typing imports needed)
+- Standard library imports (pandas, numpy, scipy, etc.)
+- **CRITICAL IMPORT ORDER**: If using matplotlib, follow this exact pattern:
+  ```python
+  import matplotlib
+  matplotlib.use('Agg')  # Set non-interactive backend BEFORE importing pyplot
+  import matplotlib.pyplot as plt
+  ```
 - The function must start with: def {tool_name}(file_path: str):
 - No decorators, no extra functions, no explanations
 

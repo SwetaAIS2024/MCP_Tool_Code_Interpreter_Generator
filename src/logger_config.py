@@ -29,6 +29,7 @@ class PipelineLogger:
             self.log_dir = Path("logs")
             self.log_dir.mkdir(exist_ok=True)
             self.verbosity = "normal"  # quiet, normal, verbose, debug
+            self.current_log_file = None  # Track current log file
             PipelineLogger._initialized = True
     
     def setup(self, verbosity: str = "normal", log_file: Optional[str] = None):
@@ -67,6 +68,9 @@ class PipelineLogger:
         if log_file is None:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             log_file = self.log_dir / f"pipeline_{timestamp}.log"
+        
+        # Store the current log file path
+        self.current_log_file = str(log_file)
         
         file_handler = logging.FileHandler(log_file, encoding='utf-8')
         file_handler.setLevel(logging.DEBUG)

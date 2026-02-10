@@ -1,0 +1,435 @@
+2026-02-10 17:13:02 - DEBUG - src.logger_config - setup:82 - Logging configured: verbosity=normal, file=logs\pipeline_20260210_171302.log
+2026-02-10 17:13:02 - INFO - __main__ - log_section:117 - 
+================================================================================
+2026-02-10 17:13:02 - INFO - __main__ - log_section:118 - TESTING PIPELINE WITH FEEDBACK
+2026-02-10 17:13:02 - INFO - __main__ - log_section:119 - ================================================================================
+
+2026-02-10 17:13:02 - DEBUG - urllib3.connectionpool - _new_conn:1049 - Starting new HTTPS connection (1): mermaid.ink:443
+2026-02-10 17:13:02 - DEBUG - urllib3.connectionpool - _make_request:544 - https://mermaid.ink:443 "GET /img/LS0tCmNvbmZpZzoKICBmbG93Y2hhcnQ6CiAgICBjdXJ2ZTogbGluZWFyCi0tLQpncmFwaCBURDsKCV9fc3RhcnRfXyg8cD5fX3N0YXJ0X188L3A+KQoJaW50ZW50X25vZGUoaW50ZW50X25vZGUpCglzcGVjX2dlbmVyYXRvcl9ub2RlKHNwZWNfZ2VuZXJhdG9yX25vZGUpCgljb2RlX2dlbmVyYXRvcl9ub2RlKGNvZGVfZ2VuZXJhdG9yX25vZGUpCgl2YWxpZGF0b3Jfbm9kZSh2YWxpZGF0b3Jfbm9kZSkKCXJlcGFpcl9ub2RlKHJlcGFpcl9ub2RlKQoJZXhlY3V0b3Jfbm9kZShleGVjdXRvcl9ub2RlKQoJcHJvbW90ZXJfbm9kZShwcm9tb3Rlcl9ub2RlKQoJX19lbmRfXyg8cD5fX2VuZF9fPC9wPikKCV9fc3RhcnRfXyAtLT4gaW50ZW50X25vZGU7CglpbnRlbnRfbm9kZSAtLT4gX19lbmRfXzsKCWNsYXNzRGVmIGRlZmF1bHQgZmlsbDojZjJmMGZmLGxpbmUtaGVpZ2h0OjEuMgoJY2xhc3NEZWYgZmlyc3QgZmlsbC1vcGFjaXR5OjAKCWNsYXNzRGVmIGxhc3QgZmlsbDojYmZiNmZjCg==?type=png&bgColor=%21white HTTP/1.1" 200 19612
+2026-02-10 17:13:02 - INFO - src.pipeline - build_graph:88 - 📊 Graph visualization saved to: pipeline_graph.png
+2026-02-10 17:13:02 - INFO - src.intent_extraction - log_section:117 - 
+================================================================================
+2026-02-10 17:13:02 - INFO - src.intent_extraction - log_section:118 - INTENT EXTRACTION - AVAILABLE COLUMNS
+2026-02-10 17:13:02 - INFO - src.intent_extraction - log_section:119 - ================================================================================
+
+2026-02-10 17:13:02 - DEBUG - src.intent_extraction - extract:49 - Columns: ['crash_date', 'traffic_control_device', 'weather_condition', 'lighting_condition', 'first_crash_type', 'trafficway_type', 'alignment', 'roadway_surface_cond', 'road_defect', 'crash_type', 'intersection_related_i', 'damage', 'prim_contributory_cause', 'num_units', 'most_severe_injury', 'injuries_total', 'injuries_fatal', 'injuries_incapacitating', 'injuries_non_incapacitating', 'injuries_reported_not_evident', 'injuries_no_indication', 'crash_hour', 'crash_day_of_week', 'crash_month']
+2026-02-10 17:13:03 - DEBUG - openai._base_client - _build_request:485 - Request options: {'method': 'post', 'url': '/chat/completions', 'files': None, 'idempotency_key': 'stainless-python-retry-b351f4d6-997e-4196-8c9f-32a5972f9c9c', 'content': None, 'json_data': {'messages': [{'role': 'system', 'content': 'You are an intent extraction system. Your job is to understand the user\'s query and create an implementation plan for the EXACT analysis they requested.\n\nCRITICAL RULES:\n1. If the user asks for "ANOVA", your implementation_plan MUST describe ANOVA analysis (scipy.stats.f_oneway), NOT correlation, chi-square, or any other test\n2. If the user asks for "correlation", your implementation_plan MUST describe correlation analysis (scipy.stats.pearsonr), NOT ANOVA\n3. If the user asks for "Tukey HSD", your plan MUST include statsmodels.stats.multicomp.pairwise_tukeyhsd\n4. DO NOT substitute different statistical methods than what the user explicitly requested\n5. Output ONLY valid JSON - no thinking process, no explanations, no markdown\n6. The \'operation\' field is REQUIRED - never return null/None for it'}, {'role': 'user', 'content': 'Extract structured intent for data analysis query.\n\nUSER QUERY: Run ANOVA across groups, then perform a Tukey HSD post-hoc (multiple-comparisons correction required) and report adjusted p-values and effect sizes.\nAVAILABLE COLUMNS: [\'crash_date\', \'traffic_control_device\', \'weather_condition\', \'lighting_condition\', \'first_crash_type\', \'trafficway_type\', \'alignment\', \'roadway_surface_cond\', \'road_defect\', \'crash_type\', \'intersection_related_i\', \'damage\', \'prim_contributory_cause\', \'num_units\', \'most_severe_injury\', \'injuries_total\', \'injuries_fatal\', \'injuries_incapacitating\', \'injuries_non_incapacitating\', \'injuries_reported_not_evident\', \'injuries_no_indication\', \'crash_hour\', \'crash_day_of_week\', \'crash_month\']\n\nTASK: Create implementation plan for the analysis requested in the query.\n\nCRITICAL: Read the query carefully and create a plan for the EXACT analysis mentioned:\n- If query says "ANOVA" → Plan must use scipy.stats.f_oneway (one-way ANOVA test)\n- If query says "Tukey HSD" → Plan must use statsmodels.stats.multicomp.pairwise_tukeyhsd\n- If query says "correlation" → Plan must use scipy.stats.pearsonr or spearmanr\n- If query says "t-test" → Plan must use scipy.stats.ttest_ind or ttest_rel\n- If query says "chi-square" → Plan must use scipy.stats.chi2_contingency\n\nDO NOT create a different analysis than what the user requested!\n\nQUERY ANALYSIS:\n1. Does query mention a specific statistical test (ANOVA, t-test, correlation, etc.)?\n   - YES → operation = "custom_transform", has_gap = true\n   - NO → Determine basic operation type (groupby_aggregate, filter, etc.)\n\n2. Create implementation_plan with 5-10 specific steps:\n   - Import required libraries (scipy.stats, statsmodels, etc.)\n   - Load and validate data\n   - Prepare data (grouping, filtering, etc.)\n   - Execute the SPECIFIC statistical method requested\n   - Calculate effect sizes if requested\n   - Format and return results\n\n3. Determine required_columns:\n   - Review your implementation_plan\n   - What data columns does the plan need?\n   - Map to actual column names from AVAILABLE_COLUMNS\n   - Use ONLY columns that exist in AVAILABLE_COLUMNS\n\nOUTPUT FORMAT (JSON):\n{\n  "operation": "custom_transform",\n  "has_gap": true,\n  "gap_reason": "Requires [specific statistical method]",\n  "implementation_plan": [\n    {"step": 1, "action": "Import libraries", "details": "Import scipy.stats for [method], statsmodels for [method]"},\n    {"step": 2, "action": "Load data", "details": "Read CSV and validate required columns"},\n    {"step": 3, "action": "Prepare groups", "details": "Group data by [grouping variable] for ANOVA"},\n    {"step": 4, "action": "Run ANOVA", "details": "Use scipy.stats.f_oneway to test differences across groups"},\n    {"step": 5, "action": "Post-hoc test", "details": "Use statsmodels.stats.multicomp.pairwise_tukeyhsd for pairwise comparisons"},\n    {"step": 6, "action": "Calculate effect sizes", "details": "Compute eta-squared or Cohen\'s d"},\n    {"step": 7, "action": "Format results", "details": "Return F-statistic, p-values, adjusted p-values, effect sizes"}\n  ],\n  "required_columns": ["crash_hour", "injuries_total"],\n  "missing_columns": [],\n  "group_by": [],\n  "metrics": [],\n  "filters": [],\n  "edge_cases": ["Check for minimum group size", "Handle missing values"],\n  "validation_rules": ["Verify numeric data types", "Check for sufficient sample size"],\n  "assumptions": ["Groups are independent", "Dependent variable is approximately normal"],\n  "clarifications_needed": []\n}\n\nREMEMBER:\n- Output ONLY valid JSON\n- Match the statistical method to what the user requested\n- Use actual column names from AVAILABLE_COLUMNS\n- Be specific in implementation_plan (mention exact function names)\n'}], 'model': 'deepseek-r1:70b', 'temperature': 0.0}}
+2026-02-10 17:13:03 - DEBUG - openai._base_client - request:998 - Sending HTTP Request: POST http://localhost:11434/v1/chat/completions
+2026-02-10 17:13:03 - DEBUG - httpcore.connection - trace:47 - connect_tcp.started host='localhost' port=11434 local_address=None timeout=5.0 socket_options=None
+2026-02-10 17:13:05 - DEBUG - httpcore.connection - trace:47 - connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x00000225A9DD26F0>
+2026-02-10 17:13:05 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.started request=<Request [b'POST']>
+2026-02-10 17:13:05 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.complete
+2026-02-10 17:13:05 - DEBUG - httpcore.http11 - trace:47 - send_request_body.started request=<Request [b'POST']>
+2026-02-10 17:13:05 - DEBUG - httpcore.http11 - trace:47 - send_request_body.complete
+2026-02-10 17:13:05 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.started request=<Request [b'POST']>
+2026-02-10 17:14:17 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json'), (b'Date', b'Tue, 10 Feb 2026 09:14:17 GMT'), (b'Transfer-Encoding', b'chunked')])
+2026-02-10 17:14:17 - INFO - httpx - _send_single_request:1025 - HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-10 17:14:17 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.started request=<Request [b'POST']>
+2026-02-10 17:14:17 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.complete
+2026-02-10 17:14:17 - DEBUG - httpcore.http11 - trace:47 - response_closed.started
+2026-02-10 17:14:17 - DEBUG - httpcore.http11 - trace:47 - response_closed.complete
+2026-02-10 17:14:17 - DEBUG - openai._base_client - request:1036 - HTTP Response: POST http://localhost:11434/v1/chat/completions "200 OK" Headers({'content-type': 'application/json', 'date': 'Tue, 10 Feb 2026 09:14:17 GMT', 'transfer-encoding': 'chunked'})
+2026-02-10 17:14:17 - DEBUG - openai._base_client - request:1044 - request_id: None
+2026-02-10 17:14:17 - INFO - src.intent_extraction - log_section:117 - 
+================================================================================
+2026-02-10 17:14:17 - INFO - src.intent_extraction - log_section:118 - EXTRACTED INTENT
+2026-02-10 17:14:17 - INFO - src.intent_extraction - log_section:119 - ================================================================================
+
+2026-02-10 17:14:17 - INFO - src.intent_extraction - extract:157 - Required columns: ['traffic_control_device', 'injuries_total']
+2026-02-10 17:14:17 - INFO - src.intent_extraction - extract:158 - Missing columns: []
+2026-02-10 17:14:17 - INFO - src.intent_extraction - extract:159 - Operation: custom_transform
+2026-02-10 17:14:17 - DEBUG - openai._base_client - _build_request:485 - Request options: {'method': 'post', 'url': '/chat/completions', 'files': None, 'idempotency_key': 'stainless-python-retry-383311dc-0799-49ba-b95a-a2adb24d669f', 'content': None, 'json_data': {'messages': [{'role': 'system', 'content': 'You are a JSON generation system. Return ONLY valid JSON conforming to the schema. DO NOT include any explanatory text, thinking process, commentary, or meta-text. DO NOT use <think> tags or similar reasoning markers. DO NOT add markdown code fences around the JSON. Output must be pure JSON starting with { and ending with }.'}, {'role': 'user', 'content': 'Generate a complete ToolSpec for the following data analysis operation.\n\nOPERATION: custom_transform\nREQUIRED COLUMNS: [\'traffic_control_device\', \'injuries_total\']\nGROUP BY: [\'traffic_control_device\']\nMETRICS: []\nFILTERS: []\nIMPLEMENTATION PLAN: Step 1: Import libraries - Import scipy.stats for ANOVA and statsmodels.stats.multicomp for Tukey HSD\nStep 2: Load data - Read CSV file and validate required columns: \'traffic_control_device\' and \'injuries_total\'\nStep 3: Prepare groups - Group data by \'traffic_control_device\' for ANOVA\nStep 4: Run ANOVA - Use scipy.stats.f_oneway to test differences across groups\nStep 5: Post-hoc test - Apply statsmodels.stats.multicomp.pairwise_tukeyhsd for pairwise comparisons with multiple-comparisons correction\nStep 6: Calculate effect sizes - Compute eta-squared as the effect size measure\nStep 7: Format results - Return F-statistic, p-values from ANOVA, adjusted p-values from Tukey HSD, and effect sizes\nEDGE CASES: [\'Check for minimum group size (each group must have sufficient samples)\', "Handle missing values in \'injuries_total\' or \'traffic_control_device\'"]\nVALIDATION RULES: ["Verify that \'injuries_total\' is numeric", "Ensure \'traffic_control_device\' has at least three distinct groups"]\n\nCRITICAL: You MUST follow the IMPLEMENTATION PLAN exactly. Do NOT create a different analysis or make assumptions.\n- If the plan says "ANOVA", you MUST create a spec for ANOVA analysis (NOT correlation, NOT t-test)\n- If the plan says "correlation", you MUST create a spec for correlation analysis (NOT ANOVA)\n- If the plan says "Tukey HSD post-hoc", the spec MUST include post-hoc testing\n- The \'what_it_does\' field MUST describe exactly what\'s in the IMPLEMENTATION PLAN\n\n⚠️ STATISTICAL INJECTION GUARD:\n- DO NOT add statistical tests (ANOVA, t-test, chi-square, correlation) if NOT in IMPLEMENTATION PLAN\n- DO NOT add chi-square unless IMPLEMENTATION PLAN explicitly requests it\n- DO NOT add p-values, significance tests unless IMPLEMENTATION PLAN requests them\n- If operation is "groupby_aggregate" or "pivot", create ONLY descriptive aggregation (NO statistical tests)\n\nCreate a ToolSpec with:\n1. tool_name: A descriptive snake_case name based on operation and columns\n2. description: Clear explanation matching the IMPLEMENTATION PLAN\n3. input_schema: JSON Schema for input parameters (file_path is required)\n4. output_schema: JSON Schema for output structure (Dict with \'result\' and \'metadata\')\n5. parameters: List of parameter definitions [{"name": "file_path", "type": "str", "description": "Path to CSV file", "required": true}]\n6. when_to_use: When this tool should be selected based on the IMPLEMENTATION PLAN\n7. what_it_does: Technical description that EXACTLY follows the IMPLEMENTATION PLAN step-by-step\n8. returns: Description of return value structure\n9. prerequisites: String listing the exact required column names from REQUIRED COLUMNS in comma-separated format\n\nReturn JSON matching ToolSpec structure.\n'}], 'model': 'deepseek-r1:70b', 'temperature': 0.0}}
+2026-02-10 17:14:17 - DEBUG - openai._base_client - request:998 - Sending HTTP Request: POST http://localhost:11434/v1/chat/completions
+2026-02-10 17:14:17 - DEBUG - httpcore.connection - trace:47 - connect_tcp.started host='localhost' port=11434 local_address=None timeout=5.0 socket_options=None
+2026-02-10 17:14:19 - DEBUG - httpcore.connection - trace:47 - connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x00000225A9E1B020>
+2026-02-10 17:14:19 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.started request=<Request [b'POST']>
+2026-02-10 17:14:19 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.complete
+2026-02-10 17:14:19 - DEBUG - httpcore.http11 - trace:47 - send_request_body.started request=<Request [b'POST']>
+2026-02-10 17:14:19 - DEBUG - httpcore.http11 - trace:47 - send_request_body.complete
+2026-02-10 17:14:19 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.started request=<Request [b'POST']>
+2026-02-10 17:15:28 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json'), (b'Date', b'Tue, 10 Feb 2026 09:15:28 GMT'), (b'Transfer-Encoding', b'chunked')])
+2026-02-10 17:15:28 - INFO - httpx - _send_single_request:1025 - HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-10 17:15:28 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.started request=<Request [b'POST']>
+2026-02-10 17:15:28 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.complete
+2026-02-10 17:15:28 - DEBUG - httpcore.http11 - trace:47 - response_closed.started
+2026-02-10 17:15:28 - DEBUG - httpcore.http11 - trace:47 - response_closed.complete
+2026-02-10 17:15:28 - DEBUG - openai._base_client - request:1036 - HTTP Response: POST http://localhost:11434/v1/chat/completions "200 OK" Headers({'content-type': 'application/json', 'date': 'Tue, 10 Feb 2026 09:15:28 GMT', 'transfer-encoding': 'chunked'})
+2026-02-10 17:15:28 - DEBUG - openai._base_client - request:1044 - request_id: None
+2026-02-10 17:15:28 - DEBUG - httpcore.connection - trace:47 - close.started
+2026-02-10 17:15:28 - DEBUG - httpcore.connection - trace:47 - close.complete
+2026-02-10 17:15:28 - INFO - src.code_generator - log_section:117 - 
+================================================================================
+2026-02-10 17:15:28 - INFO - src.code_generator - log_section:118 - CODE GENERATION PROMPT
+2026-02-10 17:15:28 - INFO - src.code_generator - log_section:119 - ================================================================================
+
+2026-02-10 17:15:28 - DEBUG - src.code_generator - generate:43 - Generate Python function code for this tool specification.
+
+TOOL NAME: anova_tukeyhsd_traffic_injuries
+DESCRIPTION: Performs ANOVA with Tukey HSD post-hoc test to compare total injuries across different traffic control devices.
+PARAMETERS: [
+  {
+    "name": "file_path",
+    "type": "str",
+    "description": "Path to CSV file containing data",
+    "required": true
+  }
+]
+REQUIRED COLUMNS: traffic_control_device, injuries_total
+IMPLEMENTATION PLAN: Import scipy.stats for ANOVA and statsmodels.stats.multicomp for Tukey HSD Load data and validate required columns: 'traffic_control_device' and 'injuries_total' Group data by 'traffic_control_device' for ANOVA Run ANOVA using scipy.stats.f_oneway Apply pairwise_tukeyhsd for post-hoc comparisons with multiple-comparisons correction Compute eta-squared as effect size measure Return F-statistic, p-values from ANOVA, adjusted p-values from Tukey HSD, and effect sizes
+WHAT IT DOES: Import scipy.stats for ANOVA and statsmodels.stats.multicomp for Tu...
+2026-02-10 17:15:28 - DEBUG - openai._base_client - _build_request:485 - Request options: {'method': 'post', 'url': '/chat/completions', 'files': None, 'idempotency_key': 'stainless-python-retry-ba0e6621-0272-4f94-ba58-570b5b28ee6a', 'content': None, 'json_data': {'messages': [{'role': 'user', 'content': 'Generate Python function code for this tool specification.\n\nTOOL NAME: anova_tukeyhsd_traffic_injuries\nDESCRIPTION: Performs ANOVA with Tukey HSD post-hoc test to compare total injuries across different traffic control devices.\nPARAMETERS: [\n  {\n    "name": "file_path",\n    "type": "str",\n    "description": "Path to CSV file containing data",\n    "required": true\n  }\n]\nREQUIRED COLUMNS: traffic_control_device, injuries_total\nIMPLEMENTATION PLAN: Import scipy.stats for ANOVA and statsmodels.stats.multicomp for Tukey HSD Load data and validate required columns: \'traffic_control_device\' and \'injuries_total\' Group data by \'traffic_control_device\' for ANOVA Run ANOVA using scipy.stats.f_oneway Apply pairwise_tukeyhsd for post-hoc comparisons with multiple-comparisons correction Compute eta-squared as effect size measure Return F-statistic, p-values from ANOVA, adjusted p-values from Tukey HSD, and effect sizes\nWHAT IT DOES: Import scipy.stats for ANOVA and statsmodels.stats.multicomp for Tukey HSD Load data and validate required columns: \'traffic_control_device\' and \'injuries_total\' Group data by \'traffic_control_device\' for ANOVA Run ANOVA using scipy.stats.f_oneway Apply pairwise_tukeyhsd for post-hoc comparisons with multiple-comparisons correction Compute eta-squared as effect size measure Return F-statistic, p-values from ANOVA, adjusted p-values from Tukey HSD, and effect sizes\n\nRequirements:\n1. Use pandas for data manipulation\n2. Function signature must be: def anova_tukeyhsd_traffic_injuries(file_path: str):\n3. Add comprehensive error handling\n4. Return a dictionary with \'result\' and \'metadata\' keys\n5. **CRITICAL**: Follow the IMPLEMENTATION PLAN and WHAT IT DOES exactly - implement the EXACT statistical method specified\n   - If it says "ANOVA", use scipy.stats.f_oneway or similar (NOT pearsonr, NOT correlation)\n   - If it says "correlation", use scipy.stats.pearsonr (NOT ANOVA, NOT t-test)\n   - If it says "Tukey HSD", use statsmodels.stats.multicomp.pairwise_tukeyhsd\n   - DO NOT substitute different statistical methods than specified\n   - **STATISTICAL INJECTION GUARD**: DO NOT add statistical tests if IMPLEMENTATION PLAN does not request them\n     * If operation is groupby_aggregate → Create simple aggregation (mean, sum, count) ONLY\n     * If operation is pivot → Create pivot table ONLY (NO chi-square, NO statistical tests)\n     * DO NOT add chi-square unless explicitly requested\n     * DO NOT add ANOVA unless explicitly requested\n     * DO NOT add p-values unless explicitly requested\n6. **STATISTICAL TEST RESULTS FORMATTING**:\n   - For ANOVA: Return f_statistic, p_value, effect_size (eta_squared)\n   - For Tukey HSD post-hoc: DO NOT use dict(zip(tukey.pvalues, tukey.groupsunique)) - this is WRONG\n     * Extract pairwise comparisons properly:\n       ```python\n       tukey_table = pd.DataFrame(tukey.summary().data[1:], columns=tukey.summary().data[0])\n       tukey_pairs = tukey_table[["group1", "group2", "meandiff", "p-adj", "lower", "upper", "reject"]].to_dict("records")\n       ```\n     * Return as list of comparison dicts with keys: group1, group2, meandiff, p_adj, lower, upper, reject\n   - For correlation: Return correlation_coefficient, p_value\n   - Always handle NaN values: df = df[required_columns].dropna()\n   - Guard for minimum samples: Filter groups with <2 samples, ensure >=2 groups remain\n7. **MATPLOTLIB CONFIGURATION**: If using matplotlib/seaborn for plotting:\n   - Import matplotlib FIRST before any other plotting libraries\n   - Set non-interactive backend: import matplotlib; matplotlib.use(\'Agg\')\n   - Then import pyplot: import matplotlib.pyplot as plt\n   - This prevents tkinter cleanup errors in non-GUI environments\n8. Handle edge cases gracefully\n9. Add docstring with examples\n10. CRITICAL: Use ONLY the columns listed in REQUIRED COLUMNS above - do NOT invent or assume other column names\n\nInclude:\n- pandas DataFrame input handling\n- Error handling for missing columns, invalid data types\n- Clear variable names\n- Comments for complex operations\n- Return structure: {"result": {}, "metadata": {}}\n\nIMPORTANT: Use {} or dict() to create dictionaries. Do NOT use typing classes like Dict() to instantiate objects.\n\nDO NOT INCLUDE:\n- DO NOT create placeholder decorator functions like "def mcp_tool()" or "def decorator()"\n- DO NOT create mock FastMCP classes or instances\n- DO NOT define TOOL_SPEC dictionaries or constants\n- DO NOT write explanatory text before or after the code\n- DO NOT create any wrapper functions or decorators\n- DO NOT include comments like "# Placeholder for @mcp.tool()"\n- DO NOT add import statements for \'mcp\' module\n- DO NOT write "Here\'s the code:" or any conversational text\n- DO NOT create example usage code or test functions\n- DO NOT define helper decorator functions\n\nONLY OUTPUT:\n- The single function implementation named anova_tukeyhsd_traffic_injuries\n- Standard library imports (pandas, numpy, scipy, etc.)\n- **CRITICAL IMPORT ORDER**: If using matplotlib, follow this exact pattern:\n  ```python\n  import matplotlib\n  matplotlib.use(\'Agg\')  # Set non-interactive backend BEFORE importing pyplot\n  import matplotlib.pyplot as plt\n  ```\n- The function must start with: def anova_tukeyhsd_traffic_injuries(file_path: str):\n- No decorators, no extra functions, no explanations\n\nGenerate ONLY the function implementation. Nothing else.\n'}], 'model': 'qwen2.5-coder:32b', 'temperature': 0.2}}
+2026-02-10 17:15:28 - DEBUG - openai._base_client - request:998 - Sending HTTP Request: POST http://localhost:11434/v1/chat/completions
+2026-02-10 17:15:28 - DEBUG - httpcore.connection - trace:47 - connect_tcp.started host='localhost' port=11434 local_address=None timeout=5.0 socket_options=None
+2026-02-10 17:15:30 - DEBUG - httpcore.connection - trace:47 - connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x00000225A97AAF60>
+2026-02-10 17:15:30 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.started request=<Request [b'POST']>
+2026-02-10 17:15:30 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.complete
+2026-02-10 17:15:30 - DEBUG - httpcore.http11 - trace:47 - send_request_body.started request=<Request [b'POST']>
+2026-02-10 17:15:30 - DEBUG - httpcore.http11 - trace:47 - send_request_body.complete
+2026-02-10 17:15:30 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.started request=<Request [b'POST']>
+2026-02-10 17:15:57 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json'), (b'Date', b'Tue, 10 Feb 2026 09:15:57 GMT'), (b'Transfer-Encoding', b'chunked')])
+2026-02-10 17:15:57 - INFO - httpx - _send_single_request:1025 - HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-10 17:15:57 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.started request=<Request [b'POST']>
+2026-02-10 17:15:57 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.complete
+2026-02-10 17:15:57 - DEBUG - httpcore.http11 - trace:47 - response_closed.started
+2026-02-10 17:15:57 - DEBUG - httpcore.http11 - trace:47 - response_closed.complete
+2026-02-10 17:15:57 - DEBUG - openai._base_client - request:1036 - HTTP Response: POST http://localhost:11434/v1/chat/completions "200 OK" Headers({'content-type': 'application/json', 'date': 'Tue, 10 Feb 2026 09:15:57 GMT', 'transfer-encoding': 'chunked'})
+2026-02-10 17:15:57 - DEBUG - openai._base_client - request:1044 - request_id: None
+2026-02-10 17:15:57 - INFO - src.code_generator - log_section:117 - 
+================================================================================
+2026-02-10 17:15:57 - INFO - src.code_generator - log_section:118 - RAW LLM RESPONSE
+2026-02-10 17:15:57 - INFO - src.code_generator - log_section:119 - ================================================================================
+
+2026-02-10 17:15:57 - DEBUG - src.code_generator - generate:50 - ```python
+import pandas as pd
+import numpy as np
+from scipy.stats import f_oneway
+from statsmodels.stats.multicomp import pairwise_tukeyhsd
+
+def anova_tukeyhsd_traffic_injuries(file_path: str):
+    # Load data from CSV file
+    try:
+        df = pd.read_csv(file_path)
+    except Exception as e:
+        return {"result": {}, "metadata": {"error": f"Error loading file: {str(e)}"}}
+
+    # Validate required columns
+    required_columns = ['traffic_control_device', 'injuries_total']
+    if not all(column in df.columns for column in required_columns):
+        missing_columns = [col for col in required_columns if col not in df.columns]
+        return {"result": {}, "metadata": {"error": f"Missing columns: {missing_columns}"}}
+
+    # Drop rows with NaN values in required columns
+    df = df[required_columns].dropna()
+
+    # Group data by 'traffic_control_device'
+    grouped_data = df.groupby('traffic_control_device')['injuries_total'].apply(list)
+
+    # Filter groups with at least 2 samples
+  ...
+2026-02-10 17:15:57 - INFO - src.code_generator - log_section:117 - 
+================================================================================
+2026-02-10 17:15:57 - INFO - src.code_generator - log_section:118 - EXTRACTED CODE (before wrapping)
+2026-02-10 17:15:57 - INFO - src.code_generator - log_section:119 - ================================================================================
+
+2026-02-10 17:15:57 - DEBUG - src.code_generator - generate:57 - import numpy as np
+from scipy.stats import f_oneway
+from statsmodels.stats.multicomp import pairwise_tukeyhsd
+
+def anova_tukeyhsd_traffic_injuries(file_path: str):
+    # Load data from CSV file
+    try:
+        df = pd.read_csv(file_path)
+    except Exception as e:
+        return {"result": {}, "metadata": {"error": f"Error loading file: {str(e)}"}}
+
+    # Validate required columns
+    required_columns = ['traffic_control_device', 'injuries_total']
+    if not all(column in df.columns for column in required_columns):
+        missing_columns = [col for col in required_columns if col not in df.columns]
+        return {"result": {}, "metadata": {"error": f"Missing columns: {missing_columns}"}}
+
+    # Drop rows with NaN values in required columns
+    df = df[required_columns].dropna()
+
+    # Group data by 'traffic_control_device'
+    grouped_data = df.groupby('traffic_control_device')['injuries_total'].apply(list)
+
+    # Filter groups with at least 2 samples
+    valid_groups = {key: value f...
+2026-02-10 17:15:57 - INFO - src.code_generator - log_section:117 - 
+================================================================================
+2026-02-10 17:15:57 - INFO - src.code_generator - log_section:118 - WRAPPED CODE (before black formatting)
+2026-02-10 17:15:57 - INFO - src.code_generator - log_section:119 - ================================================================================
+
+2026-02-10 17:15:57 - DEBUG - src.code_generator - generate:64 - """Generated MCP tool: anova_tukeyhsd_traffic_injuries"""
+
+from fastmcp import FastMCP
+import pandas as pd
+import time
+import numpy as np
+from scipy.stats import f_oneway
+from statsmodels.stats.multicomp import pairwise_tukeyhsd
+
+mcp = FastMCP("data_analysis_tools")
+
+
+@mcp.tool()
+def anova_tukeyhsd_traffic_injuries(file_path: str):
+    # Load data from CSV file
+    try:
+        df = pd.read_csv(file_path)
+    except Exception as e:
+        return {"result": {}, "metadata": {"error": f"Error loading file: {str(e)}"}}
+
+    # Validate required columns
+    required_columns = ['traffic_control_device', 'injuries_total']
+    if not all(column in df.columns for column in required_columns):
+        missing_columns = [col for col in required_columns if col not in df.columns]
+        return {"result": {}, "metadata": {"error": f"Missing columns: {missing_columns}"}}
+
+    # Drop rows with NaN values in required columns
+    df = df[required_columns].dropna()
+
+    # Group data by 'traffic_control_d...
+2026-02-10 17:15:57 - INFO - src.code_generator - log_section:117 - 
+================================================================================
+2026-02-10 17:15:57 - INFO - src.code_generator - log_section:118 - FINAL FORMATTED CODE
+2026-02-10 17:15:57 - INFO - src.code_generator - log_section:119 - ================================================================================
+
+2026-02-10 17:15:57 - DEBUG - src.code_generator - generate:72 - """Generated MCP tool: anova_tukeyhsd_traffic_injuries"""
+
+from fastmcp import FastMCP
+import pandas as pd
+import time
+import numpy as np
+from scipy.stats import f_oneway
+from statsmodels.stats.multicomp import pairwise_tukeyhsd
+
+mcp = FastMCP("data_analysis_tools")
+
+
+@mcp.tool()
+def anova_tukeyhsd_traffic_injuries(file_path: str):
+    # Load data from CSV file
+    try:
+        df = pd.read_csv(file_path)
+    except Exception as e:
+        return {"result": {}, "metadata": {"error": f"Error loading file: {str(e)}"}}
+
+    # Validate required columns
+    required_columns = ["traffic_control_device", "injuries_total"]
+    if not all(column in df.columns for column in required_columns):
+        missing_columns = [col for col in required_columns if col not in df.columns]
+        return {
+            "result": {},
+            "metadata": {"error": f"Missing columns: {missing_columns}"},
+        }
+
+    # Drop rows with NaN values in required columns
+    df = df[required_columns].dropna()
+
+    # Group data by 'traffic_control_device'
+    grouped_data = df.groupby("traffic_control_device")["injuries_total"].apply(list)
+
+    # Filter groups with at least 2 samples
+    valid_groups = {
+        key: value for key, value in grouped_data.items() if len(value) >= 2
+    }
+    if len(valid_groups) < 2:
+        return {
+            "result": {},
+            "metadata": {"error": "Less than 2 valid groups with sufficient samples"},
+        }
+
+    # Extract group data for ANOVA
+    group_values = list(valid_groups.values())
+
+    # Perform ANOVA
+    try:
+        f_statistic, p_value = f_oneway(*group_values)
+    except Exception as e:
+        return {"result": {}, "metadata": {"error": f"ANOVA error: {str(e)}"}}
+
+    # Compute eta-squared effect size
+    ss_between = sum(
+        len(group) * (np.mean(group) - np.mean(df["injuries_total"])) ** 2
+        for group in valid_groups.values()
+    )
+    ss_within = sum(
+        sum((x - np.mean(group)) ** 2 for x in group)
+        for group, values in valid_groups.items()
+    )
+    eta_squared = ss_between / (ss_between + ss_within)
+
+    # Perform Tukey HSD post-hoc test
+    all_values = [value for group in valid_groups.values() for value in group]
+    labels = [key for key, values in valid_groups.items() for _ in range(len(values))]
+    try:
+        tukey = pairwise_tukeyhsd(endog=all_values, groups=labels)
+    except Exception as e:
+        return {"result": {}, "metadata": {"error": f"Tukey HSD error: {str(e)}"}}
+
+    # Extract Tukey HSD results
+    tukey_table = pd.DataFrame(
+        tukey.summary().data[1:], columns=tukey.summary().data[0]
+    )
+    tukey_pairs = tukey_table[
+        ["group1", "group2", "meandiff", "p-adj", "lower", "upper", "reject"]
+    ].to_dict("records")
+
+    # Return results
+    return {
+        "result": {
+            "f_statistic": f_statistic,
+            "p_value": p_value,
+            "effect_size": eta_squared,
+            "tukey_hsd_pairs": tukey_pairs,
+        },
+        "metadata": {},
+    }
+
+2026-02-10 17:15:57 - INFO - src.code_generator - code_generator_node:597 - 📝 Generated code saved to draft: tools\draft\anova_tukeyhsd_traffic_injuries_20260210_171557.py
+2026-02-10 17:16:02 - INFO - src.validator - log_section:117 - 
+================================================================================
+2026-02-10 17:16:02 - INFO - src.validator - log_section:118 - VALIDATION RESULTS
+2026-02-10 17:16:02 - INFO - src.validator - log_section:119 - ================================================================================
+
+2026-02-10 17:16:02 - INFO - src.validator - validator_node:301 - Schema OK: True
+2026-02-10 17:16:02 - INFO - src.validator - validator_node:302 - Tests OK: False
+2026-02-10 17:16:02 - INFO - src.validator - validator_node:303 - Sandbox OK: False
+2026-02-10 17:16:02 - ERROR - src.validator - log_error:140 - ❌ ERRORS (1):
+2026-02-10 17:16:02 - ERROR - src.validator - validator_node:307 -   1. Sandbox execution failed: time="2026-02-10T17:15:57+08:00" level=warning msg="C:\\Users\\admin\\Desktop\\sweta\\code_generator_interpreter\\MCP_Tool_Code_Interpreter_Generator\\docker\\docker-compose.sandbox.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+Traceback (most recent call last):
+  File "/sandbox/temp_code/tool.py", line 94, in <module>
+    result = anova_tukeyhsd_traffic_injuries(data_path)
+  File "/sandbox/temp_code/tool.py", line 55, in anova_tukeyhsd_traffic_injuries
+    ss_within = sum(
+  File "/sandbox/temp_code/tool.py", line 56, in <genexpr>
+    sum((x - np.mean(group)) ** 2 for x in group)
+  File "/sandbox/temp_code/tool.py", line 56, in <genexpr>
+    sum((x - np.mean(group)) ** 2 for x in group)
+  File "/usr/local/lib/python3.10/site-packages/numpy/_core/fromnumeric.py", line 3860, in mean
+    return _methods._mean(a, axis=axis, dtype=dtype,
+  File "/usr/local/lib/python3.10/site-packages/numpy/_core/_methods.py", line 135, in _mean
+    ret = umr_sum(arr, axis, dtype, out, keepdims, where=where)
+TypeError: the resolved dtypes are not compatible with add.reduce. Resolved (dtype('<U21'), dtype('<U21'), dtype('<U42'))
+
+
+2026-02-10 17:16:02 - DEBUG - openai._base_client - _build_request:485 - Request options: {'method': 'post', 'url': '/chat/completions', 'files': None, 'idempotency_key': 'stainless-python-retry-59a55412-f2cc-4054-9e43-65821275d818', 'content': None, 'json_data': {'messages': [{'role': 'user', 'content': 'Fix the following code based on validation or execution errors.\n\nORIGINAL CODE:\n"""Generated MCP tool: anova_tukeyhsd_traffic_injuries"""\n\nfrom fastmcp import FastMCP\nimport pandas as pd\nimport time\nimport numpy as np\nfrom scipy.stats import f_oneway\nfrom statsmodels.stats.multicomp import pairwise_tukeyhsd\n\nmcp = FastMCP("data_analysis_tools")\n\n\n@mcp.tool()\ndef anova_tukeyhsd_traffic_injuries(file_path: str):\n    # Load data from CSV file\n    try:\n        df = pd.read_csv(file_path)\n    except Exception as e:\n        return {"result": {}, "metadata": {"error": f"Error loading file: {str(e)}"}}\n\n    # Validate required columns\n    required_columns = ["traffic_control_device", "injuries_total"]\n    if not all(column in df.columns for column in required_columns):\n        missing_columns = [col for col in required_columns if col not in df.columns]\n        return {\n            "result": {},\n            "metadata": {"error": f"Missing columns: {missing_columns}"},\n        }\n\n    # Drop rows with NaN values in required columns\n    df = df[required_columns].dropna()\n\n    # Group data by \'traffic_control_device\'\n    grouped_data = df.groupby("traffic_control_device")["injuries_total"].apply(list)\n\n    # Filter groups with at least 2 samples\n    valid_groups = {\n        key: value for key, value in grouped_data.items() if len(value) >= 2\n    }\n    if len(valid_groups) < 2:\n        return {\n            "result": {},\n            "metadata": {"error": "Less than 2 valid groups with sufficient samples"},\n        }\n\n    # Extract group data for ANOVA\n    group_values = list(valid_groups.values())\n\n    # Perform ANOVA\n    try:\n        f_statistic, p_value = f_oneway(*group_values)\n    except Exception as e:\n        return {"result": {}, "metadata": {"error": f"ANOVA error: {str(e)}"}}\n\n    # Compute eta-squared effect size\n    ss_between = sum(\n        len(group) * (np.mean(group) - np.mean(df["injuries_total"])) ** 2\n        for group in valid_groups.values()\n    )\n    ss_within = sum(\n        sum((x - np.mean(group)) ** 2 for x in group)\n        for group, values in valid_groups.items()\n    )\n    eta_squared = ss_between / (ss_between + ss_within)\n\n    # Perform Tukey HSD post-hoc test\n    all_values = [value for group in valid_groups.values() for value in group]\n    labels = [key for key, values in valid_groups.items() for _ in range(len(values))]\n    try:\n        tukey = pairwise_tukeyhsd(endog=all_values, groups=labels)\n    except Exception as e:\n        return {"result": {}, "metadata": {"error": f"Tukey HSD error: {str(e)}"}}\n\n    # Extract Tukey HSD results\n    tukey_table = pd.DataFrame(\n        tukey.summary().data[1:], columns=tukey.summary().data[0]\n    )\n    tukey_pairs = tukey_table[\n        ["group1", "group2", "meandiff", "p-adj", "lower", "upper", "reject"]\n    ].to_dict("records")\n\n    # Return results\n    return {\n        "result": {\n            "f_statistic": f_statistic,\n            "p_value": p_value,\n            "effect_size": eta_squared,\n            "tukey_hsd_pairs": tukey_pairs,\n        },\n        "metadata": {},\n    }\n\n\nERRORS TO FIX:\n- Sandbox execution failed: time="2026-02-10T17:15:57+08:00" level=warning msg="C:\\\\Users\\\\admin\\\\Desktop\\\\sweta\\\\code_generator_interpreter\\\\MCP_Tool_Code_Interpreter_Generator\\\\docker\\\\docker-compose.sandbox.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"\nTraceback (most recent call last):\n  File "/sandbox/temp_code/tool.py", line 94, in <module>\n    result = anova_tukeyhsd_traffic_injuries(data_path)\n  File "/sandbox/temp_code/tool.py", line 55, in anova_tukeyhsd_traffic_injuries\n    ss_within = sum(\n  File "/sandbox/temp_code/tool.py", line 56, in <genexpr>\n    sum((x - np.mean(group)) ** 2 for x in group)\n  File "/sandbox/temp_code/tool.py", line 56, in <genexpr>\n    sum((x - np.mean(group)) ** 2 for x in group)\n  File "/usr/local/lib/python3.10/site-packages/numpy/_core/fromnumeric.py", line 3860, in mean\n    return _methods._mean(a, axis=axis, dtype=dtype,\n  File "/usr/local/lib/python3.10/site-packages/numpy/_core/_methods.py", line 135, in _mean\n    ret = umr_sum(arr, axis, dtype, out, keepdims, where=where)\nTypeError: the resolved dtypes are not compatible with add.reduce. Resolved (dtype(\'<U21\'), dtype(\'<U21\'), dtype(\'<U42\'))\n\n\n\nTOOL SPEC:\n{\n  "tool_name": "anova_tukeyhsd_traffic_injuries",\n  "description": "Performs ANOVA with Tukey HSD post-hoc test to compare total injuries across different traffic control devices.",\n  "version": "1.0.0",\n  "input_schema": {\n    "type": "object",\n    "properties": {\n      "file_path": {\n        "type": "string",\n        "description": "Path to CSV file containing data"\n      }\n    },\n    "required": [\n      "file_path"\n    ]\n  },\n  "output_schema": {\n    "type": "object",\n    "properties": {\n      "result": {\n        "type": "object",\n        "properties": {\n          "f_statistic": {\n            "type": "number"\n          },\n          "anova_pvalue": {\n            "type": "number"\n          },\n          "tukey_adjusted_pvalues": {\n            "type": "object"\n          },\n          "effect_sizes": {\n            "type": "object"\n          },\n          "group_means": {\n            "type": "object"\n          }\n        }\n      },\n      "metadata": {\n        "type": "object",\n        "properties": {\n          "implementation_plan": {\n            "type": "array",\n            "items": {\n              "type": "string"\n            }\n          }\n        }\n      }\n    }\n  },\n  "parameters": [\n    {\n      "name": "file_path",\n      "type": "str",\n      "description": "Path to CSV file containing data",\n      "required": true\n    }\n  ],\n  "return_type": "Dict[str, Any]",\n  "when_to_use": "When you need to compare total injuries across different traffic control devices using ANOVA with Tukey HSD post-hoc test, and have at least three distinct groups.",\n  "what_it_does": "Import scipy.stats for ANOVA and statsmodels.stats.multicomp for Tukey HSD Load data and validate required columns: \'traffic_control_device\' and \'injuries_total\' Group data by \'traffic_control_device\' for ANOVA Run ANOVA using scipy.stats.f_oneway Apply pairwise_tukeyhsd for post-hoc comparisons with multiple-comparisons correction Compute eta-squared as effect size measure Return F-statistic, p-values from ANOVA, adjusted p-values from Tukey HSD, and effect sizes",\n  "returns": "{\'type\': \'object\', \'properties\': {\'result\': {\'description\': \'Contains statistical results including F-statistic, p-values, adjusted p-values, effect sizes, and group means.\', \'type\': \'object\'}, \'metadata\': {\'description\': \'Contains implementation plan steps for reproducibility.\', \'type\': \'object\'}}}",\n  "prerequisites": "traffic_control_device, injuries_total"\n}\n\nCOMMON ERROR PATTERNS AND FIXES:\n1. "complex() first argument must be a string or a number, not \'list\'" → You\'re trying to do math with a list instead of numbers. Use numeric operations on list items, not the list itself.\n2. "name \'X\' is not defined" → Missing import statement. Add the correct import at the top.\n3. "list object has no attribute \'mean\'" → Lists don\'t have .mean(). Use numpy: np.mean(list) or pandas: pd.Series(list).mean()\n4. "\'list\' object is not callable" → You\'re calling a list like a function. Check for misnamed variables.\n\nInstructions:\n1. Read the ERRORS carefully - they tell you exactly what\'s wrong\n2. If error mentions a missing function/module, add the import\n3. If error mentions wrong data type, convert or process the data correctly\n4. Maintain the original functionality and purpose\n5. Keep the function signature: def function_name(file_path: str):\n6. Ensure code follows best practices\n7. Add any missing error handling\n8. Return a dictionary with \'result\' and \'metadata\' keys\n9. Test your logic: if you\'re grouping data and need to calculate mean, use proper pandas/numpy methods\n\nCRITICAL FOR STATISTICAL FUNCTIONS:\n- After groupby().apply(list), you have a Series where each value is a list\n- To calculate statistics on groups: Use grouped.mean(), grouped.std(), etc. - NOT grouped.apply(list).mean()\n- For ANOVA on groups: Extract each group as a list, then pass to f_oneway(*groups)\n- For group statistics: Use the aggregation functions directly on the grouped object\n\nIMPORTANT: Use {} or dict() to create dictionaries. Do NOT import or use typing classes.\n\nDO NOT INCLUDE:\n- DO NOT create placeholder decorator functions\n- DO NOT create mock FastMCP classes\n- DO NOT write explanatory text before or after the code\n- DO NOT write "Here\'s the fixed code:" or conversational text\n\nONLY OUTPUT:\n- The complete corrected function with all imports\n- Make sure imports are at the top (scipy, statsmodels, numpy, etc.)\n- The function must return a dictionary\n\nReturn ONLY the corrected code (imports + function). Nothing else.\n'}], 'model': 'qwen2.5-coder:32b', 'temperature': 0.1}}
+2026-02-10 17:16:02 - DEBUG - openai._base_client - request:998 - Sending HTTP Request: POST http://localhost:11434/v1/chat/completions
+2026-02-10 17:16:02 - DEBUG - httpcore.connection - trace:47 - connect_tcp.started host='localhost' port=11434 local_address=None timeout=5.0 socket_options=None
+2026-02-10 17:16:04 - DEBUG - httpcore.connection - trace:47 - connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x00000225A9F59280>
+2026-02-10 17:16:04 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.started request=<Request [b'POST']>
+2026-02-10 17:16:04 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.complete
+2026-02-10 17:16:04 - DEBUG - httpcore.http11 - trace:47 - send_request_body.started request=<Request [b'POST']>
+2026-02-10 17:16:04 - DEBUG - httpcore.http11 - trace:47 - send_request_body.complete
+2026-02-10 17:16:04 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.started request=<Request [b'POST']>
+2026-02-10 17:16:27 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json'), (b'Date', b'Tue, 10 Feb 2026 09:16:27 GMT'), (b'Transfer-Encoding', b'chunked')])
+2026-02-10 17:16:27 - INFO - httpx - _send_single_request:1025 - HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-10 17:16:27 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.started request=<Request [b'POST']>
+2026-02-10 17:16:27 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.complete
+2026-02-10 17:16:27 - DEBUG - httpcore.http11 - trace:47 - response_closed.started
+2026-02-10 17:16:27 - DEBUG - httpcore.http11 - trace:47 - response_closed.complete
+2026-02-10 17:16:27 - DEBUG - openai._base_client - request:1036 - HTTP Response: POST http://localhost:11434/v1/chat/completions "200 OK" Headers({'content-type': 'application/json', 'date': 'Tue, 10 Feb 2026 09:16:27 GMT', 'transfer-encoding': 'chunked'})
+2026-02-10 17:16:27 - DEBUG - openai._base_client - request:1044 - request_id: None
+2026-02-10 17:16:31 - INFO - src.validator - log_section:117 - 
+================================================================================
+2026-02-10 17:16:31 - INFO - src.validator - log_section:118 - VALIDATION RESULTS
+2026-02-10 17:16:31 - INFO - src.validator - log_section:119 - ================================================================================
+
+2026-02-10 17:16:31 - INFO - src.validator - validator_node:301 - Schema OK: False
+2026-02-10 17:16:31 - INFO - src.validator - validator_node:302 - Tests OK: False
+2026-02-10 17:16:31 - INFO - src.validator - validator_node:303 - Sandbox OK: False
+2026-02-10 17:16:31 - ERROR - src.validator - log_error:140 - ❌ ERRORS (3):
+2026-02-10 17:16:31 - ERROR - src.validator - validator_node:307 -   1. Function 'anova_tukeyhsd_traffic_injuries' not found in code
+2026-02-10 17:16:31 - ERROR - src.validator - validator_node:307 -   2. Function signature for 'anova_tukeyhsd_traffic_injuries' is malformed
+2026-02-10 17:16:31 - ERROR - src.validator - validator_node:307 -   3. Runtime error detected in output: SANDBOX_RESULT: {"result": {}, "metadata": {"error": "'TukeyHSDResults' object has no attribute 'pairs'"}}
+
+2026-02-10 17:16:32 - DEBUG - openai._base_client - _build_request:485 - Request options: {'method': 'post', 'url': '/chat/completions', 'files': None, 'idempotency_key': 'stainless-python-retry-967fb323-f787-4db5-8817-2d7c6ef3e165', 'content': None, 'json_data': {'messages': [{'role': 'user', 'content': 'Fix the following code based on validation or execution errors.\n\nORIGINAL CODE:\n"""Generated MCP tool: anova_tukeyhsd_traffic_injuries"""\n\nfrom fastmcp import FastMCP\nimport pandas as pd\nimport time\nimport numpy as np\nfrom scipy.stats import f_oneway\nfrom statsmodels.stats.multicomp import pairwise_tukeyhsd\n\nmcp = FastMCP("data_analysis_tools")\n\n\n@mcp.tool()\ndef anova_with_tukey(file_path: str):\n    try:\n        # Load data\n        df = pd.read_csv(file_path)\n\n        # Validate required columns\n        required_columns = ["traffic_control_device", "injuries_total"]\n        if not all(column in df.columns for column in required_columns):\n            return {\n                "result": {},\n                "metadata": {"error": f"Missing required columns: {required_columns}"},\n            }\n\n        # Group data by \'traffic_control_device\'\n        grouped = df.groupby("traffic_control_device")["injuries_total"]\n\n        # Check if there are at least two groups\n        if len(grouped) < 2:\n            return {\n                "result": {},\n                "metadata": {\n                    "error": "At least two distinct groups are required for ANOVA."\n                },\n            }\n\n        # Extract each group as a list\n        groups = [group.tolist() for name, group in grouped]\n\n        # Run ANOVA\n        f_statistic, anova_pvalue = f_oneway(*groups)\n\n        # Perform Tukey HSD post-hoc test\n        tukey_results = pairwise_tukeyhsd(\n            endog=df["injuries_total"], groups=df["traffic_control_device"]\n        )\n\n        # Convert results to dictionary\n        tukey_summary = tukey_results.summary().as_text()\n        adjusted_pvalues = dict(zip(tukey_results.pairs, tukey_results.pvalues))\n\n        # Calculate effect size (eta-squared)\n        ss_between = sum(\n            len(group) * (np.mean(group) - np.mean(df["injuries_total"])) ** 2\n            for group in groups\n        )\n        ss_within = sum((len(group) - 1) * np.var(group, ddof=1) for group in groups)\n        eta_squared = ss_between / (ss_between + ss_within)\n\n        # Return results\n        return {\n            "result": {\n                "f_statistic": f_statistic,\n                "anova_pvalue": anova_pvalue,\n                "tukey_adjusted_pvalues": adjusted_pvalues,\n                "effect_sizes": {"eta_squared": eta_squared},\n                "group_means": grouped.mean().to_dict(),\n            },\n            "metadata": {},\n        }\n\n    except Exception as e:\n        return {"result": {}, "metadata": {"error": str(e)}}\n\n\nERRORS TO FIX:\n- Function \'anova_tukeyhsd_traffic_injuries\' not found in code\n- Function signature for \'anova_tukeyhsd_traffic_injuries\' is malformed\n- Runtime error detected in output: SANDBOX_RESULT: {"result": {}, "metadata": {"error": "\'TukeyHSDResults\' object has no attribute \'pairs\'"}}\n\n\nTOOL SPEC:\n{\n  "tool_name": "anova_tukeyhsd_traffic_injuries",\n  "description": "Performs ANOVA with Tukey HSD post-hoc test to compare total injuries across different traffic control devices.",\n  "version": "1.0.0",\n  "input_schema": {\n    "type": "object",\n    "properties": {\n      "file_path": {\n        "type": "string",\n        "description": "Path to CSV file containing data"\n      }\n    },\n    "required": [\n      "file_path"\n    ]\n  },\n  "output_schema": {\n    "type": "object",\n    "properties": {\n      "result": {\n        "type": "object",\n        "properties": {\n          "f_statistic": {\n            "type": "number"\n          },\n          "anova_pvalue": {\n            "type": "number"\n          },\n          "tukey_adjusted_pvalues": {\n            "type": "object"\n          },\n          "effect_sizes": {\n            "type": "object"\n          },\n          "group_means": {\n            "type": "object"\n          }\n        }\n      },\n      "metadata": {\n        "type": "object",\n        "properties": {\n          "implementation_plan": {\n            "type": "array",\n            "items": {\n              "type": "string"\n            }\n          }\n        }\n      }\n    }\n  },\n  "parameters": [\n    {\n      "name": "file_path",\n      "type": "str",\n      "description": "Path to CSV file containing data",\n      "required": true\n    }\n  ],\n  "return_type": "Dict[str, Any]",\n  "when_to_use": "When you need to compare total injuries across different traffic control devices using ANOVA with Tukey HSD post-hoc test, and have at least three distinct groups.",\n  "what_it_does": "Import scipy.stats for ANOVA and statsmodels.stats.multicomp for Tukey HSD Load data and validate required columns: \'traffic_control_device\' and \'injuries_total\' Group data by \'traffic_control_device\' for ANOVA Run ANOVA using scipy.stats.f_oneway Apply pairwise_tukeyhsd for post-hoc comparisons with multiple-comparisons correction Compute eta-squared as effect size measure Return F-statistic, p-values from ANOVA, adjusted p-values from Tukey HSD, and effect sizes",\n  "returns": "{\'type\': \'object\', \'properties\': {\'result\': {\'description\': \'Contains statistical results including F-statistic, p-values, adjusted p-values, effect sizes, and group means.\', \'type\': \'object\'}, \'metadata\': {\'description\': \'Contains implementation plan steps for reproducibility.\', \'type\': \'object\'}}}",\n  "prerequisites": "traffic_control_device, injuries_total"\n}\n\nCOMMON ERROR PATTERNS AND FIXES:\n1. "complex() first argument must be a string or a number, not \'list\'" → You\'re trying to do math with a list instead of numbers. Use numeric operations on list items, not the list itself.\n2. "name \'X\' is not defined" → Missing import statement. Add the correct import at the top.\n3. "list object has no attribute \'mean\'" → Lists don\'t have .mean(). Use numpy: np.mean(list) or pandas: pd.Series(list).mean()\n4. "\'list\' object is not callable" → You\'re calling a list like a function. Check for misnamed variables.\n\nInstructions:\n1. Read the ERRORS carefully - they tell you exactly what\'s wrong\n2. If error mentions a missing function/module, add the import\n3. If error mentions wrong data type, convert or process the data correctly\n4. Maintain the original functionality and purpose\n5. Keep the function signature: def function_name(file_path: str):\n6. Ensure code follows best practices\n7. Add any missing error handling\n8. Return a dictionary with \'result\' and \'metadata\' keys\n9. Test your logic: if you\'re grouping data and need to calculate mean, use proper pandas/numpy methods\n\nCRITICAL FOR STATISTICAL FUNCTIONS:\n- After groupby().apply(list), you have a Series where each value is a list\n- To calculate statistics on groups: Use grouped.mean(), grouped.std(), etc. - NOT grouped.apply(list).mean()\n- For ANOVA on groups: Extract each group as a list, then pass to f_oneway(*groups)\n- For group statistics: Use the aggregation functions directly on the grouped object\n\nIMPORTANT: Use {} or dict() to create dictionaries. Do NOT import or use typing classes.\n\nDO NOT INCLUDE:\n- DO NOT create placeholder decorator functions\n- DO NOT create mock FastMCP classes\n- DO NOT write explanatory text before or after the code\n- DO NOT write "Here\'s the fixed code:" or conversational text\n\nONLY OUTPUT:\n- The complete corrected function with all imports\n- Make sure imports are at the top (scipy, statsmodels, numpy, etc.)\n- The function must return a dictionary\n\nReturn ONLY the corrected code (imports + function). Nothing else.\n'}], 'model': 'qwen2.5-coder:32b', 'temperature': 0.1}}
+2026-02-10 17:16:32 - DEBUG - openai._base_client - request:998 - Sending HTTP Request: POST http://localhost:11434/v1/chat/completions
+2026-02-10 17:16:32 - DEBUG - httpcore.connection - trace:47 - connect_tcp.started host='localhost' port=11434 local_address=None timeout=5.0 socket_options=None
+2026-02-10 17:16:34 - DEBUG - httpcore.connection - trace:47 - connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x00000225A9F5BFE0>
+2026-02-10 17:16:34 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.started request=<Request [b'POST']>
+2026-02-10 17:16:34 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.complete
+2026-02-10 17:16:34 - DEBUG - httpcore.http11 - trace:47 - send_request_body.started request=<Request [b'POST']>
+2026-02-10 17:16:34 - DEBUG - httpcore.http11 - trace:47 - send_request_body.complete
+2026-02-10 17:16:34 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.started request=<Request [b'POST']>
+2026-02-10 17:16:55 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json'), (b'Date', b'Tue, 10 Feb 2026 09:16:55 GMT'), (b'Transfer-Encoding', b'chunked')])
+2026-02-10 17:16:55 - INFO - httpx - _send_single_request:1025 - HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-10 17:16:55 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.started request=<Request [b'POST']>
+2026-02-10 17:16:55 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.complete
+2026-02-10 17:16:55 - DEBUG - httpcore.http11 - trace:47 - response_closed.started
+2026-02-10 17:16:55 - DEBUG - httpcore.http11 - trace:47 - response_closed.complete
+2026-02-10 17:16:55 - DEBUG - openai._base_client - request:1036 - HTTP Response: POST http://localhost:11434/v1/chat/completions "200 OK" Headers({'content-type': 'application/json', 'date': 'Tue, 10 Feb 2026 09:16:55 GMT', 'transfer-encoding': 'chunked'})
+2026-02-10 17:16:55 - DEBUG - openai._base_client - request:1044 - request_id: None
+2026-02-10 17:16:55 - DEBUG - httpcore.connection - trace:47 - close.started
+2026-02-10 17:16:55 - DEBUG - httpcore.connection - trace:47 - close.complete
+2026-02-10 17:17:20 - INFO - src.validator - log_section:117 - 
+================================================================================
+2026-02-10 17:17:20 - INFO - src.validator - log_section:118 - VALIDATION RESULTS
+2026-02-10 17:17:20 - INFO - src.validator - log_section:119 - ================================================================================
+
+2026-02-10 17:17:20 - INFO - src.validator - validator_node:301 - Schema OK: False
+2026-02-10 17:17:20 - INFO - src.validator - validator_node:302 - Tests OK: False
+2026-02-10 17:17:20 - INFO - src.validator - validator_node:303 - Sandbox OK: True
+2026-02-10 17:17:20 - ERROR - src.validator - log_error:140 - ❌ ERRORS (2):
+2026-02-10 17:17:20 - ERROR - src.validator - validator_node:307 -   1. Function 'anova_tukeyhsd_traffic_injuries' not found in code
+2026-02-10 17:17:20 - ERROR - src.validator - validator_node:307 -   2. Function signature for 'anova_tukeyhsd_traffic_injuries' is malformed
+2026-02-10 17:17:20 - DEBUG - openai._base_client - _build_request:485 - Request options: {'method': 'post', 'url': '/chat/completions', 'files': None, 'idempotency_key': 'stainless-python-retry-03cfaafd-8ce5-455c-8b2e-16cbfb7a1324', 'content': None, 'json_data': {'messages': [{'role': 'user', 'content': 'Fix the following code based on validation or execution errors.\n\nORIGINAL CODE:\nfrom fastmcp import FastMCP\nimport pandas as pd\nimport numpy as np\nfrom scipy.stats import f_oneway\nfrom statsmodels.stats.multicomp import pairwise_tukeyhsd\n\nmcp = FastMCP("data_analysis_tools")\n\n\n@mcp.tool()\ndef anova_with_tukey(file_path: str):\n    try:\n        # Load data\n        df = pd.read_csv(file_path)\n\n        # Validate required columns\n        required_columns = ["traffic_control_device", "injuries_total"]\n        if not all(column in df.columns for column in required_columns):\n            return {\n                "result": {},\n                "metadata": {"error": f"Missing required columns: {required_columns}"},\n            }\n\n        # Group data by \'traffic_control_device\'\n        grouped = df.groupby("traffic_control_device")["injuries_total"]\n\n        # Check if there are at least two groups\n        if len(grouped) < 2:\n            return {\n                "result": {},\n                "metadata": {\n                    "error": "At least two distinct groups are required for ANOVA."\n                },\n            }\n\n        # Extract each group as a list\n        groups = [group.tolist() for name, group in grouped]\n\n        # Run ANOVA\n        f_statistic, anova_pvalue = f_oneway(*groups)\n\n        # Perform Tukey HSD post-hoc test\n        tukey_results = pairwise_tukeyhsd(\n            endog=df["injuries_total"], groups=df["traffic_control_device"]\n        )\n\n        # Compute eta-squared as effect size measure\n        ss_between = sum(\n            (group.mean() - df["injuries_total"].mean()) ** 2 * len(group)\n            for name, group in grouped\n        )\n        ss_within = sum(\n            (value - group.mean()) ** 2 for name, group in grouped for value in group\n        )\n        eta_squared = ss_between / (ss_between + ss_within)\n\n        # Return results\n        return {\n            "result": {\n                "f_statistic": f_statistic,\n                "anova_pvalue": anova_pvalue,\n                "tukey_results": tukey_results.summary().as_text(),\n                "eta_squared": eta_squared,\n                "group_means": grouped.mean().to_dict(),\n            },\n            "metadata": {},\n        }\n\n    except Exception as e:\n        return {"result": {}, "metadata": {"error": str(e)}}\n\n\nERRORS TO FIX:\n- Function \'anova_tukeyhsd_traffic_injuries\' not found in code\n- Function signature for \'anova_tukeyhsd_traffic_injuries\' is malformed\n\nTOOL SPEC:\n{\n  "tool_name": "anova_tukeyhsd_traffic_injuries",\n  "description": "Performs ANOVA with Tukey HSD post-hoc test to compare total injuries across different traffic control devices.",\n  "version": "1.0.0",\n  "input_schema": {\n    "type": "object",\n    "properties": {\n      "file_path": {\n        "type": "string",\n        "description": "Path to CSV file containing data"\n      }\n    },\n    "required": [\n      "file_path"\n    ]\n  },\n  "output_schema": {\n    "type": "object",\n    "properties": {\n      "result": {\n        "type": "object",\n        "properties": {\n          "f_statistic": {\n            "type": "number"\n          },\n          "anova_pvalue": {\n            "type": "number"\n          },\n          "tukey_adjusted_pvalues": {\n            "type": "object"\n          },\n          "effect_sizes": {\n            "type": "object"\n          },\n          "group_means": {\n            "type": "object"\n          }\n        }\n      },\n      "metadata": {\n        "type": "object",\n        "properties": {\n          "implementation_plan": {\n            "type": "array",\n            "items": {\n              "type": "string"\n            }\n          }\n        }\n      }\n    }\n  },\n  "parameters": [\n    {\n      "name": "file_path",\n      "type": "str",\n      "description": "Path to CSV file containing data",\n      "required": true\n    }\n  ],\n  "return_type": "Dict[str, Any]",\n  "when_to_use": "When you need to compare total injuries across different traffic control devices using ANOVA with Tukey HSD post-hoc test, and have at least three distinct groups.",\n  "what_it_does": "Import scipy.stats for ANOVA and statsmodels.stats.multicomp for Tukey HSD Load data and validate required columns: \'traffic_control_device\' and \'injuries_total\' Group data by \'traffic_control_device\' for ANOVA Run ANOVA using scipy.stats.f_oneway Apply pairwise_tukeyhsd for post-hoc comparisons with multiple-comparisons correction Compute eta-squared as effect size measure Return F-statistic, p-values from ANOVA, adjusted p-values from Tukey HSD, and effect sizes",\n  "returns": "{\'type\': \'object\', \'properties\': {\'result\': {\'description\': \'Contains statistical results including F-statistic, p-values, adjusted p-values, effect sizes, and group means.\', \'type\': \'object\'}, \'metadata\': {\'description\': \'Contains implementation plan steps for reproducibility.\', \'type\': \'object\'}}}",\n  "prerequisites": "traffic_control_device, injuries_total"\n}\n\nCOMMON ERROR PATTERNS AND FIXES:\n1. "complex() first argument must be a string or a number, not \'list\'" → You\'re trying to do math with a list instead of numbers. Use numeric operations on list items, not the list itself.\n2. "name \'X\' is not defined" → Missing import statement. Add the correct import at the top.\n3. "list object has no attribute \'mean\'" → Lists don\'t have .mean(). Use numpy: np.mean(list) or pandas: pd.Series(list).mean()\n4. "\'list\' object is not callable" → You\'re calling a list like a function. Check for misnamed variables.\n\nInstructions:\n1. Read the ERRORS carefully - they tell you exactly what\'s wrong\n2. If error mentions a missing function/module, add the import\n3. If error mentions wrong data type, convert or process the data correctly\n4. Maintain the original functionality and purpose\n5. Keep the function signature: def function_name(file_path: str):\n6. Ensure code follows best practices\n7. Add any missing error handling\n8. Return a dictionary with \'result\' and \'metadata\' keys\n9. Test your logic: if you\'re grouping data and need to calculate mean, use proper pandas/numpy methods\n\nCRITICAL FOR STATISTICAL FUNCTIONS:\n- After groupby().apply(list), you have a Series where each value is a list\n- To calculate statistics on groups: Use grouped.mean(), grouped.std(), etc. - NOT grouped.apply(list).mean()\n- For ANOVA on groups: Extract each group as a list, then pass to f_oneway(*groups)\n- For group statistics: Use the aggregation functions directly on the grouped object\n\nIMPORTANT: Use {} or dict() to create dictionaries. Do NOT import or use typing classes.\n\nDO NOT INCLUDE:\n- DO NOT create placeholder decorator functions\n- DO NOT create mock FastMCP classes\n- DO NOT write explanatory text before or after the code\n- DO NOT write "Here\'s the fixed code:" or conversational text\n\nONLY OUTPUT:\n- The complete corrected function with all imports\n- Make sure imports are at the top (scipy, statsmodels, numpy, etc.)\n- The function must return a dictionary\n\nReturn ONLY the corrected code (imports + function). Nothing else.\n'}], 'model': 'qwen2.5-coder:32b', 'temperature': 0.1}}
+2026-02-10 17:17:20 - DEBUG - openai._base_client - request:998 - Sending HTTP Request: POST http://localhost:11434/v1/chat/completions
+2026-02-10 17:17:20 - DEBUG - httpcore.connection - trace:47 - connect_tcp.started host='localhost' port=11434 local_address=None timeout=5.0 socket_options=None
+2026-02-10 17:17:22 - DEBUG - httpcore.connection - trace:47 - connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x00000225A9FDE270>
+2026-02-10 17:17:22 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.started request=<Request [b'POST']>
+2026-02-10 17:17:22 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.complete
+2026-02-10 17:17:22 - DEBUG - httpcore.http11 - trace:47 - send_request_body.started request=<Request [b'POST']>
+2026-02-10 17:17:22 - DEBUG - httpcore.http11 - trace:47 - send_request_body.complete
+2026-02-10 17:17:22 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.started request=<Request [b'POST']>
+2026-02-10 17:17:46 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json'), (b'Date', b'Tue, 10 Feb 2026 09:17:46 GMT'), (b'Transfer-Encoding', b'chunked')])
+2026-02-10 17:17:46 - INFO - httpx - _send_single_request:1025 - HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-10 17:17:46 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.started request=<Request [b'POST']>
+2026-02-10 17:17:46 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.complete
+2026-02-10 17:17:46 - DEBUG - httpcore.http11 - trace:47 - response_closed.started
+2026-02-10 17:17:46 - DEBUG - httpcore.http11 - trace:47 - response_closed.complete
+2026-02-10 17:17:46 - DEBUG - openai._base_client - request:1036 - HTTP Response: POST http://localhost:11434/v1/chat/completions "200 OK" Headers({'content-type': 'application/json', 'date': 'Tue, 10 Feb 2026 09:17:46 GMT', 'transfer-encoding': 'chunked'})
+2026-02-10 17:17:46 - DEBUG - openai._base_client - request:1044 - request_id: None
+2026-02-10 17:18:11 - INFO - src.validator - log_section:117 - 
+================================================================================
+2026-02-10 17:18:11 - INFO - src.validator - log_section:118 - VALIDATION RESULTS
+2026-02-10 17:18:11 - INFO - src.validator - log_section:119 - ================================================================================
+
+2026-02-10 17:18:11 - INFO - src.validator - validator_node:301 - Schema OK: True
+2026-02-10 17:18:11 - INFO - src.validator - validator_node:302 - Tests OK: True
+2026-02-10 17:18:11 - INFO - src.validator - validator_node:303 - Sandbox OK: True
+2026-02-10 17:18:11 - DEBUG - httpcore.connection - trace:47 - close.started
+2026-02-10 17:18:11 - DEBUG - httpcore.connection - trace:47 - close.complete
+2026-02-10 17:18:11 - DEBUG - httpcore.connection - trace:47 - close.started
+2026-02-10 17:18:11 - DEBUG - httpcore.connection - trace:47 - close.complete
+2026-02-10 17:18:11 - DEBUG - httpcore.connection - trace:47 - close.started
+2026-02-10 17:18:11 - DEBUG - httpcore.connection - trace:47 - close.complete
+2026-02-10 17:18:11 - DEBUG - httpcore.connection - trace:47 - close.started
+2026-02-10 17:18:11 - DEBUG - httpcore.connection - trace:47 - close.complete
+2026-02-10 17:18:13 - DEBUG - mcp.server.lowlevel.server - __init__:162 - Initializing server 'data_analysis_tools'
+2026-02-10 17:18:13 - DEBUG - mcp.server.lowlevel.server - decorator:439 - Registering handler for ListToolsRequest
+2026-02-10 17:18:13 - DEBUG - mcp.server.lowlevel.server - decorator:301 - Registering handler for ListResourcesRequest
+2026-02-10 17:18:13 - DEBUG - mcp.server.lowlevel.server - decorator:321 - Registering handler for ListResourceTemplatesRequest
+2026-02-10 17:18:13 - DEBUG - mcp.server.lowlevel.server - decorator:263 - Registering handler for PromptListRequest
+2026-02-10 17:18:13 - DEBUG - mcp.server.lowlevel.server - decorator:519 - Registering handler for CallToolRequest
+2026-02-10 17:18:13 - DEBUG - src.executor - _load_function:136 - Module contents: ['FastMCP', 'anova_tukeyhsd_traffic_injuries', 'f_oneway', 'mcp', 'np', 'pairwise_tukeyhsd', 'pd']
+2026-02-10 17:18:13 - DEBUG - src.executor - _load_function:143 - Checking 'anova_tukeyhsd_traffic_injuries': type=<class 'fastmcp.tools.tool.FunctionTool'>, callable=False, is_function=False
+2026-02-10 17:18:13 - DEBUG - src.executor - _load_function:147 - Found FunctionTool, extracting underlying function...
+2026-02-10 17:18:13 - DEBUG - src.executor - _load_function:154 - Successfully extracted function from FunctionTool via 'fn'
+2026-02-10 17:18:24 - DEBUG - src.executor - execute:68 - Result type: <class 'dict'>
+2026-02-10 17:18:24 - DEBUG - src.executor - execute:69 - Result value: {'result': {'F_statistic': np.float64(23.049247120484434), 'ANOVA_p_value': np.float64(8.662993389566553e-77), 'adjusted_p_values': {'BICYCLE CROSSING SIGN': np.float64(0.9999941254805866), 'DELINEATORS': np.float64(1.0), 'FLASHING CONTROL SIGNAL': np.float64(0.9999998322288209), 'LANE USE MARKING': np.float64(0.9999939315423546), 'NO CONTROLS': np.float64(1.0), 'NO PASSING': np.float64(0.9999999445140078), 'OTHER': np.float64(0.9999999991095095), 'OTHER RAILROAD CROSSING': np.float64(0.9999996626771374), 'OTHER REG. SIGN': np.float64(0.9999999999999837), 'OTHER WARNING SIGN': np.float64(0.9999997965473103), 'PEDESTRIAN CROSSING SIGN': np.float64(0.9999636424929887), 'POLICE/FLAGMAN': np.float64(0.9994851380457485), 'RAILROAD CROSSING GATE': np.float64(0.9993875732043713), 'RR CROSSING SIGN': np.float64(0.9966032333757928), 'SCHOOL ZONE': np.float64(0.9999999948916263), 'STOP SIGN/FLASHER': np.float64(0.9999999734695385), 'TRAFFIC SIGNAL': np.float64(0.9993035194582017), 'UNKNOWN': np.float64(1.0), 'YIELD': np.float64(0.9994808442209941)}, 'eta_squared': np.float64(0.0019784583495879343), 'group_means': {'BICYCLE CROSSING SIGN': 0.5454545454545454, 'DELINEATORS': 0.8235294117647058, 'FLASHING CONTROL SIGNAL': 0.5733333333333334, 'LANE USE MARKING': 0.3660130718954248, 'NO CONTROLS': 0.3282838552257015, 'NO PASSING': 0.5, 'OTHER': 0.382089552238806, 'OTHER RAILROAD CROSSING': 0.391304347826087, 'OTHER REG. SIGN': 0.35911602209944754, 'OTHER WARNING SIGN': 0.47368421052631576, 'PEDESTRIAN CROSSING SIGN': 0.7246963562753036, 'POLICE/FLAGMAN': 0.28846153846153844, 'RAILROAD CROSSING GATE': 0.23076923076923078, 'RR CROSSING SIGN': 0.16666666666666666, 'SCHOOL ZONE': 0.9393939393939394, 'STOP SIGN/FLASHER': 0.40493294531838253, 'TRAFFIC SIGNAL': 0.39045052604401986, 'UNKNOWN': 0.24377104377104378, 'YIELD': 0.5042735042735043}}, 'metadata': {}}
+2026-02-10 17:18:24 - INFO - src.executor - executor_node:303 - 💾 Execution results saved to: output\draft\anova_tukeyhsd_traffic_injuries_20260210_171557_output.json
+2026-02-10 17:18:25 - INFO - src.promoter - promote:85 - 💾 Moved output file to: output\active\anova_tukeyhsd_traffic_injuries_20260210_171557_output.json
+2026-02-10 17:18:25 - INFO - src.promoter - log_section:117 - 
+================================================================================
+2026-02-10 17:18:25 - INFO - src.promoter - log_section:118 - 🎉 TOOL PROMOTED TO ACTIVE REGISTRY
+2026-02-10 17:18:25 - INFO - src.promoter - log_section:119 - ================================================================================
+
+2026-02-10 17:18:25 - INFO - src.promoter - promoter_node:196 - Tool Name: anova_tukeyhsd_traffic_injuries_20260210_171557
+2026-02-10 17:18:25 - INFO - src.promoter - promoter_node:198 - Draft Path: tools\draft\anova_tukeyhsd_traffic_injuries_20260210_171557.py
+2026-02-10 17:18:25 - INFO - src.promoter - promoter_node:199 - Active Path: tools\active\anova_tukeyhsd_traffic_injuries_20260210_171557.py
+2026-02-10 17:18:25 - INFO - src.promoter - promoter_node:201 - Output Path: output\active\anova_tukeyhsd_traffic_injuries_20260210_171557_output.json
+2026-02-10 17:18:25 - INFO - src.promoter - promoter_node:202 - Registry: tools\registry.json
+2026-02-10 17:18:25 - INFO - src.promoter - promoter_node:203 - ✅ Tool successfully executed and promoted to active

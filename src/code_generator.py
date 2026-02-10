@@ -575,15 +575,32 @@ def code_generator_node(state: ToolGeneratorState) -> ToolGeneratorState:
         Updated state with generated_code
     """
     from src.llm_client import create_llm_client
+    from pathlib import Path
+    from datetime import datetime
     
     # Use coding model for code generation
     llm_client = create_llm_client(model_type="coding")
     code = generate_code(state["tool_spec"], llm_client)
     
+    # Save to draft folder immediately (all generated tools go here)
+    draft_dir = Path("tools/draft")
+    draft_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Generate unique filename with timestamp
+    tool_name = state["tool_spec"].tool_name if hasattr(state["tool_spec"], 'tool_name') else state["tool_spec"]["tool_name"]
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    draft_path = draft_dir / f"{tool_name}_{timestamp}.py"
+    draft_path.write_text(code)
+    
+    from src.logger_config import get_logger
+    logger = get_logger(__name__)
+    logger.info(f"📝 Generated code saved to draft: {draft_path}")
+    
     return {
         **state,
         "generated_code": code,
-        "repair_attempts": 0
+        "repair_attempts": 0,
+        "draft_path": str(draft_path)  # Store path for later use
     }
 
 
@@ -607,11 +624,19 @@ def repair_node(state: ToolGeneratorState) -> ToolGeneratorState:
     
     # Execution errors
     if state.get("execution_output"):
-        metadata = state["execution_output"].get("metadata", {})
-        if "error" in metadata:
-            exec_error = f"Execution Error: {metadata['error']}"
+        exec_output = state["execution_output"]
+        # Check for error in top-level error field
+        if exec_output.get("error"):
+            exec_error = f"Execution Error: {exec_output['error']}"
             errors.append(exec_error)
-            print(f"\n🔧 Repairing execution error: {metadata['error']}\n")
+            print(f"\n🔧 Repairing execution error: {exec_output['error']}\n")
+        # Also check for error in result metadata
+        elif exec_output.get("result") and isinstance(exec_output.get("result"), dict):
+            metadata = exec_output["result"].get("metadata", {})
+            if "error" in metadata:
+                exec_error = f"Execution Error: {metadata['error']}"
+                errors.append(exec_error)
+                print(f"\n🔧 Repairing execution error: {metadata['error']}\n")
     
     if not errors:
         print("\n⚠️  No errors found to repair")
@@ -629,6 +654,12 @@ def repair_node(state: ToolGeneratorState) -> ToolGeneratorState:
     # Use coding model for code repair
     llm_client = create_llm_client(model_type="coding")
     repaired = repair_code(state["generated_code"], errors, state["tool_spec"], llm_client)
+    
+    # Update the draft file with repaired code
+    if state.get("draft_path"):
+        from pathlib import Path
+        draft_path = Path(state["draft_path"])
+        draft_path.write_text(repaired)
     
     return {
         **state,

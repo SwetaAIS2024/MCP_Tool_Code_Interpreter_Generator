@@ -106,6 +106,7 @@ class ToolGeneratorState(TypedDict):
     # Generation
     tool_spec: Optional[ToolSpec]
     generated_code: Optional[str]
+    draft_path: Optional[str]  # Path to code saved in draft folder
     
     # Validation
     validation_result: Optional[ValidationReport]
@@ -113,6 +114,7 @@ class ToolGeneratorState(TypedDict):
     
     # Execution
     execution_output: Optional[Dict[str, Any]]
+    draft_output_path: Optional[str]  # Path to execution output in draft folder
     
     # Final
     promoted_tool: Optional[Dict]
