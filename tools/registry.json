@@ -135,6 +135,125 @@
       ],
       "return_type": "Dict[str, Any]",
       "output_file": "output\\active\\anova_tukeyhsd_traffic_injuries_20260210_172817_output.json"
+    },
+    {
+      "name": "groupby_weather_injuries_20260211_165942",
+      "description": "Groups data by weather_condition and calculates the count of fatal injuries for each group after filtering records where injuries_fatal > 0.",
+      "user_query": "analyze fatal injury variations across weather conditions",
+      "tool_path": "tools\\active\\groupby_weather_injuries_20260211_165942.py",
+      "log_file": "logs\\pipeline_20260211_165702.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\groupby_weather_injuries_20260211_165942_output.json"
+    },
+    {
+      "name": "groupby_weather_injuries_20260211_170923",
+      "description": "Groups data by weather_condition and calculates the count of fatal injuries for each group after filtering records where injuries_fatal > 0.",
+      "user_query": "analyze fatal injury variations across weather conditions",
+      "tool_path": "tools\\active\\groupby_weather_injuries_20260211_170923.py",
+      "log_file": "logs\\pipeline_20260211_170711.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\groupby_weather_injuries_20260211_170923_output.json"
+    },
+    {
+      "name": "groupby_weather_injuries_20260211_173409",
+      "description": "Groups data by weather_condition and calculates the count of fatal injuries for each group after filtering records where injuries_fatal > 0.",
+      "user_query": "analyze fatal injury variations across weather conditions",
+      "tool_path": "tools\\active\\groupby_weather_injuries_20260211_173409.py",
+      "log_file": "logs\\pipeline_20260211_173156.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\groupby_weather_injuries_20260211_173409_output.json"
+    },
+    {
+      "name": "groupby_weather_injuries_20260212_104617",
+      "description": "Groups data by weather_condition and calculates the count of fatal injuries for each group after filtering records where injuries_fatal > 0.",
+      "user_query": "analyze fatal injury variations across weather conditions",
+      "tool_path": "tools\\active\\groupby_weather_injuries_20260212_104617.py",
+      "log_file": "logs\\pipeline_20260212_104341.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\groupby_weather_injuries_20260212_104617_output.json"
+    },
+    {
+      "name": "groupby_weather_injuries_20260212_150323",
+      "description": "Groups data by weather_condition and calculates the count of fatal injuries for each group after filtering records where injuries_fatal > 0.",
+      "user_query": "analyze fatal injury variations across weather conditions",
+      "tool_path": "tools\\active\\groupby_weather_injuries_20260212_150323.py",
+      "log_file": "logs\\pipeline_20260212_150112.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\groupby_weather_injuries_20260212_150323_output.json"
+    },
+    {
+      "name": "groupby_weather_injuries_20260212_150709",
+      "description": "Groups data by weather condition and calculates the count of fatal injuries for each group, sorted in descending order.",
+      "user_query": "analyze fatal injury variations across weather conditions",
+      "tool_path": "tools\\active\\groupby_weather_injuries_20260212_150709.py",
+      "log_file": "logs\\pipeline_20260212_150514.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file containing the data",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\groupby_weather_injuries_20260212_150709_output.json"
+    },
+    {
+      "name": "groupby_weather_injuries_20260212_160734",
+      "description": "Groups data by weather_condition and calculates the count of fatal injuries for each group after filtering records where injuries_fatal > 0.",
+      "user_query": "analyze fatal injury variations across weather conditions",
+      "tool_path": "tools\\active\\groupby_weather_injuries_20260212_160734.py",
+      "log_file": "logs\\pipeline_20260212_160525.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\groupby_weather_injuries_20260212_160734_output.json"
     }
   ]
 }

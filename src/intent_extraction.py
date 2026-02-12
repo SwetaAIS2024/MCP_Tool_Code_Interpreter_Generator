@@ -469,7 +469,7 @@ def extract_intent(query: str, data_path: str, llm_client: Optional[QwenLLMClien
     """
     if llm_client is None:
         from src.llm_client import create_llm_client
-        llm_client = create_llm_client()
+        llm_client = create_llm_client(model_type="reasoning")
     
     extractor = IntentExtractor(llm_client)
     return extractor.extract(query, data_path)
@@ -502,11 +502,42 @@ def intent_node(state: ToolGeneratorState) -> ToolGeneratorState:
         Updated state with extracted_intent and has_gap
     """
     from src.llm_client import create_llm_client
+    from src.intent_validator import validate_intent, log_validation_results
+    import pandas as pd
     
     # Use reasoning model for intent extraction and planning
     llm_client = create_llm_client(model_type="reasoning")
     intent = extract_intent(state["user_query"], state["data_path"], llm_client)
     gap_detected = detect_capability_gap(intent)
+    
+    # Validate intent before proceeding
+    # Load dataset to get available columns
+    try:
+        df = pd.read_csv(state["data_path"])
+        available_columns = df.columns.tolist()
+        
+        is_valid, errors, warnings = validate_intent(intent, available_columns)
+        log_validation_results(is_valid, errors, warnings)
+        
+        # Store validation results in intent
+        intent["validation"] = {
+            "is_valid": is_valid,
+            "errors": errors,
+            "warnings": warnings
+        }
+        
+        if not is_valid:
+            logger.error("❌ Intent validation failed - cannot proceed to code generation")
+            logger.error(f"Errors: {errors}")
+            # Still return the intent but mark it as invalid
+            # The routing logic will handle this
+    except Exception as e:
+        logger.warning(f"⚠️ Intent validation skipped: {e}")
+        intent["validation"] = {
+            "is_valid": True,  # Assume valid if validation fails
+            "errors": [],
+            "warnings": [f"Validation skipped: {str(e)}"]
+        }
     
     return {
         **state,
@@ -526,10 +557,29 @@ def route_after_intent(state: ToolGeneratorState) -> str:
     """
     from langgraph.graph import END
     
-    # HARD STOP GATE: Check if columns are properly grounded
-    required_cols = state.get("required_columns", [])
-    missing_cols = state.get("missing_columns", [])
-    operation = state.get("operation", "")
+    # NEW: Check intent validation results
+    intent = state.get("extracted_intent", {})
+    validation = intent.get("validation", {})
+    
+    if not validation.get("is_valid", True):
+        logger.error("❌ Intent validation failed - stopping pipeline")
+        errors = validation.get("errors", [])
+        for i, err in enumerate(errors, 1):
+            logger.error(f"  {i}. {err}")
+        logger.info("💡 Suggestion: Review the query and ensure it maps to available dataset columns")
+        return END
+    
+    # Log warnings if any
+    warnings = validation.get("warnings", [])
+    if warnings:
+        logger.warning("⚠️ Intent validation warnings:")
+        for i, warn in enumerate(warnings, 1):
+            logger.warning(f"  {i}. {warn}")
+    
+    # LEGACY GATES (kept for backward compatibility but mostly redundant now)
+    required_cols = intent.get("required_columns", [])
+    missing_cols = intent.get("missing_columns", [])
+    operation = intent.get("operation", "")
     
     # Gate 1: For groupby/aggregation operations, must have required columns
     groupby_operations = ["groupby_aggregate", "group_by", "pivot", "time_series_aggregate"]

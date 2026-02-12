@@ -71,16 +71,19 @@ class QwenLLMClient(BaseLLMClient):
             api_key="not-needed"  # vLLM doesn't require API key
         )
         
-        # Determine which model to use
-        if model_override:
-            # Check if it's a task type (reasoning/coding) or a full model name
-            if model_override in ["reasoning", "coding", "default"]:
-                self.model = self.config["llm"]["models"].get(model_override, self.config["llm"]["model"])
-            else:
-                self.model = model_override
-        else:
-            # Use default model
-            self.model = self.config["llm"].get("models", {}).get("default", self.config["llm"]["model"])
+        # Determine which model to use - must be 'reasoning' or 'coding'
+        if not model_override:
+            raise ValueError("model_override is required - must specify 'reasoning' or 'coding'")
+        
+        if model_override not in ["reasoning", "coding"]:
+            raise ValueError(f"model_override must be 'reasoning' or 'coding', got: {model_override}")
+        
+        # Get the specific model for this task type
+        models_dict = self.config["llm"].get("models", {})
+        if model_override not in models_dict:
+            raise KeyError(f"Model type '{model_override}' not found in config. Available: {list(models_dict.keys())}")
+        
+        self.model = models_dict[model_override]
         
         self.default_temperature = self.config["llm"].get("temperature", 0.3)
     
@@ -183,14 +186,16 @@ class QwenLLMClient(BaseLLMClient):
 # Factory Function
 # ============================================================================
 
-def create_llm_client(config_path: str = "config/config.yaml", model_type: str = None) -> BaseLLMClient:
+def create_llm_client(config_path: str = "config/config.yaml", model_type: str = "coding") -> BaseLLMClient:
     """Factory function to create LLM client.
     
     Args:
         config_path: Path to configuration file
-        model_type: Model type to use ('reasoning', 'coding', 'default') or full model name
+        model_type: Model type to use ('reasoning' or 'coding') - REQUIRED
         
     Returns:
         Configured LLM client instance
     """
+    if model_type not in ["reasoning", "coding"]:
+        raise ValueError(f"model_type must be 'reasoning' or 'coding', got: {model_type}")
     return QwenLLMClient(config_path, model_override=model_type)

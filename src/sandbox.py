@@ -196,7 +196,7 @@ class SubprocessSandboxExecutor(BaseSandbox):
                 'mcp = FastMCP' in line,
                 stripped == '@mcp.tool()' or stripped.startswith('@mcp.tool('),
                 stripped.startswith('"""Generated MCP tool:'),
-                stripped == 'import time'  # Added by wrapper but not needed in sandbox
+                # Note: DO NOT strip 'import time' - generated code may use it for timestamps
             ]):
                 continue
             

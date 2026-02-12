@@ -518,7 +518,7 @@ def generate_code(spec: ToolSpec, llm_client: QwenLLMClient = None) -> str:
     """
     if llm_client is None:
         from src.llm_client import create_llm_client
-        llm_client = create_llm_client()
+        llm_client = create_llm_client(model_type="coding")
     
     generator = CodeGenerator(llm_client)
     return generator.generate(spec)
@@ -539,7 +539,7 @@ def repair_code(code: str, errors: List[str], spec: ToolSpec = None,
     """
     if llm_client is None:
         from src.llm_client import create_llm_client
-        llm_client = create_llm_client()
+        llm_client = create_llm_client(model_type="coding")
     
     repairer = CodeRepairer(llm_client)
     

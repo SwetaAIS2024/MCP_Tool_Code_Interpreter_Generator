@@ -1,0 +1,9 @@
+2026-02-12 14:58:04 - DEBUG - src.logger_config - setup:82 - Logging configured: verbosity=normal, file=logs\pipeline_20260212_145804.log
+2026-02-12 14:58:04 - INFO - __main__ - log_section:117 - 
+================================================================================
+2026-02-12 14:58:04 - INFO - __main__ - log_section:118 - TESTING PIPELINE WITH FEEDBACK
+2026-02-12 14:58:04 - INFO - __main__ - log_section:119 - ================================================================================
+
+2026-02-12 14:58:04 - DEBUG - urllib3.connectionpool - _new_conn:1049 - Starting new HTTPS connection (1): mermaid.ink:443
+2026-02-12 14:58:05 - DEBUG - urllib3.connectionpool - _make_request:544 - https://mermaid.ink:443 "GET /img/LS0tCmNvbmZpZzoKICBmbG93Y2hhcnQ6CiAgICBjdXJ2ZTogbGluZWFyCi0tLQpncmFwaCBURDsKCV9fc3RhcnRfXyg8cD5fX3N0YXJ0X188L3A+KQoJaW50ZW50X25vZGUoaW50ZW50X25vZGUpCglzcGVjX2dlbmVyYXRvcl9ub2RlKHNwZWNfZ2VuZXJhdG9yX25vZGUpCgljb2RlX2dlbmVyYXRvcl9ub2RlKGNvZGVfZ2VuZXJhdG9yX25vZGUpCgl2YWxpZGF0b3Jfbm9kZSh2YWxpZGF0b3Jfbm9kZSkKCXJlcGFpcl9ub2RlKHJlcGFpcl9ub2RlKQoJZXhlY3V0b3Jfbm9kZShleGVjdXRvcl9ub2RlKQoJcHJvbW90ZXJfbm9kZShwcm9tb3Rlcl9ub2RlKQoJX19lbmRfXyg8cD5fX2VuZF9fPC9wPikKCV9fc3RhcnRfXyAtLT4gaW50ZW50X25vZGU7CglpbnRlbnRfbm9kZSAtLT4gX19lbmRfXzsKCWNsYXNzRGVmIGRlZmF1bHQgZmlsbDojZjJmMGZmLGxpbmUtaGVpZ2h0OjEuMgoJY2xhc3NEZWYgZmlyc3QgZmlsbC1vcGFjaXR5OjAKCWNsYXNzRGVmIGxhc3QgZmlsbDojYmZiNmZjCg==?type=png&bgColor=%21white HTTP/1.1" 200 19612
+2026-02-12 14:58:05 - INFO - src.pipeline - build_graph:88 - 📊 Graph visualization saved to: pipeline_graph.png

@@ -6,11 +6,7 @@ llm:
   models:
     reasoning: "deepseek-r1:70b"  # For intent extraction and planning
     coding: "qwen2.5-coder:32b"   # For code generation and repair
-    default: "qwen2.5-coder:32b"  # Fallback model
-  
-  # Legacy single model config (fallback)
-  model: "qwen2.5-coder:32b"
-  temperature: 0.3
+  temperature: 0.0
 
 # Paths
 paths:
