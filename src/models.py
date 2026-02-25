@@ -6,6 +6,8 @@ from typing import Any, Dict, List, Optional, Annotated
 from typing_extensions import TypedDict
 from pydantic import BaseModel, Field
 from operator import add
+from langchain_core.messages import BaseMessage
+from langgraph.graph.message import add_messages
 
 
 # ============================================================================
@@ -118,4 +120,21 @@ class ToolGeneratorState(TypedDict):
     
     # Final
     promoted_tool: Optional[Dict]
-    messages: Annotated[List[tuple], add]
+
+    # Errors accumulated during the run (e.g. from spec_generator_node)
+    errors: Optional[List[str]]
+
+    # Projection outputs — pre-packaged for parent AnalysisPipelineState.
+    # Populated by projection_node (terminal node). The parent owner copies
+    # these directly into the corresponding parent channels without any
+    # field-name mapping, avoiding extra='forbid' violations.
+    projected_tool_transcript: Optional[List[Dict[str, Any]]]
+    projected_artifact_log: Optional[List[str]]
+    projected_capability_gap: Optional[Dict[str, Any]]
+    projected_errors: Optional[List[str]]
+    projected_warnings: Optional[List[str]]
+    projected_final_artifacts: Optional[Dict[str, Any]]
+
+    # messages uses add_messages to match parent AnalysisPipelineState exactly.
+    # No existing node writes to this field — migration is zero-risk.
+    messages: Annotated[List[BaseMessage], add_messages]

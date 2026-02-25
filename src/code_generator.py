@@ -179,7 +179,7 @@ class CodeGenerator:
         """
         # Try to load template
         if self.prompt_template_path.exists():
-            print(f"\n✓ Using template file: {self.prompt_template_path}")
+            print(f"\n[OK] Using template file: {self.prompt_template_path}")
             with open(self.prompt_template_path, encoding='utf-8') as f:
                 template = f.read()
             
@@ -197,7 +197,7 @@ class CodeGenerator:
             )
         
         # Fallback inline prompt
-        print(f"\n⚠ Using FALLBACK prompt (template not found at {self.prompt_template_path})")
+        print(f"\n[WARN] Using FALLBACK prompt (template not found at {self.prompt_template_path})")
         return f"""Generate Python function code for this tool specification.
 
 TOOL NAME: {spec.tool_name}
@@ -629,17 +629,17 @@ def repair_node(state: ToolGeneratorState) -> ToolGeneratorState:
         if exec_output.get("error"):
             exec_error = f"Execution Error: {exec_output['error']}"
             errors.append(exec_error)
-            print(f"\n🔧 Repairing execution error: {exec_output['error']}\n")
+            print(f"\n[REPAIR] Repairing execution error: {exec_output['error']}\n")
         # Also check for error in result metadata
         elif exec_output.get("result") and isinstance(exec_output.get("result"), dict):
             metadata = exec_output["result"].get("metadata", {})
             if "error" in metadata:
                 exec_error = f"Execution Error: {metadata['error']}"
                 errors.append(exec_error)
-                print(f"\n🔧 Repairing execution error: {metadata['error']}\n")
+                print(f"\n[REPAIR] Repairing execution error: {metadata['error']}\n")
     
     if not errors:
-        print("\n⚠️  No errors found to repair")
+        print("\n[WARN] No errors found to repair")
         return state
     
     # DEBUG: Print repair info

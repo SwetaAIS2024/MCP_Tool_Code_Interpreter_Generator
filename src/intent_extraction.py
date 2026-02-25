@@ -239,10 +239,10 @@ CRITICAL RULES:
             # Use first candidate if found
             if candidates:
                 best_match = candidates[0]
-                print(f"  ✓ Grounded '{req_col}' → '{best_match}'")
+                print(f"  [OK] Grounded '{req_col}' -> '{best_match}'")
                 grounded.append(best_match)
             else:
-                print(f"  ✗ Could not ground '{req_col}' (no match in dataset)")
+                print(f"  [FAIL] Could not ground '{req_col}' (no match in dataset)")
                 unresolved.append(req_col)
         
         return grounded, unresolved
@@ -584,11 +584,11 @@ def route_after_intent(state: ToolGeneratorState) -> str:
     # Gate 1: For groupby/aggregation operations, must have required columns
     groupby_operations = ["groupby_aggregate", "group_by", "pivot", "time_series_aggregate"]
     if operation in groupby_operations and len(required_cols) == 0:
-        print("\n" + "🛑"*40)
+        print("\n" + "[BLOCKED]"*10)
         print("ROUTING GATE: BLOCKED")
         print(f"Operation '{operation}' requires columns, but required_columns is empty")
         print("This indicates column grounding failed")
-        print("🛑"*40 + "\n")
+        print("[BLOCKED]"*10 + "\n")
         state["errors"] = state.get("errors", []) + [
             "Column grounding failed: no valid columns found for groupby operation"
         ]
@@ -596,11 +596,11 @@ def route_after_intent(state: ToolGeneratorState) -> str:
     
     # Gate 2: If critical columns are missing and not resolved, stop
     if len(missing_cols) > 0 and len(required_cols) == 0:
-        print("\n" + "🛑"*40)
+        print("\n" + "[BLOCKED]"*10)
         print("ROUTING GATE: BLOCKED")
         print(f"All required columns are missing: {missing_cols}")
         print("Cannot generate tool without any valid columns")
-        print("🛑"*40 + "\n")
+        print("[BLOCKED]"*10 + "\n")
         state["errors"] = state.get("errors", []) + [
             f"Cannot ground columns: {missing_cols} not found in dataset"
         ]
@@ -608,7 +608,7 @@ def route_after_intent(state: ToolGeneratorState) -> str:
     
     # Gate 3: Warn if partial resolution (some columns grounded, some missing)
     if len(missing_cols) > 0:
-        print(f"\n⚠️ WARNING: Proceeding with partial column resolution")
+        print(f"\n[WARN] Proceeding with partial column resolution")
         print(f"   Grounded: {required_cols}")
         print(f"   Missing: {missing_cols}\n")
     

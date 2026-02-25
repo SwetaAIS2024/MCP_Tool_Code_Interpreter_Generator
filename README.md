@@ -6,7 +6,7 @@ A reusable LangGraph workflow that automatically generates, validates, and execu
 
 ---
 
-## 🎯 Overview
+## Overview
 
 **What it does:**
 1. Takes a natural language data analysis query
@@ -16,6 +16,7 @@ A reusable LangGraph workflow that automatically generates, validates, and execu
 5. Validates code in isolated Docker/subprocess sandbox
 6. Executes and captures analysis results
 7. Promotes validated tools to active registry
+8. Packages all outputs into `projected_*` fields for seamless parent-graph integration
 
 **Use as a Child Graph:**
 This pipeline is designed to be integrated into larger agent systems as a reusable LangGraph subgraph. Use `build_graph()` to get the compiled graph and integrate it into your parent workflow.
@@ -32,7 +33,7 @@ This pipeline is designed to be integrated into larger agent systems as a reusab
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ### Tech Stack
 - **LangGraph** - StateGraph workflow orchestration and composability
@@ -66,6 +67,8 @@ Executor (run on actual data)
     ↓
 Promoter (save to active registry)
     ↓
+Projection (package outputs into projected_* fields for parent graph)
+    ↓
 END
 ```
 
@@ -80,12 +83,13 @@ The pipeline consists of the following nodes:
 - **repair_node** - Repairs code based on validation errors (max 3 attempts)
 - **executor_node** - Executes the tool on actual user data
 - **promoter_node** - Promotes successful tool to active registry
+- **projection_node** - Terminal node; packages all child outputs into `projected_*` fields compatible with the parent graph (`AnalysisPipelineState`)
 
-**📖 For detailed architecture and module descriptions, see [module_prs/README.md](module_prs/README.md)**
+For detailed architecture and module descriptions, see [module_prs/README.md](module_prs/README.md)
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 MCP_Tool_Code_Interpreter_Generator/
@@ -128,14 +132,18 @@ MCP_Tool_Code_Interpreter_Generator/
 │   ├── Dockerfile.sandbox
 │   └── docker-compose.sandbox.yml
 │
+├── integration/                 # Parent-graph integration adapter
+│   ├── __init__.py             # Exports build_child_input, apply_child_output
+│   └── mapper.py               # Input mapper + output projector implementation
+│
 ├── tests/                       # Test suite
 ├── docs/                        # Documentation
-└── test.py  # Interactive pipeline testing
+└── test.py                      # Interactive pipeline testing
 ```
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Prerequisites
 
@@ -213,7 +221,7 @@ python test.py --verbosity debug "your query here"
 
 ---
 
-## 🔧 Multi-Model Configuration
+## Multi-Model Configuration
 
 The system uses **two specialized models** for optimal performance:
 
@@ -231,32 +239,7 @@ See [MULTI_MODEL_SETUP.md](MULTI_MODEL_SETUP.md) for detailed configuration guid
 
 ---
 
-## 🔌 Integration & Usage
-
-### As a Reusable Subgraph (Recommended)
-
-This pipeline is designed as a composable LangGraph component. Integrate it into your parent agent:
-
-```python
-from src.pipeline import build_graph, run_pipeline
-from langgraph.graph import StateGraph
-
-# Method 1: Use run_pipeline() directly
-result = run_pipeline(
-    user_query="Calculate summary statistics grouped by category",
-    data_path="data/your_data.csv"
-)
-
-# Method 2: Integrate the graph as a child node
-tool_generator_graph = build_graph()
-
-# Add to your parent workflow
-parent = StateGraph(YourParentState)
-parent.add_node("tool_generator", tool_generator_graph)
-parent.add_edge("planner", "tool_generator")
-parent.add_edge("tool_generator", "reviewer")
-# ... continue building parent graph
-```
+## Integration & Usage
 
 ### Standalone Testing
 
@@ -269,6 +252,136 @@ python test.py "your analysis query"
 # Adjust verbosity
 python test.py --verbosity debug "query here"
 ```
+
+---
+
+### Integrating with a Parent LangGraph (`AnalysisPipelineState`)
+
+The child graph (`ToolGeneratorState`) is designed to be called as a **black-box node**
+from a parent graph (`AnalysisPipelineState`). Because the parent uses `extra='forbid'`,
+the child schema was adapted so **no parent schema changes are required**.
+
+#### State compatibility
+
+| Concern | How it is resolved |
+|---|---|
+| Parent `extra='forbid'` | Child outputs are projected into existing parent channels only |
+| `messages` type mismatch | Child `messages` migrated to `List[BaseMessage]` + `add_messages`, matching parent exactly |
+| Child-internal fields (`tool_spec`, `generated_code`, etc.) | Never written to parent; stay inside child state |
+| All child results | Packaged by `projection_node` (terminal child node) into 6 `projected_*` fields |
+
+#### Output projection map
+
+After `child_graph.invoke()` completes, `projection_node` has pre-packaged
+all results into these fields on the returned child state:
+
+| Child field | Parent channel | Type |
+|---|---|---|
+| `projected_tool_transcript` | `tool_transcript` | `List[Dict[str, Any]]` |
+| `projected_artifact_log` | `artifact_log` | `List[str]` |
+| `projected_capability_gap` | `capability_gap` | `Optional[Dict[str, Any]]` |
+| `projected_errors` | `errors` | `List[str]` |
+| `projected_warnings` | `warnings` | `List[str]` |
+| `projected_final_artifacts` | `final_artifacts` | `Dict[str, Any]` |
+
+#### Integration adapter (`integration/`)
+
+The `integration/` package at the project root provides two functions that
+implement the full integration contract. **The parent-graph owner only needs these two calls.**
+
+```
+integration/
+├── __init__.py   # exports build_child_input, apply_child_output
+└── mapper.py     # full implementation with docstrings
+```
+
+##### Step 1 — Import
+
+```python
+import sys
+sys.path.insert(0, "/path/to/MCP_Tool_Code_Interpreter_Generator")
+
+from integration import build_child_input, apply_child_output
+from src.pipeline import build_graph
+```
+
+##### Step 2 — Build the child graph once (outside your node)
+
+```python
+child_graph = build_graph()
+```
+
+##### Step 3 — Call the child graph from a parent node
+
+```python
+def tool_generator_node(parent_state: AnalysisPipelineState) -> dict:
+    """Parent graph node that runs the child tool-generator pipeline."""
+
+    # Build a valid initial ToolGeneratorState from parent fields:
+    #   instruction  -> user_query
+    #   dataset_path -> data_path
+    child_init = build_child_input(parent_state)
+
+    # Run the child graph (projection_node runs last, populates projected_* fields)
+    config = {"configurable": {"thread_id": "toolgen-1"}}
+    child_result = child_graph.invoke(child_init, config)
+
+    # Write child projected_* fields into parent-safe channels (in-place):
+    #   projected_tool_transcript -> tool_transcript  (list extend, deduped)
+    #   projected_artifact_log    -> artifact_log     (list extend, deduped)
+    #   projected_capability_gap  -> capability_gap   (replace)
+    #   projected_errors          -> errors           (list extend)
+    #   projected_warnings        -> warnings         (list extend)
+    #   projected_final_artifacts -> final_artifacts  (dict.update)
+    apply_child_output(child_result, parent_state)
+
+    # Return any additional parent-level fields you want to update
+    return {}
+```
+
+##### Step 4 — Wire the node into the parent graph
+
+```python
+from langgraph.graph import StateGraph, END
+
+parent = StateGraph(AnalysisPipelineState)
+parent.add_node("tool_generator_node", tool_generator_node)
+parent.add_edge("planner", "tool_generator_node")
+parent.add_edge("tool_generator_node", "reviewer")
+parent_graph = parent.compile()
+```
+
+##### Complete minimal example
+
+```python
+from integration import build_child_input, apply_child_output
+from src.pipeline import build_graph
+from langgraph.graph import StateGraph, END
+
+child_graph = build_graph()
+
+def tool_generator_node(state):
+    child_result = child_graph.invoke(
+        build_child_input(state),
+        {"configurable": {"thread_id": "toolgen-1"}}
+    )
+    apply_child_output(child_result, state)
+    return {}
+
+parent = StateGraph(AnalysisPipelineState)
+parent.add_node("tool_generator_node", tool_generator_node)
+# ... add remaining nodes and edges
+parent_graph = parent.compile()
+```
+
+#### What `capability_gap` means in the parent
+
+`capability_gap` being non-`None` after the child runs means the gap detector
+found no existing tool with ≥ 85% overlap and triggered generation of a new one.
+This is the **normal success path**, not an error. Interpret it as:
+> "A new tool was generated to fill this capability gap."
+
+The promoted tool metadata is available in `final_artifacts["promoted_tool"]`.
 
 ### Optional: As Standalone MCP Server
 
@@ -283,7 +396,7 @@ python run_server.py
 
 ---
 
-## 📊 Tool Lifecycle
+## Tool Lifecycle
 
 ```
 DRAFT → Validation → Execution → PROMOTED
@@ -321,7 +434,7 @@ Each output includes:
 
 ---
 
-## 🧪 Testing
+## Testing
 
 ```bash
 # Run all tests
@@ -359,17 +472,17 @@ python test.py --verbosity debug "query"
 
 ---
 
-## 🔒 Security
+## Security
 
 ### Sandbox Isolation
 
 All generated code runs in an isolated sandbox with:
 
-- ✅ **No network access** - Prevents data exfiltration
-- ✅ **Restricted file system** - Read-only access to data files only
-- ✅ **Resource limits** - CPU, memory, and timeout constraints
-- ✅ **Import restrictions** - Only allowlisted libraries permitted
-- ✅ **Subprocess restrictions** - No shell commands or external processes
+- **No network access** - Prevents data exfiltration
+- **Restricted file system** - Read-only access to data files only
+- **Resource limits** - CPU, memory, and timeout constraints
+- **Import restrictions** - Only allowlisted libraries permitted
+- **Subprocess restrictions** - No shell commands or external processes
 
 ### Sandbox Modes
 
@@ -424,7 +537,7 @@ See [docs/SANDBOX_SECURITY.md](docs/SANDBOX_SECURITY.md) for comprehensive secur
 
 ---
 
-## 📝 Configuration
+## Configuration
 
 ### Main Config: `config/config.yaml`
 
@@ -481,35 +594,38 @@ Controls security restrictions for code execution:
 
 ---
 
-## 🎯 Implementation Status
+## Implementation Status
 
-### ✅ Completed Features
+### Completed Features
 
-- ✅ Multi-model LLM integration (DeepSeek-R1 + Qwen 2.5-Coder)
-- ✅ LangGraph pipeline orchestration
-- ✅ Intent extraction with structured output
-- ✅ Specification generation with I/O schemas
-- ✅ Code generation with FastMCP decorators
-- ✅ Multi-stage validation (syntax, schema, sandbox)
-- ✅ Automated code repair (up to 3 attempts)
-- ✅ Sandboxed execution (Docker + subprocess modes)
-- ✅ Tool registry and promotion system
-- ✅ Comprehensive logging and debugging
-- ✅ Statistical analysis support (ANOVA, Tukey HSD, etc.)
-- ✅ Graph visualization (Mermaid diagrams)
+- Multi-model LLM integration (DeepSeek-R1 + Qwen 2.5-Coder)
+- LangGraph pipeline orchestration
+- Intent extraction with structured output
+- Specification generation with I/O schemas
+- Code generation with FastMCP decorators
+- Multi-stage validation (syntax, schema, sandbox)
+- Automated code repair (up to 3 attempts)
+- Sandboxed execution (Docker + subprocess modes)
+- Tool registry and promotion system
+- Comprehensive logging and debugging
+- Statistical analysis support (ANOVA, Tukey HSD, etc.)
+- Graph visualization (Mermaid diagrams)
+- `projection_node` — terminal node packaging all outputs into `projected_*` fields
+- `ToolGeneratorState` schema updated for parent-graph compatibility (`messages`, `errors`, 6 `projected_*` fields)
+- Parent-graph integration adapter (`integration/` — `build_child_input`, `apply_child_output`)
 
-### 🔄 Active Development
+### Active Development
 
-- 🔄 Enhanced error recovery strategies
-- 🔄 Additional statistical operations
-- 🔄 Performance optimizations
-- 🔄 Extended test coverage
+- Enhanced error recovery strategies
+- Additional statistical operations
+- Performance optimizations
+- Extended test coverage
 
 **For detailed implementation specs, see [module_prs/README.md](module_prs/README.md)**
 
 ---
 
-## �️ Development
+## Development
 
 ### Setup Dev Environment
 
@@ -543,7 +659,7 @@ The pipeline automatically generates a Mermaid diagram (`pipeline_graph.mmd`) sh
 
 ---
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -642,7 +758,7 @@ cat output/active/anova_tukeyhsd_traffic_injuries_<timestamp>_output.json
 
 ---
 
-## 📚 Documentation
+## Documentation
 
 ### For Users
 - **[Quick Start](#-quick-start)** - Get up and running
@@ -658,25 +774,7 @@ cat output/active/anova_tukeyhsd_traffic_injuries_<timestamp>_output.json
 - **[Architecture Docs](docs/)** - Design decisions and diagrams
 
 ---
-
-## 🤝 Contributing
-
-1. Review [module_prs/](module_prs/) for implementation specs
-2. Create feature branch from `main`
-3. Follow coding standards (black, ruff, mypy)
-4. Write tests for new functionality
-5. Update documentation
-6. Submit PR with clear description
-
----
-
-## 📄 License
-
-[Add license information]
-
----
-
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - **LangGraph** - Workflow orchestration and graph composition
 - **Ollama** - Local LLM inference
@@ -684,9 +782,7 @@ cat output/active/anova_tukeyhsd_traffic_injuries_<timestamp>_output.json
 - **Qwen Team** - Code generation model
 
 ---
-
-**Version**: 1.0.0  
-**Status**: ✅ Production Ready  
-**Last Updated**: February 12, 2026
+ 
+**Last Updated**: February 25, 2026
 
 For detailed module documentation and implementation specs, see [module_prs/README.md](module_prs/README.md).
