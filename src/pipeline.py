@@ -39,9 +39,6 @@ def projection_node(state: ToolGeneratorState) -> ToolGeneratorState:
     final_artifacts) without triggering extra='forbid' violations.
     No existing node return values are modified.
     """
-    import json
-    from pathlib import Path as _Path
-
     transcript: List[Dict[str, Any]] = []
     artifact_log: List[str] = []
     errors: List[str] = []
@@ -87,16 +84,6 @@ def projection_node(state: ToolGeneratorState) -> ToolGeneratorState:
                 "version": spec_dict.get("version"),
             },
         })
-        # Write spec sidecar JSON next to the draft file
-        if draft_path:
-            spec_path = str(_Path(draft_path).with_suffix(".spec.json"))
-            try:
-                _Path(spec_path).write_text(
-                    json.dumps(spec_dict, indent=2, default=str)
-                )
-                artifact_log.append(spec_path)
-            except Exception:
-                pass
 
     # ---- Validation / repair ------------------------------------------------
     validation_result = state.get("validation_result")

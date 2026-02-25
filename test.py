@@ -133,12 +133,13 @@ def verify_projection(state: dict) -> bool:
     return all_ok
 
 
-def test_with_feedback(verbosity: str = "normal", query: str = None):
-    """Test pipeline with user feedback at interrupt points.
+def test_code_gen(verbosity: str = "normal", query: str = None, verify: bool = False):
+    """Run the code generation pipeline end-to-end.
     
     Args:
         verbosity: Logging verbosity level (quiet, normal, verbose, debug)
         query: User query for tool generation (optional)
+        verify: If True, run integration projection verification at the end
     """
     # Configure logging
     pipeline_logger = PipelineLogger()
@@ -157,7 +158,7 @@ def test_with_feedback(verbosity: str = "normal", query: str = None):
     
     data_path = str(test_data.resolve())  # Use absolute path for sandbox
     
-    log_section(logger, "TESTING PIPELINE WITH FEEDBACK")
+    log_section(logger, "TESTING CODE GENERATION PIPELINE")
     print(f"Query: {query}")
     print(f"Data: {data_path}")
     print("=" * 80)
@@ -194,7 +195,7 @@ def test_with_feedback(verbosity: str = "normal", query: str = None):
     config = {"configurable": {"thread_id": "test-1"}}
     current_state = initial_state
     
-    print("\nExecuting pipeline (direct execution without feedback stages)...")
+    print("\nExecuting pipeline...")
     print("=" * 80)
     
     for event in graph.stream(initial_state, config):
@@ -243,8 +244,9 @@ def test_with_feedback(verbosity: str = "normal", query: str = None):
     
     print("\n" + "=" * 80)
 
-    # Verify integration projection
-    verify_projection(current_state)
+    # Verify integration projection (only when --verify flag is passed)
+    if verify:
+        verify_projection(current_state)
 
 
 def test_auto_approve():
@@ -332,6 +334,11 @@ if __name__ == "__main__":
         action="store_true",
         help="Auto-approve all feedback stages (for testing)"
     )
+    parser.add_argument(
+        "--verify",
+        action="store_true",
+        help="Run integration projection verification at the end of the pipeline"
+    )
     parser.set_defaults(verbosity="normal")
     
     args = parser.parse_args()
@@ -339,4 +346,4 @@ if __name__ == "__main__":
     if args.auto:
         test_auto_approve()
     else:
-        test_with_feedback(verbosity=args.verbosity, query=args.query)
+        test_code_gen(verbosity=args.verbosity, query=args.query, verify=args.verify)

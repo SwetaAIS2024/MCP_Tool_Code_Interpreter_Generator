@@ -18,16 +18,16 @@ def groupby_weather_injuries(file_path: str):
         required_columns = ["weather_condition", "injuries_fatal"]
         if not all(column in df.columns for column in required_columns):
             raise ValueError(
-                f"CSV file must contain the following columns: {required_columns}"
+                f"CSV must contain the following columns: {required_columns}"
             )
 
-        # Drop rows with NaN values in required columns
+        # Handle NaN values by dropping rows with missing values in required columns
         df = df[required_columns].dropna()
 
         # Filter records where injuries_fatal is greater than 0
         filtered_df = df[df["injuries_fatal"] > 0]
 
-        # Group by weather_condition and calculate the count of fatal injuries for each group
+        # Group the data by weather_condition and calculate the count of fatal injuries for each group
         grouped_data = (
             filtered_df.groupby("weather_condition")
             .size()
@@ -39,17 +39,20 @@ def groupby_weather_injuries(file_path: str):
             by="fatal_injury_count", ascending=False
         )
 
-        # Convert the result to a dictionary
-        result_dict = sorted_grouped_data.to_dict(orient="records")
+        # Prepare the result dictionary
+        result = {
+            "weather_condition": sorted_grouped_data["weather_condition"].tolist(),
+            "fatal_injury_count": sorted_grouped_data["fatal_injury_count"].tolist(),
+        }
 
         # Prepare metadata
         metadata = {
             "total_records": len(df),
             "filtered_records": len(filtered_df),
-            "unique_weather_conditions": grouped_data.shape[0],
+            "unique_weather_conditions": len(grouped_data),
         }
 
-        return {"result": result_dict, "metadata": metadata}
+        return {"result": result, "metadata": metadata}
 
     except FileNotFoundError:
         return {"error": "File not found. Please check the file path."}

@@ -18,7 +18,7 @@ def groupby_weather_injuries(file_path: str):
         required_columns = ["injuries_fatal", "weather_condition"]
         if not all(column in df.columns for column in required_columns):
             raise ValueError(
-                f"CSV file must contain the following columns: {required_columns}"
+                f"CSV must contain the following columns: {required_columns}"
             )
 
         # Drop rows with NaN values in required columns
@@ -28,34 +28,38 @@ def groupby_weather_injuries(file_path: str):
         if not pd.api.types.is_integer_dtype(df["injuries_fatal"]):
             raise TypeError("Column 'injuries_fatal' must be of integer type.")
 
-        # Group by 'weather_condition' and calculate the count of 'injuries_fatal'
+        # Group by 'weather_condition' and count 'injuries_fatal'
         grouped_data = (
             df.groupby("weather_condition")["injuries_fatal"].count().reset_index()
         )
 
-        # Rename columns for clarity
-        grouped_data.columns = ["weather_condition", "fatal_injury_count"]
+        # Filter groups with at least 2 samples
+        grouped_data = grouped_data[grouped_data["injuries_fatal"] >= 2]
+
+        if len(grouped_data) < 2:
+            raise ValueError(
+                "Not enough data to perform grouping and counting. Ensure there are at least 2 groups with >=2 samples each."
+            )
 
         # Sort the results in descending order based on the count of fatal injuries
         sorted_grouped_data = grouped_data.sort_values(
-            by="fatal_injury_count", ascending=False
+            by="injuries_fatal", ascending=False
         )
 
-        # Convert the result to a dictionary
-        result_dict = sorted_grouped_data.to_dict(orient="records")
+        # Prepare the result dictionary
+        result_dict = {
+            "weather_condition": sorted_grouped_data["weather_condition"].tolist(),
+            "fatal_injury_count": sorted_grouped_data["injuries_fatal"].tolist(),
+        }
 
         # Prepare metadata
-        metadata = {
-            "total_records": len(df),
-            "unique_weather_conditions": df["weather_condition"].nunique(),
-            "groups_with_fatal_injuries": len(result_dict),
-        }
+        metadata = {"total_groups": len(sorted_grouped_data), "file_path": file_path}
 
         return {"result": result_dict, "metadata": metadata}
 
     except FileNotFoundError:
-        return {"error": "File not found. Please check the file path."}
+        return {"error": f"File not found: {file_path}"}
     except pd.errors.EmptyDataError:
-        return {"error": "The CSV file is empty."}
+        return {"error": "CSV file is empty"}
     except Exception as e:
-        return {"error": f"An error occurred: {str(e)}"}
+        return {"error": str(e)}
