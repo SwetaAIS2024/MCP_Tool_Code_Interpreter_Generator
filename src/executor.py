@@ -226,7 +226,9 @@ def _convert_numpy_types(obj):
     """
     import numpy as np
     
-    if isinstance(obj, np.integer):
+    if isinstance(obj, np.bool_):
+        return bool(obj)
+    elif isinstance(obj, np.integer):
         return int(obj)
     elif isinstance(obj, np.floating):
         return float(obj)
@@ -322,7 +324,15 @@ def route_after_execution(state: ToolGeneratorState) -> str:
     
     execution_output = state.get("execution_output")
     repair_attempts = state.get("repair_attempts", 0)
-    max_repair_attempts = 3  # Maximum automatic repair attempts
+
+    # Read max_repair_attempts from config (fallback to 3)
+    try:
+        import yaml
+        with open("config/config.yaml") as f:
+            _cfg = yaml.safe_load(f)
+        max_repair_attempts = _cfg.get("validation", {}).get("max_repair_attempts", 3)
+    except Exception:
+        max_repair_attempts = 3
     
     if not execution_output:
         # No execution output - something went wrong, end

@@ -1,0 +1,314 @@
+2026-03-02 16:55:10 - DEBUG - src.logger_config - setup:82 - Logging configured: verbosity=verbose, file=logs\pipeline_20260302_165510.log
+2026-03-02 16:55:10 - INFO - __main__ - log_section:117 - 
+================================================================================
+2026-03-02 16:55:10 - INFO - __main__ - log_section:118 - TESTING CODE GENERATION PIPELINE
+2026-03-02 16:55:10 - INFO - __main__ - log_section:119 - ================================================================================
+
+2026-03-02 16:55:10 - DEBUG - urllib3.connectionpool - _new_conn:1049 - Starting new HTTPS connection (1): mermaid.ink:443
+2026-03-02 16:55:11 - DEBUG - urllib3.connectionpool - _make_request:544 - https://mermaid.ink:443 "GET /img/LS0tCmNvbmZpZzoKICBmbG93Y2hhcnQ6CiAgICBjdXJ2ZTogbGluZWFyCi0tLQpncmFwaCBURDsKCV9fc3RhcnRfXyg8cD5fX3N0YXJ0X188L3A+KQoJaW50ZW50X25vZGUoaW50ZW50X25vZGUpCglzcGVjX2dlbmVyYXRvcl9ub2RlKHNwZWNfZ2VuZXJhdG9yX25vZGUpCgljb2RlX2dlbmVyYXRvcl9ub2RlKGNvZGVfZ2VuZXJhdG9yX25vZGUpCgl2YWxpZGF0b3Jfbm9kZSh2YWxpZGF0b3Jfbm9kZSkKCXJlcGFpcl9ub2RlKHJlcGFpcl9ub2RlKQoJZXhlY3V0b3Jfbm9kZShleGVjdXRvcl9ub2RlKQoJcHJvbW90ZXJfbm9kZShwcm9tb3Rlcl9ub2RlKQoJcHJvamVjdGlvbl9ub2RlKHByb2plY3Rpb25fbm9kZSkKCV9fZW5kX18oPHA+X19lbmRfXzwvcD4pCglfX3N0YXJ0X18gLS0+IGludGVudF9ub2RlOwoJaW50ZW50X25vZGUgLS0+IF9fZW5kX187CgljbGFzc0RlZiBkZWZhdWx0IGZpbGw6I2YyZjBmZixsaW5lLWhlaWdodDoxLjIKCWNsYXNzRGVmIGZpcnN0IGZpbGwtb3BhY2l0eTowCgljbGFzc0RlZiBsYXN0IGZpbGw6I2JmYjZmYwo=?type=png&bgColor=%21white HTTP/1.1" 200 21208
+2026-03-02 16:55:11 - INFO - src.pipeline - build_graph:220 - 📊 Graph visualization saved to: pipeline_graph.png
+2026-03-02 16:55:11 - INFO - src.intent_extraction - log_section:117 - 
+================================================================================
+2026-03-02 16:55:11 - INFO - src.intent_extraction - log_section:118 - INTENT EXTRACTION - AVAILABLE COLUMNS
+2026-03-02 16:55:11 - INFO - src.intent_extraction - log_section:119 - ================================================================================
+
+2026-03-02 16:55:11 - DEBUG - src.intent_extraction - extract:49 - Columns: ['crash_date', 'traffic_control_device', 'weather_condition', 'lighting_condition', 'first_crash_type', 'trafficway_type', 'alignment', 'roadway_surface_cond', 'road_defect', 'crash_type', 'intersection_related_i', 'damage', 'prim_contributory_cause', 'num_units', 'most_severe_injury', 'injuries_total', 'injuries_fatal', 'injuries_incapacitating', 'injuries_non_incapacitating', 'injuries_reported_not_evident', 'injuries_no_indication', 'crash_hour', 'crash_day_of_week', 'crash_month']
+2026-03-02 16:55:11 - DEBUG - openai._base_client - _build_request:485 - Request options: {'method': 'post', 'url': '/chat/completions', 'files': None, 'idempotency_key': 'stainless-python-retry-73ed7f56-5a37-4590-bbf7-15df5e553747', 'content': None, 'json_data': {'messages': [{'role': 'system', 'content': 'You are an intent extraction system. Your job is to understand the user\'s query and create an implementation plan for the EXACT analysis they requested.\n\nCRITICAL RULES:\n1. If the user asks for "ANOVA", your implementation_plan MUST describe ANOVA analysis (scipy.stats.f_oneway), NOT correlation, chi-square, or any other test\n2. If the user asks for "correlation", your implementation_plan MUST describe correlation analysis (scipy.stats.pearsonr), NOT ANOVA\n3. If the user asks for "Tukey HSD", your plan MUST include statsmodels.stats.multicomp.pairwise_tukeyhsd\n4. DO NOT substitute different statistical methods than what the user explicitly requested\n5. Output ONLY valid JSON - no thinking process, no explanations, no markdown\n6. The \'operation\' field is REQUIRED - never return null/None for it'}, {'role': 'user', 'content': 'Extract structured intent for data analysis query.\n\nUSER QUERY: Aggregate crashes by crash_hour and fit a regression model to estimate whether injury counts significantly vary across hours of the day.\nAVAILABLE COLUMNS: [\'crash_date\', \'traffic_control_device\', \'weather_condition\', \'lighting_condition\', \'first_crash_type\', \'trafficway_type\', \'alignment\', \'roadway_surface_cond\', \'road_defect\', \'crash_type\', \'intersection_related_i\', \'damage\', \'prim_contributory_cause\', \'num_units\', \'most_severe_injury\', \'injuries_total\', \'injuries_fatal\', \'injuries_incapacitating\', \'injuries_non_incapacitating\', \'injuries_reported_not_evident\', \'injuries_no_indication\', \'crash_hour\', \'crash_day_of_week\', \'crash_month\']\n\nTASK: Create implementation plan for the analysis requested in the query.\n\nCRITICAL: Read the query carefully and create a plan for the EXACT analysis mentioned:\n- If query says "ANOVA" → Plan must use scipy.stats.f_oneway (one-way ANOVA test)\n- If query says "Tukey HSD" → Plan must use statsmodels.stats.multicomp.pairwise_tukeyhsd\n- If query says "correlation" → Plan must use scipy.stats.pearsonr or spearmanr\n- If query says "t-test" → Plan must use scipy.stats.ttest_ind or ttest_rel\n- If query says "chi-square" → Plan must use scipy.stats.chi2_contingency\n\nDO NOT create a different analysis than what the user requested!\n\nQUERY ANALYSIS:\n1. Does query mention a specific statistical test (ANOVA, t-test, correlation, etc.)?\n   - YES → operation = "custom_transform", has_gap = true\n   - NO → Determine basic operation type (groupby_aggregate, filter, etc.)\n\n2. Create implementation_plan with 5-10 specific steps:\n   - Import required libraries (scipy.stats, statsmodels, etc.)\n   - Load and validate data\n   - Prepare data (grouping, filtering, etc.)\n   - Execute the SPECIFIC statistical method requested\n   - Calculate effect sizes if requested\n   - Format and return results\n\n3. Determine required_columns:\n   - Review your implementation_plan\n   - What data columns does the plan need?\n   - Map to actual column names from AVAILABLE_COLUMNS\n   - Use ONLY columns that exist in AVAILABLE_COLUMNS\n\nOUTPUT FORMAT (JSON):\n{\n  "operation": "custom_transform",\n  "has_gap": true,\n  "gap_reason": "Requires [specific statistical method]",\n  "implementation_plan": [\n    {"step": 1, "action": "Import libraries", "details": "Import scipy.stats for [method], statsmodels for [method]"},\n    {"step": 2, "action": "Load data", "details": "Read CSV and validate required columns"},\n    {"step": 3, "action": "Prepare groups", "details": "Group data by [grouping variable] for ANOVA"},\n    {"step": 4, "action": "Run ANOVA", "details": "Use scipy.stats.f_oneway to test differences across groups"},\n    {"step": 5, "action": "Post-hoc test", "details": "Use statsmodels.stats.multicomp.pairwise_tukeyhsd for pairwise comparisons"},\n    {"step": 6, "action": "Calculate effect sizes", "details": "Compute eta-squared or Cohen\'s d"},\n    {"step": 7, "action": "Format results", "details": "Return F-statistic, p-values, adjusted p-values, effect sizes"}\n  ],\n  "required_columns": ["crash_hour", "injuries_total"],\n  "missing_columns": [],\n  "group_by": [],\n  "metrics": [],\n  "filters": [],\n  "edge_cases": ["Check for minimum group size", "Handle missing values"],\n  "validation_rules": ["Verify numeric data types", "Check for sufficient sample size"],\n  "assumptions": ["Groups are independent", "Dependent variable is approximately normal"],\n  "clarifications_needed": []\n}\n\nREMEMBER:\n- Output ONLY valid JSON\n- Match the statistical method to what the user requested\n- Use actual column names from AVAILABLE_COLUMNS\n- Be specific in implementation_plan (mention exact function names)\n'}], 'model': 'deepseek-r1:70b', 'temperature': 0.0}}
+2026-03-02 16:55:11 - DEBUG - openai._base_client - request:998 - Sending HTTP Request: POST http://localhost:11434/v1/chat/completions
+2026-03-02 16:55:11 - DEBUG - httpcore.connection - trace:47 - connect_tcp.started host='localhost' port=11434 local_address=None timeout=5.0 socket_options=None
+2026-03-02 16:55:13 - DEBUG - httpcore.connection - trace:47 - connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000002187D7ACE90>
+2026-03-02 16:55:13 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.started request=<Request [b'POST']>
+2026-03-02 16:55:13 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.complete
+2026-03-02 16:55:13 - DEBUG - httpcore.http11 - trace:47 - send_request_body.started request=<Request [b'POST']>
+2026-03-02 16:55:13 - DEBUG - httpcore.http11 - trace:47 - send_request_body.complete
+2026-03-02 16:55:13 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.started request=<Request [b'POST']>
+2026-03-02 16:56:12 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json'), (b'Date', b'Mon, 02 Mar 2026 08:56:12 GMT'), (b'Transfer-Encoding', b'chunked')])
+2026-03-02 16:56:12 - INFO - httpx - _send_single_request:1025 - HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-02 16:56:12 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.started request=<Request [b'POST']>
+2026-03-02 16:56:12 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.complete
+2026-03-02 16:56:12 - DEBUG - httpcore.http11 - trace:47 - response_closed.started
+2026-03-02 16:56:12 - DEBUG - httpcore.http11 - trace:47 - response_closed.complete
+2026-03-02 16:56:12 - DEBUG - openai._base_client - request:1036 - HTTP Response: POST http://localhost:11434/v1/chat/completions "200 OK" Headers({'content-type': 'application/json', 'date': 'Mon, 02 Mar 2026 08:56:12 GMT', 'transfer-encoding': 'chunked'})
+2026-03-02 16:56:12 - DEBUG - openai._base_client - request:1044 - request_id: None
+2026-03-02 16:56:12 - INFO - src.intent_extraction - log_section:117 - 
+================================================================================
+2026-03-02 16:56:12 - INFO - src.intent_extraction - log_section:118 - EXTRACTED INTENT
+2026-03-02 16:56:12 - INFO - src.intent_extraction - log_section:119 - ================================================================================
+
+2026-03-02 16:56:12 - INFO - src.intent_extraction - extract:157 - Required columns: ['crash_hour', 'injuries_total']
+2026-03-02 16:56:12 - INFO - src.intent_extraction - extract:158 - Missing columns: []
+2026-03-02 16:56:12 - INFO - src.intent_extraction - extract:159 - Operation: custom_transform
+2026-03-02 16:56:12 - INFO - src.intent_validator - log_section:117 - 
+================================================================================
+2026-03-02 16:56:12 - INFO - src.intent_validator - log_section:118 - INTENT VALIDATION
+2026-03-02 16:56:12 - INFO - src.intent_validator - log_section:119 - ================================================================================
+
+2026-03-02 16:56:12 - INFO - src.intent_validator - log_success:135 - ✅ ✅ Intent validation passed
+2026-03-02 16:56:13 - DEBUG - openai._base_client - _build_request:485 - Request options: {'method': 'post', 'url': '/chat/completions', 'files': None, 'idempotency_key': 'stainless-python-retry-0758c39b-149b-4ca2-8aa3-4daf4b0bf636', 'content': None, 'json_data': {'messages': [{'role': 'system', 'content': 'You are a JSON generation system. Return ONLY valid JSON conforming to the schema. DO NOT include any explanatory text, thinking process, commentary, or meta-text. DO NOT use <think> tags or similar reasoning markers. DO NOT add markdown code fences around the JSON. Output must be pure JSON starting with { and ending with }.'}, {'role': 'user', 'content': 'Generate a complete ToolSpec for the following data analysis operation.\n\nOPERATION: custom_transform\nREQUIRED COLUMNS: [\'crash_hour\', \'injuries_total\']\nGROUP BY: [\'crash_hour\']\nMETRICS: []\nFILTERS: []\nIMPLEMENTATION PLAN: Step 1: Import libraries - Import pandas for data manipulation, statsmodels for regression\nStep 2: Load data - Read CSV and validate required columns: crash_hour, injuries_total\nStep 3: Aggregate data - Group by crash_hour and calculate sum of injuries_total for each hour\nStep 4: Prepare data for regression - Create a dataframe with crash_hour as independent variable and injuries_total as dependent variable\nStep 5: Fit regression model - Use statsmodels.regression.linear_model.OLS to fit the model\nStep 6: Analyze results - Extract coefficients, p-values, and R-squared from the regression model\nStep 7: Format results - Return a summary of the regression analysis including significance of crash_hour\nEDGE CASES: [\'Check for sufficient number of data points per crash_hour\', \'Handle missing values in injuries_total\']\nVALIDATION RULES: [\'Verify that crash_hour is within valid range (0-23)\', \'Ensure injuries_total are non-negative integers\']\n\nCRITICAL: You MUST follow the IMPLEMENTATION PLAN exactly. Do NOT create a different analysis or make assumptions.\n- If the plan says "ANOVA", you MUST create a spec for ANOVA analysis (NOT correlation, NOT t-test)\n- If the plan says "correlation", you MUST create a spec for correlation analysis (NOT ANOVA)\n- If the plan says "Tukey HSD post-hoc", the spec MUST include post-hoc testing\n- The \'what_it_does\' field MUST describe exactly what\'s in the IMPLEMENTATION PLAN\n\n⚠️ STATISTICAL INJECTION GUARD:\n- DO NOT add statistical tests (ANOVA, t-test, chi-square, correlation) if NOT in IMPLEMENTATION PLAN\n- DO NOT add chi-square unless IMPLEMENTATION PLAN explicitly requests it\n- DO NOT add p-values, significance tests unless IMPLEMENTATION PLAN requests them\n- If operation is "groupby_aggregate" or "pivot", create ONLY descriptive aggregation (NO statistical tests)\n\nCreate a ToolSpec with:\n1. tool_name: A descriptive snake_case name based on operation and columns\n2. description: Clear explanation matching the IMPLEMENTATION PLAN\n3. input_schema: JSON Schema for input parameters (file_path is required)\n4. output_schema: JSON Schema for output structure (Dict with \'result\' and \'metadata\')\n5. parameters: List of parameter definitions [{"name": "file_path", "type": "str", "description": "Path to CSV file", "required": true}]\n6. when_to_use: When this tool should be selected based on the IMPLEMENTATION PLAN\n7. what_it_does: Technical description that EXACTLY follows the IMPLEMENTATION PLAN step-by-step\n8. returns: Description of return value structure\n9. prerequisites: String listing the exact required column names from REQUIRED COLUMNS in comma-separated format\n\nReturn JSON matching ToolSpec structure.\n'}], 'model': 'deepseek-r1:70b', 'temperature': 0.0}}
+2026-03-02 16:56:13 - DEBUG - openai._base_client - request:998 - Sending HTTP Request: POST http://localhost:11434/v1/chat/completions
+2026-03-02 16:56:13 - DEBUG - httpcore.connection - trace:47 - connect_tcp.started host='localhost' port=11434 local_address=None timeout=5.0 socket_options=None
+2026-03-02 16:56:15 - DEBUG - httpcore.connection - trace:47 - connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000002187DA84A70>
+2026-03-02 16:56:15 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.started request=<Request [b'POST']>
+2026-03-02 16:56:15 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.complete
+2026-03-02 16:56:15 - DEBUG - httpcore.http11 - trace:47 - send_request_body.started request=<Request [b'POST']>
+2026-03-02 16:56:15 - DEBUG - httpcore.http11 - trace:47 - send_request_body.complete
+2026-03-02 16:56:15 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.started request=<Request [b'POST']>
+2026-03-02 16:57:22 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json'), (b'Date', b'Mon, 02 Mar 2026 08:57:22 GMT'), (b'Transfer-Encoding', b'chunked')])
+2026-03-02 16:57:22 - INFO - httpx - _send_single_request:1025 - HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-02 16:57:22 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.started request=<Request [b'POST']>
+2026-03-02 16:57:22 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.complete
+2026-03-02 16:57:22 - DEBUG - httpcore.http11 - trace:47 - response_closed.started
+2026-03-02 16:57:22 - DEBUG - httpcore.http11 - trace:47 - response_closed.complete
+2026-03-02 16:57:22 - DEBUG - openai._base_client - request:1036 - HTTP Response: POST http://localhost:11434/v1/chat/completions "200 OK" Headers({'content-type': 'application/json', 'date': 'Mon, 02 Mar 2026 08:57:22 GMT', 'transfer-encoding': 'chunked'})
+2026-03-02 16:57:22 - DEBUG - openai._base_client - request:1044 - request_id: None
+2026-03-02 16:57:22 - DEBUG - httpcore.connection - trace:47 - close.started
+2026-03-02 16:57:22 - DEBUG - httpcore.connection - trace:47 - close.complete
+2026-03-02 16:57:23 - INFO - src.code_generator - log_section:117 - 
+================================================================================
+2026-03-02 16:57:23 - INFO - src.code_generator - log_section:118 - CODE GENERATION PROMPT
+2026-03-02 16:57:23 - INFO - src.code_generator - log_section:119 - ================================================================================
+
+2026-03-02 16:57:23 - DEBUG - src.code_generator - generate:43 - Generate Python function code for this tool specification.
+
+TOOL NAME: crash_hour_injuries_regression
+DESCRIPTION: Performs a linear regression analysis to examine how the total number of injuries varies by crash hour.
+PARAMETERS: [
+  {
+    "name": "file_path",
+    "type": "str",
+    "description": "Path to CSV file containing crash data",
+    "required": true
+  }
+]
+REQUIRED COLUMNS: crash_hour, injuries_total
+IMPLEMENTATION PLAN: Import pandas for data manipulation and statsmodels for regression analysis Load the CSV file and validate required columns: crash_hour, injuries_total Group by crash_hour and calculate sum of injuries_total for each hour Prepare data for regression with crash_hour as independent variable and injuries_total as dependent variable Fit linear regression model using statsmodels.regression.linear_model.OLS Extract coefficients, p-values, and R-squared from the regression model Format results to include significance of crash_hour in explaining injuries_total
+WHAT I...
+2026-03-02 16:57:23 - DEBUG - openai._base_client - _build_request:485 - Request options: {'method': 'post', 'url': '/chat/completions', 'files': None, 'idempotency_key': 'stainless-python-retry-914960e1-7e9c-420b-bb9f-0887c24336dc', 'content': None, 'json_data': {'messages': [{'role': 'user', 'content': 'Generate Python function code for this tool specification.\n\nTOOL NAME: crash_hour_injuries_regression\nDESCRIPTION: Performs a linear regression analysis to examine how the total number of injuries varies by crash hour.\nPARAMETERS: [\n  {\n    "name": "file_path",\n    "type": "str",\n    "description": "Path to CSV file containing crash data",\n    "required": true\n  }\n]\nREQUIRED COLUMNS: crash_hour, injuries_total\nIMPLEMENTATION PLAN: Import pandas for data manipulation and statsmodels for regression analysis Load the CSV file and validate required columns: crash_hour, injuries_total Group by crash_hour and calculate sum of injuries_total for each hour Prepare data for regression with crash_hour as independent variable and injuries_total as dependent variable Fit linear regression model using statsmodels.regression.linear_model.OLS Extract coefficients, p-values, and R-squared from the regression model Format results to include significance of crash_hour in explaining injuries_total\nWHAT IT DOES: Import pandas for data manipulation and statsmodels for regression analysis Load the CSV file and validate required columns: crash_hour, injuries_total Group by crash_hour and calculate sum of injuries_total for each hour Prepare data for regression with crash_hour as independent variable and injuries_total as dependent variable Fit linear regression model using statsmodels.regression.linear_model.OLS Extract coefficients, p-values, and R-squared from the regression model Format results to include significance of crash_hour in explaining injuries_total\n\nRequirements:\n1. Use pandas for data manipulation\n2. Function signature must be: def crash_hour_injuries_regression(file_path: str):\n3. Add comprehensive error handling\n4. Return a dictionary with \'result\' and \'metadata\' keys\n5. **CRITICAL**: Follow the IMPLEMENTATION PLAN and WHAT IT DOES exactly - implement the EXACT statistical method specified\n   - If it says "ANOVA", use scipy.stats.f_oneway or similar (NOT pearsonr, NOT correlation)\n   - If it says "correlation", use scipy.stats.pearsonr (NOT ANOVA, NOT t-test)\n   - If it says "Tukey HSD", use statsmodels.stats.multicomp.pairwise_tukeyhsd\n   - DO NOT substitute different statistical methods than specified\n   - **STATISTICAL INJECTION GUARD**: DO NOT add statistical tests if IMPLEMENTATION PLAN does not request them\n     * If operation is groupby_aggregate → Create simple aggregation (mean, sum, count) ONLY\n     * If operation is pivot → Create pivot table ONLY (NO chi-square, NO statistical tests)\n     * DO NOT add chi-square unless explicitly requested\n     * DO NOT add ANOVA unless explicitly requested\n     * DO NOT add p-values unless explicitly requested\n6. **STATISTICAL TEST RESULTS FORMATTING**:\n   - For ANOVA: Return f_statistic, p_value, effect_size (eta_squared)\n   - For Tukey HSD post-hoc: DO NOT use dict(zip(tukey.pvalues, tukey.groupsunique)) - this is WRONG\n     * Extract pairwise comparisons properly:\n       ```python\n       tukey_table = pd.DataFrame(tukey.summary().data[1:], columns=tukey.summary().data[0])\n       tukey_pairs = tukey_table[["group1", "group2", "meandiff", "p-adj", "lower", "upper", "reject"]].to_dict("records")\n       ```\n     * Return as list of comparison dicts with keys: group1, group2, meandiff, p_adj, lower, upper, reject\n   - For correlation: Return correlation_coefficient, p_value\n   - Always handle NaN values: df = df[required_columns].dropna()\n   - Guard for minimum samples: Filter groups with <2 samples, ensure >=2 groups remain\n7. **MATPLOTLIB CONFIGURATION**: If using matplotlib/seaborn for plotting:\n   - Import matplotlib FIRST before any other plotting libraries\n   - Set non-interactive backend: import matplotlib; matplotlib.use(\'Agg\')\n   - Then import pyplot: import matplotlib.pyplot as plt\n   - This prevents tkinter cleanup errors in non-GUI environments\n8. Handle edge cases gracefully\n9. Add docstring with examples\n10. CRITICAL: Use ONLY the columns listed in REQUIRED COLUMNS above - do NOT invent or assume other column names\n\nInclude:\n- pandas DataFrame input handling\n- Error handling for missing columns, invalid data types\n- Clear variable names\n- Comments for complex operations\n- Return structure: {"result": {}, "metadata": {}}\n\nIMPORTANT: Use {} or dict() to create dictionaries. Do NOT use typing classes like Dict() to instantiate objects.\n\nDO NOT INCLUDE:\n- DO NOT create placeholder decorator functions like "def mcp_tool()" or "def decorator()"\n- DO NOT create mock FastMCP classes or instances\n- DO NOT define TOOL_SPEC dictionaries or constants\n- DO NOT write explanatory text before or after the code\n- DO NOT create any wrapper functions or decorators\n- DO NOT include comments like "# Placeholder for @mcp.tool()"\n- DO NOT add import statements for \'mcp\' module\n- DO NOT write "Here\'s the code:" or any conversational text\n- DO NOT create example usage code or test functions\n- DO NOT define helper decorator functions\n\nONLY OUTPUT:\n- The single function implementation named crash_hour_injuries_regression\n- Standard library imports (pandas, numpy, scipy, etc.)\n- **CRITICAL IMPORT ORDER**: If using matplotlib, follow this exact pattern:\n  ```python\n  import matplotlib\n  matplotlib.use(\'Agg\')  # Set non-interactive backend BEFORE importing pyplot\n  import matplotlib.pyplot as plt\n  ```\n- The function must start with: def crash_hour_injuries_regression(file_path: str):\n- No decorators, no extra functions, no explanations\n\nGenerate ONLY the function implementation. Nothing else.\n'}], 'model': 'qwen2.5-coder:32b', 'temperature': 0.2}}
+2026-03-02 16:57:23 - DEBUG - openai._base_client - request:998 - Sending HTTP Request: POST http://localhost:11434/v1/chat/completions
+2026-03-02 16:57:23 - DEBUG - httpcore.connection - trace:47 - connect_tcp.started host='localhost' port=11434 local_address=None timeout=5.0 socket_options=None
+2026-03-02 16:57:25 - DEBUG - httpcore.connection - trace:47 - connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000002187DA84A70>
+2026-03-02 16:57:25 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.started request=<Request [b'POST']>
+2026-03-02 16:57:25 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.complete
+2026-03-02 16:57:25 - DEBUG - httpcore.http11 - trace:47 - send_request_body.started request=<Request [b'POST']>
+2026-03-02 16:57:25 - DEBUG - httpcore.http11 - trace:47 - send_request_body.complete
+2026-03-02 16:57:25 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.started request=<Request [b'POST']>
+2026-03-02 16:57:46 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json'), (b'Date', b'Mon, 02 Mar 2026 08:57:46 GMT'), (b'Transfer-Encoding', b'chunked')])
+2026-03-02 16:57:46 - INFO - httpx - _send_single_request:1025 - HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-02 16:57:46 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.started request=<Request [b'POST']>
+2026-03-02 16:57:46 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.complete
+2026-03-02 16:57:46 - DEBUG - httpcore.http11 - trace:47 - response_closed.started
+2026-03-02 16:57:46 - DEBUG - httpcore.http11 - trace:47 - response_closed.complete
+2026-03-02 16:57:46 - DEBUG - openai._base_client - request:1036 - HTTP Response: POST http://localhost:11434/v1/chat/completions "200 OK" Headers({'content-type': 'application/json', 'date': 'Mon, 02 Mar 2026 08:57:46 GMT', 'transfer-encoding': 'chunked'})
+2026-03-02 16:57:46 - DEBUG - openai._base_client - request:1044 - request_id: None
+2026-03-02 16:57:46 - INFO - src.code_generator - log_section:117 - 
+================================================================================
+2026-03-02 16:57:46 - INFO - src.code_generator - log_section:118 - RAW LLM RESPONSE
+2026-03-02 16:57:46 - INFO - src.code_generator - log_section:119 - ================================================================================
+
+2026-03-02 16:57:46 - DEBUG - src.code_generator - generate:50 - ```python
+import pandas as pd
+import numpy as np
+import statsmodels.api as sm
+from statsmodels.regression.linear_model import OLS
+
+def crash_hour_injuries_regression(file_path: str):
+    try:
+        # Load the CSV file
+        df = pd.read_csv(file_path)
+        
+        # Validate required columns
+        required_columns = ['crash_hour', 'injuries_total']
+        if not all(column in df.columns for column in required_columns):
+            raise ValueError(f"CSV file must contain the following columns: {required_columns}")
+        
+        # Drop rows with missing values in required columns
+        df = df[required_columns].dropna()
+        
+        # Group by crash_hour and calculate sum of injuries_total for each hour
+        grouped_data = df.groupby('crash_hour')['injuries_total'].sum().reset_index()
+        
+        # Ensure there are at least 2 groups (hours)
+        if len(grouped_data) < 2:
+            raise ValueError("There must be at least 2 different crash hours in the da...
+2026-03-02 16:57:46 - INFO - src.code_generator - log_section:117 - 
+================================================================================
+2026-03-02 16:57:46 - INFO - src.code_generator - log_section:118 - EXTRACTED CODE (before wrapping)
+2026-03-02 16:57:46 - INFO - src.code_generator - log_section:119 - ================================================================================
+
+2026-03-02 16:57:46 - DEBUG - src.code_generator - generate:57 - import numpy as np
+import statsmodels.api as sm
+from statsmodels.regression.linear_model import OLS
+
+def crash_hour_injuries_regression(file_path: str):
+    try:
+        # Load the CSV file
+        df = pd.read_csv(file_path)
+        
+        # Validate required columns
+        required_columns = ['crash_hour', 'injuries_total']
+        if not all(column in df.columns for column in required_columns):
+            raise ValueError(f"CSV file must contain the following columns: {required_columns}")
+        
+        # Drop rows with missing values in required columns
+        df = df[required_columns].dropna()
+        
+        # Group by crash_hour and calculate sum of injuries_total for each hour
+        grouped_data = df.groupby('crash_hour')['injuries_total'].sum().reset_index()
+        
+        # Ensure there are at least 2 groups (hours)
+        if len(grouped_data) < 2:
+            raise ValueError("There must be at least 2 different crash hours in the data.")
+        
+        # Prepa...
+2026-03-02 16:57:46 - INFO - src.code_generator - log_section:117 - 
+================================================================================
+2026-03-02 16:57:46 - INFO - src.code_generator - log_section:118 - WRAPPED CODE (before black formatting)
+2026-03-02 16:57:46 - INFO - src.code_generator - log_section:119 - ================================================================================
+
+2026-03-02 16:57:46 - DEBUG - src.code_generator - generate:64 - """Generated MCP tool: crash_hour_injuries_regression"""
+
+from fastmcp import FastMCP
+import pandas as pd
+import time
+import numpy as np
+import statsmodels.api as sm
+from statsmodels.regression.linear_model import OLS
+
+mcp = FastMCP("data_analysis_tools")
+
+
+@mcp.tool()
+def crash_hour_injuries_regression(file_path: str):
+    try:
+        # Load the CSV file
+        df = pd.read_csv(file_path)
+        
+        # Validate required columns
+        required_columns = ['crash_hour', 'injuries_total']
+        if not all(column in df.columns for column in required_columns):
+            raise ValueError(f"CSV file must contain the following columns: {required_columns}")
+        
+        # Drop rows with missing values in required columns
+        df = df[required_columns].dropna()
+        
+        # Group by crash_hour and calculate sum of injuries_total for each hour
+        grouped_data = df.groupby('crash_hour')['injuries_total'].sum().reset_index()
+        
+        # Ensure there are at leas...
+2026-03-02 16:57:46 - INFO - src.code_generator - log_section:117 - 
+================================================================================
+2026-03-02 16:57:46 - INFO - src.code_generator - log_section:118 - FINAL FORMATTED CODE
+2026-03-02 16:57:46 - INFO - src.code_generator - log_section:119 - ================================================================================
+
+2026-03-02 16:57:46 - DEBUG - src.code_generator - generate:72 - """Generated MCP tool: crash_hour_injuries_regression"""
+
+from fastmcp import FastMCP
+import pandas as pd
+import time
+import numpy as np
+import statsmodels.api as sm
+from statsmodels.regression.linear_model import OLS
+
+mcp = FastMCP("data_analysis_tools")
+
+
+@mcp.tool()
+def crash_hour_injuries_regression(file_path: str):
+    try:
+        # Load the CSV file
+        df = pd.read_csv(file_path)
+
+        # Validate required columns
+        required_columns = ["crash_hour", "injuries_total"]
+        if not all(column in df.columns for column in required_columns):
+            raise ValueError(
+                f"CSV file must contain the following columns: {required_columns}"
+            )
+
+        # Drop rows with missing values in required columns
+        df = df[required_columns].dropna()
+
+        # Group by crash_hour and calculate sum of injuries_total for each hour
+        grouped_data = df.groupby("crash_hour")["injuries_total"].sum().reset_index()
+
+        # Ensure there are at least 2 groups (hours)
+        if len(grouped_data) < 2:
+            raise ValueError(
+                "There must be at least 2 different crash hours in the data."
+            )
+
+        # Prepare data for regression
+        X = grouped_data["crash_hour"]
+        y = grouped_data["injuries_total"]
+
+        # Add a constant to the independent variable
+        X = sm.add_constant(X)
+
+        # Fit linear regression model
+        model = OLS(y, X).fit()
+
+        # Extract coefficients, p-values, and R-squared from the regression model
+        coefficients = model.params.to_dict()
+        p_values = model.pvalues.to_dict()
+        r_squared = model.rsquared
+
+        # Format results to include significance of crash_hour in explaining injuries_total
+        result = {
+            "coefficients": coefficients,
+            "p_values": p_values,
+            "r_squared": r_squared,
+        }
+
+        metadata = {
+            "message": "Linear regression analysis completed successfully.",
+            "data_points_used": len(grouped_data),
+        }
+
+    except Exception as e:
+        result = {}
+        metadata = {
+            "error": str(e),
+            "message": "An error occurred during the analysis.",
+        }
+
+    return {"result": result, "metadata": metadata}
+
+2026-03-02 16:57:46 - INFO - src.code_generator - code_generator_node:597 - 📝 Generated code saved to draft: tools\draft\crash_hour_injuries_regression_20260302_165746.py
+2026-03-02 16:57:51 - INFO - src.validator - log_section:117 - 
+================================================================================
+2026-03-02 16:57:51 - INFO - src.validator - log_section:118 - VALIDATION RESULTS
+2026-03-02 16:57:51 - INFO - src.validator - log_section:119 - ================================================================================
+
+2026-03-02 16:57:51 - INFO - src.validator - validator_node:321 - Schema OK: True
+2026-03-02 16:57:51 - INFO - src.validator - validator_node:322 - Tests OK: True
+2026-03-02 16:57:51 - INFO - src.validator - validator_node:323 - Sandbox OK: True
+2026-03-02 16:57:52 - DEBUG - httpcore.connection - trace:47 - close.started
+2026-03-02 16:57:52 - DEBUG - httpcore.connection - trace:47 - close.complete
+2026-03-02 16:57:52 - DEBUG - httpcore.connection - trace:47 - close.started
+2026-03-02 16:57:52 - DEBUG - httpcore.connection - trace:47 - close.complete
+2026-03-02 16:57:54 - DEBUG - mcp.server.lowlevel.server - __init__:162 - Initializing server 'data_analysis_tools'
+2026-03-02 16:57:54 - DEBUG - mcp.server.lowlevel.server - decorator:439 - Registering handler for ListToolsRequest
+2026-03-02 16:57:54 - DEBUG - mcp.server.lowlevel.server - decorator:301 - Registering handler for ListResourcesRequest
+2026-03-02 16:57:54 - DEBUG - mcp.server.lowlevel.server - decorator:321 - Registering handler for ListResourceTemplatesRequest
+2026-03-02 16:57:54 - DEBUG - mcp.server.lowlevel.server - decorator:263 - Registering handler for PromptListRequest
+2026-03-02 16:57:54 - DEBUG - mcp.server.lowlevel.server - decorator:519 - Registering handler for CallToolRequest
+2026-03-02 16:57:54 - DEBUG - src.executor - _load_function:136 - Module contents: ['FastMCP', 'OLS', 'crash_hour_injuries_regression', 'mcp', 'np', 'pd', 'sm', 'time']
+2026-03-02 16:57:54 - DEBUG - src.executor - _load_function:143 - Checking 'OLS': type=<class 'type'>, callable=True, is_function=False
+2026-03-02 16:57:54 - DEBUG - src.executor - _load_function:143 - Checking 'crash_hour_injuries_regression': type=<class 'fastmcp.tools.tool.FunctionTool'>, callable=False, is_function=False
+2026-03-02 16:57:54 - DEBUG - src.executor - _load_function:147 - Found FunctionTool, extracting underlying function...
+2026-03-02 16:57:54 - DEBUG - src.executor - _load_function:154 - Successfully extracted function from FunctionTool via 'fn'
+2026-03-02 16:57:54 - DEBUG - src.executor - execute:68 - Result type: <class 'dict'>
+2026-03-02 16:57:54 - DEBUG - src.executor - execute:69 - Result value: {'result': {'coefficients': {'const': 1982.4033333333352, 'crash_hour': 117.8526086956521}, 'p_values': {'const': 0.00013446310938041863, 'crash_hour': 0.001304701809554925}, 'r_squared': np.float64(0.38131753052132544)}, 'metadata': {'message': 'Linear regression analysis completed successfully.', 'data_points_used': 24}}
+2026-03-02 16:57:54 - INFO - src.executor - executor_node:303 - 💾 Execution results saved to: output\draft\crash_hour_injuries_regression_20260302_165746_output.json
+2026-03-02 16:57:54 - INFO - src.promoter - promote:85 - 💾 Moved output file to: output\active\crash_hour_injuries_regression_20260302_165746_output.json
+2026-03-02 16:57:54 - INFO - src.promoter - log_section:117 - 
+================================================================================
+2026-03-02 16:57:54 - INFO - src.promoter - log_section:118 - 🎉 TOOL PROMOTED TO ACTIVE REGISTRY
+2026-03-02 16:57:54 - INFO - src.promoter - log_section:119 - ================================================================================
+
+2026-03-02 16:57:54 - INFO - src.promoter - promoter_node:196 - Tool Name: crash_hour_injuries_regression_20260302_165746
+2026-03-02 16:57:54 - INFO - src.promoter - promoter_node:198 - Draft Path: tools\draft\crash_hour_injuries_regression_20260302_165746.py
+2026-03-02 16:57:54 - INFO - src.promoter - promoter_node:199 - Active Path: tools\active\crash_hour_injuries_regression_20260302_165746.py
+2026-03-02 16:57:54 - INFO - src.promoter - promoter_node:201 - Output Path: output\active\crash_hour_injuries_regression_20260302_165746_output.json
+2026-03-02 16:57:54 - INFO - src.promoter - promoter_node:202 - Registry: tools\registry.json
+2026-03-02 16:57:54 - INFO - src.promoter - promoter_node:203 - ✅ Tool successfully executed and promoted to active

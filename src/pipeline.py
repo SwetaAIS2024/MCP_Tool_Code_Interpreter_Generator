@@ -227,16 +227,22 @@ def build_graph(checkpointer: Optional[MemorySaver] = None) -> StateGraph:
     return graph
 
 
-def run_pipeline(user_query: str, data_path: str) -> Dict[str, Any]:
+def run_pipeline(user_query: str, data_path: str, thread_id: str = None) -> Dict[str, Any]:
     """Execute the complete tool generation pipeline.
     
     Args:
         user_query: Natural language query from user
         data_path: Path to data file to analyze
+        thread_id: Unique identifier for this run (auto-generated UUID if not provided).
+                   Pass a stable string to resume a checkpointed run.
         
     Returns:
         Final state dict with all pipeline results
     """
+    import uuid
+    if thread_id is None:
+        thread_id = str(uuid.uuid4())
+
     # Build graph
     graph = build_graph()
     
@@ -264,37 +270,7 @@ def run_pipeline(user_query: str, data_path: str) -> Dict[str, Any]:
         "messages": []
     }
     
-    # class ToolGeneratorState(TypedDict):
-    # """State shared across all LangGraph nodes."""
-    
-    # # Input
-    # user_query: str
-    # data_path: str
-    
-    # # Intent
-    # extracted_intent: Optional[Dict]
-    # has_gap: bool
-    
-    # # Generation
-    # tool_spec: Optional[ToolSpec]
-    # generated_code: Optional[str]
-    
-    # # Validation
-    # validation_result: Optional[ValidationReport]
-    # repair_attempts: int
-    
-    # # Execution
-    # execution_output: Optional[RunArtifacts]
-    
-    # # Feedback
-    # stage1_approved: bool
-    # stage2_approved: bool
-    
-    # # Final
-    # promoted_tool: Optional[Dict]
-    # messages: Annotated[List[tuple], add]
-
     # Run graph
-    result = graph.invoke(initial_state)
+    result = graph.invoke(initial_state, config={"configurable": {"thread_id": thread_id}})
     
     return result

@@ -1,12 +1,25 @@
 # LLM Configuration
 llm:
+  # base_url can be overridden by OLLAMA_BASE_URL env var on the client machine
+  # Point this to the GPU server IP when running remotely, e.g.:
+  #   http://192.168.1.100:11434/v1
   base_url: "http://localhost:11434/v1"  # Ollama default port
-  
+
+  # api_key can be overridden by OLLAMA_API_KEY env var.
+  # Set this if your Ollama server sits behind a reverse proxy with auth.
+  # Leave as "not-needed" for direct Ollama access.
+  api_key: "not-needed"
+
   # Model selection by task
   models:
     reasoning: "deepseek-r1:70b"  # For intent extraction and planning
     coding: "qwen2.5-coder:32b"   # For code generation and repair
-  temperature: 0.0
+  temperature: 0.4
+
+  # --- Ollama server-side env vars (set on your GPU machine, not here) ---
+  # OLLAMA_HOST=0.0.0.0:11434          expose Ollama to the network
+  # OLLAMA_NUM_PARALLEL=4              concurrent inference slots
+  # OLLAMA_MAX_LOADED_MODELS=2         keep both models hot in VRAM
 
 # Paths
 paths:
@@ -18,14 +31,14 @@ paths:
 
 # Validation
 validation:
-  max_repair_attempts: 3
-  sandbox_timeout_seconds: 30
+  max_repair_attempts: 5
+  sandbox_timeout_seconds: 300
 
 # Sandbox
 sandbox:
   # mode: "subprocess"  # or "docker"
   mode: "docker"
-  timeout_seconds: 60  # Increased for Docker container startup
+  timeout_seconds: 300  # Increased for Docker container startup
   memory_limit_mb: 512
 
 # Logging

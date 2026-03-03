@@ -77,10 +77,29 @@ OPERATION SELECTION PRIORITY:
 
 STEP 2A: Check for explicit statistical keywords
 If query contains:
-ANOVA, t-test, chi-square, correlation, regression, Tukey, post-hoc, p-value, effect size
+ANOVA, t-test, chi-square, correlation, regression, Tukey, post-hoc, p-value, effect size,
+statistical testing, significantly differ, compare distributions, hypothesis test, differ significantly
 → operation = "custom_transform"
 → has_gap = true
-→ gap_reason = "Statistical or advanced analysis required"
+
+DETERMINE TEST TYPE (set in gap_reason):
+
+2-GROUP COMPARISON SIGNALS (use t-test, NOT ANOVA):
+- Query compares exactly 2 groups:
+  "Y versus others", "Y vs N", "between X and Y", "compared to", "versus others"
+  "differ between", "compare between two"
+- Binary column values: Y/N, True/False, 0/1
+→ gap_reason = "Two-group statistical comparison: use independent samples t-test (scipy.stats.ttest_ind) with normality check (Shapiro-Wilk). If non-normal, use Mann-Whitney U (scipy.stats.mannwhitneyu). Do NOT use ANOVA."
+
+3-OR-MORE GROUP COMPARISON SIGNALS (use ANOVA):
+- Query mentions 3+ categories, multiple groups, or uses "across groups/categories"
+- Explicit "ANOVA", "F-test", "Tukey", "post-hoc"
+→ gap_reason = "Multi-group statistical comparison: use one-way ANOVA (scipy.stats.f_oneway)."
+
+OTHER STATISTICAL TESTS:
+- Correlation → gap_reason = "Correlation analysis: use scipy.stats.pearsonr or spearmanr."
+- Regression → gap_reason = "Regression analysis: use scipy.stats.linregress or statsmodels OLS."
+- Chi-square → gap_reason = "Independence test: use scipy.stats.chi2_contingency."
 
 STEP 2B: Check for variation/comparison patterns
 If query contains:
@@ -120,6 +139,15 @@ Correlation → scipy.stats.pearsonr
 Tukey → statsmodels pairwise_tukeyhsd
 
 Never substitute statistical methods.
+
+TWO-GROUP COMPARISON PLAN (when gap_reason says t-test):
+Step 1: Load data and select required columns
+Step 2: Split into exactly 2 groups based on binary column (Y / not-Y)
+Step 3: Check normality of each group with Shapiro-Wilk (scipy.stats.shapiro)
+Step 4: If both groups normal → scipy.stats.ttest_ind; else → scipy.stats.mannwhitneyu
+Step 5: Compute effect size (Cohen's d for t-test)
+Step 6: Return statistic, p_value, significant (bool), effect_size, group means
+NEVER use f_oneway or ANOVA for a 2-group comparison.
 
 ====================
 STEP 4 — FINAL JSON STRUCTURE

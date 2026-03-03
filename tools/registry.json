@@ -1,11 +1,11 @@
 {
   "tools": [
     {
-      "name": "groupby_weather_injuries_20260225_175255",
+      "name": "groupby_weather_injuries_20260302_162725",
       "description": "Groups data by weather_condition and calculates the count of fatal injuries for each group after filtering records where injuries_fatal > 0.",
       "user_query": "analyze fatal injury variations across weather conditions",
-      "tool_path": "tools\\active\\groupby_weather_injuries_20260225_175255.py",
-      "log_file": "logs\\pipeline_20260225_175044.log",
+      "tool_path": "tools\\active\\groupby_weather_injuries_20260302_162725.py",
+      "log_file": "logs\\pipeline_20260302_162515.log",
       "parameters": [
         {
           "name": "file_path",
@@ -15,24 +15,126 @@
         }
       ],
       "return_type": "Dict[str, Any]",
-      "output_file": "output\\active\\groupby_weather_injuries_20260225_175255_output.json"
+      "output_file": "output\\active\\groupby_weather_injuries_20260302_162725_output.json"
     },
     {
-      "name": "groupby_weather_injuries_20260225_175845",
-      "description": "Groups data by weather condition and calculates the count of fatal injuries for each group, sorted in descending order.",
-      "user_query": "analyze fatal injury variations across weather conditions",
-      "tool_path": "tools\\active\\groupby_weather_injuries_20260225_175845.py",
-      "log_file": "logs\\pipeline_20260225_175647.log",
+      "name": "crash_hour_injury_regression_20260302_165117",
+      "description": "Performs linear regression analysis to examine the relationship between crash hour and total injuries.",
+      "user_query": "Aggregate crashes by crash_hour and fit a regression model to estimate whether injury counts significantly vary across hours of the day.",
+      "tool_path": "tools\\active\\crash_hour_injury_regression_20260302_165117.py",
+      "log_file": "logs\\pipeline_20260302_164841.log",
       "parameters": [
         {
           "name": "file_path",
           "type": "str",
-          "description": "Path to CSV file containing the data",
+          "description": "Path to CSV file containing crash data",
           "required": true
         }
       ],
       "return_type": "Dict[str, Any]",
-      "output_file": "output\\active\\groupby_weather_injuries_20260225_175845_output.json"
+      "output_file": "output\\active\\crash_hour_injury_regression_20260302_165117_output.json"
+    },
+    {
+      "name": "crash_hour_injuries_regression_20260302_165746",
+      "description": "Performs a linear regression analysis to examine how the total number of injuries varies by crash hour.",
+      "user_query": "Aggregate crashes by crash_hour and fit a regression model to estimate whether injury counts significantly vary across hours of the day.",
+      "tool_path": "tools\\active\\crash_hour_injuries_regression_20260302_165746.py",
+      "log_file": "logs\\pipeline_20260302_165510.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file containing crash data",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\crash_hour_injuries_regression_20260302_165746_output.json"
+    },
+    {
+      "name": "analyze_intersection_injuries_anova_20260302_170205",
+      "description": "Performs an ANOVA test to compare total injuries between intersection-related and non-intersection-related incidents.",
+      "user_query": "Compare injury distributions between records where intersection_related_i = 'Y' versus others. Perform statistical testing to evaluate whether total injuries differ significantly.",
+      "tool_path": "tools\\active\\analyze_intersection_injuries_anova_20260302_170205.py",
+      "log_file": "logs\\pipeline_20260302_165955.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file containing the data.",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\analyze_intersection_injuries_anova_20260302_170205_output.json"
+    },
+    {
+      "name": "intersection_injury_comparison_20260302_171548",
+      "description": "Compares injury totals between intersection-related and non-intersection-related incidents using t-tests and assumption checking.",
+      "user_query": "Compare injury distributions between records where intersection_related_i = 'Y' versus others. Perform statistical testing to evaluate whether total injuries differ significantly.",
+      "tool_path": "tools\\active\\intersection_injury_comparison_20260302_171548.py",
+      "log_file": "logs\\pipeline_20260302_171249.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file containing data",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\intersection_injury_comparison_20260302_171548_output.json"
+    },
+    {
+      "name": "intersection_injury_comparison_20260302_173030",
+      "description": "Compares injury totals between intersection-related and non-intersection-related incidents using t-tests and assumption checking.",
+      "user_query": "Compare injury distributions between records where intersection_related_i = 'Y' versus others. Perform statistical testing to evaluate whether total injuries differ significantly.",
+      "tool_path": "tools\\active\\intersection_injury_comparison_20260302_173030.py",
+      "log_file": "logs\\pipeline_20260302_172733.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file containing data",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\intersection_injury_comparison_20260302_173030_output.json"
+    },
+    {
+      "name": "analyze_intersection_injuries_anova_20260302_173458",
+      "description": "Performs an ANOVA test to compare total injuries between intersection-related and non-intersection-related incidents.",
+      "user_query": "Compare injury distributions between records where intersection_related_i = 'Y' versus others. Perform statistical testing to evaluate whether total injuries differ significantly.",
+      "tool_path": "tools\\active\\analyze_intersection_injuries_anova_20260302_173458.py",
+      "log_file": "logs\\pipeline_20260302_173249.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file containing the data.",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\analyze_intersection_injuries_anova_20260302_173458_output.json"
+    },
+    {
+      "name": "intersection_injury_comparison_20260302_175411",
+      "description": "Compares injury counts between intersection-related and non-intersection incidents using appropriate statistical tests.",
+      "user_query": "Compare injury distributions between records where intersection_related_i = 'Y' versus others. Perform statistical testing to evaluate whether total injuries differ significantly.",
+      "tool_path": "tools\\active\\intersection_injury_comparison_20260302_175411.py",
+      "log_file": "logs\\pipeline_20260302_175049.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file containing data",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\intersection_injury_comparison_20260302_175411_output.json"
     }
   ]
 }

@@ -1,0 +1,31 @@
+{
+  "tool_name": "crash_hour_injury_regression_20260302_165117",
+  "user_query": "Aggregate crashes by crash_hour and fit a regression model to estimate whether injury counts significantly vary across hours of the day.",
+  "execution_timestamp": "2026-03-02T16:51:29.538908",
+  "data_path": "C:\\Users\\admin\\Desktop\\sweta\\code_generator_interpreter\\MCP_Tool_Code_Interpreter_Generator\\reference_files\\sample_planner_output\\traffic_accidents.csv",
+  "result": {
+    "result": {
+      "coefficients": {
+        "Intercept": 991.201666666663,
+        "X[0]": 991.201666666667,
+        "X[1]": 117.85260869565232
+      },
+      "p_values": {
+        "Intercept": 0.00013446310938042063,
+        "X[0]": 0.00013446310938042123,
+        "X[1]": 0.0013047018095549113
+      },
+      "r_squared": 0.38131753052132544
+    },
+    "metadata": {
+      "num_samples": 24,
+      "columns_used": [
+        "crash_hour",
+        "injuries_total"
+      ]
+    }
+  },
+  "summary_markdown": null,
+  "execution_time_ms": 6780.294418334961,
+  "error": null
+}

@@ -1,0 +1,485 @@
+2026-03-02 17:50:49 - DEBUG - src.logger_config - setup:82 - Logging configured: verbosity=verbose, file=logs\pipeline_20260302_175049.log
+2026-03-02 17:50:49 - INFO - __main__ - log_section:117 - 
+================================================================================
+2026-03-02 17:50:49 - INFO - __main__ - log_section:118 - TESTING CODE GENERATION PIPELINE
+2026-03-02 17:50:49 - INFO - __main__ - log_section:119 - ================================================================================
+
+2026-03-02 17:50:49 - DEBUG - urllib3.connectionpool - _new_conn:1049 - Starting new HTTPS connection (1): mermaid.ink:443
+2026-03-02 17:50:49 - DEBUG - urllib3.connectionpool - _make_request:544 - https://mermaid.ink:443 "GET /img/LS0tCmNvbmZpZzoKICBmbG93Y2hhcnQ6CiAgICBjdXJ2ZTogbGluZWFyCi0tLQpncmFwaCBURDsKCV9fc3RhcnRfXyg8cD5fX3N0YXJ0X188L3A+KQoJaW50ZW50X25vZGUoaW50ZW50X25vZGUpCglzcGVjX2dlbmVyYXRvcl9ub2RlKHNwZWNfZ2VuZXJhdG9yX25vZGUpCgljb2RlX2dlbmVyYXRvcl9ub2RlKGNvZGVfZ2VuZXJhdG9yX25vZGUpCgl2YWxpZGF0b3Jfbm9kZSh2YWxpZGF0b3Jfbm9kZSkKCXJlcGFpcl9ub2RlKHJlcGFpcl9ub2RlKQoJZXhlY3V0b3Jfbm9kZShleGVjdXRvcl9ub2RlKQoJcHJvbW90ZXJfbm9kZShwcm9tb3Rlcl9ub2RlKQoJcHJvamVjdGlvbl9ub2RlKHByb2plY3Rpb25fbm9kZSkKCV9fZW5kX18oPHA+X19lbmRfXzwvcD4pCglfX3N0YXJ0X18gLS0+IGludGVudF9ub2RlOwoJaW50ZW50X25vZGUgLS0+IF9fZW5kX187CgljbGFzc0RlZiBkZWZhdWx0IGZpbGw6I2YyZjBmZixsaW5lLWhlaWdodDoxLjIKCWNsYXNzRGVmIGZpcnN0IGZpbGwtb3BhY2l0eTowCgljbGFzc0RlZiBsYXN0IGZpbGw6I2JmYjZmYwo=?type=png&bgColor=%21white HTTP/1.1" 200 21208
+2026-03-02 17:50:49 - INFO - src.pipeline - build_graph:220 - 📊 Graph visualization saved to: pipeline_graph.png
+2026-03-02 17:50:50 - INFO - src.intent_extraction - log_section:117 - 
+================================================================================
+2026-03-02 17:50:50 - INFO - src.intent_extraction - log_section:118 - INTENT EXTRACTION - AVAILABLE COLUMNS
+2026-03-02 17:50:50 - INFO - src.intent_extraction - log_section:119 - ================================================================================
+
+2026-03-02 17:50:50 - DEBUG - src.intent_extraction - extract:49 - Columns: ['crash_date', 'traffic_control_device', 'weather_condition', 'lighting_condition', 'first_crash_type', 'trafficway_type', 'alignment', 'roadway_surface_cond', 'road_defect', 'crash_type', 'intersection_related_i', 'damage', 'prim_contributory_cause', 'num_units', 'most_severe_injury', 'injuries_total', 'injuries_fatal', 'injuries_incapacitating', 'injuries_non_incapacitating', 'injuries_reported_not_evident', 'injuries_no_indication', 'crash_hour', 'crash_day_of_week', 'crash_month']
+2026-03-02 17:50:50 - DEBUG - openai._base_client - _build_request:485 - Request options: {'method': 'post', 'url': '/chat/completions', 'files': None, 'idempotency_key': 'stainless-python-retry-824f1e71-3c81-4dc8-b8fb-29931adf9e76', 'content': None, 'json_data': {'messages': [{'role': 'system', 'content': 'You are an intent extraction system. Your job is to understand the user\'s query and create an implementation plan for the EXACT analysis they requested.\n\nCRITICAL RULES:\n1. If the user asks for "ANOVA", your implementation_plan MUST describe ANOVA analysis (scipy.stats.f_oneway), NOT correlation, chi-square, or any other test\n2. If the user asks for "correlation", your implementation_plan MUST describe correlation analysis (scipy.stats.pearsonr), NOT ANOVA\n3. If the user asks for "Tukey HSD", your plan MUST include statsmodels.stats.multicomp.pairwise_tukeyhsd\n4. DO NOT substitute different statistical methods than what the user explicitly requested\n5. Output ONLY valid JSON - no thinking process, no explanations, no markdown\n6. The \'operation\' field is REQUIRED - never return null/None for it'}, {'role': 'user', 'content': 'You are the IntentExtractor module for an MCP Tool Code Interpreter Generator.\n\nYour job is to convert a natural language data analysis query into STRICT JSON intent for tool generation.\n\n====================\nOUTPUT RULES\n====================\n- Return ONLY valid JSON\n- No explanations, no markdown, no commentary\n- Response must start with { and end with }\n- Use ONLY column names from AVAILABLE_COLUMNS\n\n====================\nCORE TASK\n====================\n\nGiven:\nUSER_QUERY: Compare injury distributions between records where intersection_related_i = \'Y\' versus others. Perform statistical testing to evaluate whether total injuries differ significantly.\nAVAILABLE_COLUMNS: [\'crash_date\', \'traffic_control_device\', \'weather_condition\', \'lighting_condition\', \'first_crash_type\', \'trafficway_type\', \'alignment\', \'roadway_surface_cond\', \'road_defect\', \'crash_type\', \'intersection_related_i\', \'damage\', \'prim_contributory_cause\', \'num_units\', \'most_severe_injury\', \'injuries_total\', \'injuries_fatal\', \'injuries_incapacitating\', \'injuries_non_incapacitating\', \'injuries_reported_not_evident\', \'injuries_no_indication\', \'crash_hour\', \'crash_day_of_week\', \'crash_month\']\n\nYou must determine:\n- operation\n- has_gap\n- gap_reason\n- required_columns\n- missing_columns\n- implementation_plan\n\n====================\nSTEP 1 — COLUMN MATCHING (DO FIRST)\n====================\n\nFind dataset columns needed for the query using substring matching.\n\nRules:\n1. Split query into meaningful words (ignore: the, and, by, across, for, with, etc.)\n2. If a query word appears inside a column name → select that column\n3. Prefer most specific matches:\n   injuries_fatal > injuries_incapacitating > injuries_total\n4. Domain mappings:\n   fatal → injuries_fatal\n   weather → weather_condition\n   injury (generic) → injuries_total (unless fatal specified)\n5. Never select time columns unless query mentions:\n   time, hour, day, date, month, year\n6. If concept exists in query but no column matches → add to missing_columns\n\nrequired_columns = matched columns from this step\n\n====================\nSTEP 2 — OPERATION DETECTION\n====================\n\n⚠️ CRITICAL GUARDS — CHECK FIRST:\n\n1. PIVOT GUARD:\n   DO NOT use pivot or crosstab UNLESS query explicitly contains:\n   - "pivot"\n   - "crosstab"\n   - "matrix"\n   - "heatmap"\n\n2. STATISTICAL INJECTION GUARD:\n   DO NOT introduce statistical tests UNLESS query explicitly mentions:\n   - ANOVA, F-test, F-statistic\n   - t-test, Student\'s t\n   - chi-square, chi2, contingency, independence test\n   - correlation, Pearson, Spearman\n   - regression, linear model\n   - significance test, p-value, hypothesis test\n\n3. CHI-SQUARE HARD BLOCK:\n   NEVER use chi-square UNLESS query explicitly asks for:\n   "chi-square", "chi2", "contingency test", "independence test"\n\nOPERATION SELECTION PRIORITY:\n\nSTEP 2A: Check for explicit statistical keywords\nIf query contains:\nANOVA, t-test, chi-square, correlation, regression, Tukey, post-hoc, p-value, effect size,\nstatistical testing, significantly differ, compare distributions, hypothesis test, differ significantly\n→ operation = "custom_transform"\n→ has_gap = true\n\nDETERMINE TEST TYPE (set in gap_reason):\n\n2-GROUP COMPARISON SIGNALS (use t-test, NOT ANOVA):\n- Query compares exactly 2 groups:\n  "Y versus others", "Y vs N", "between X and Y", "compared to", "versus others"\n  "differ between", "compare between two"\n- Binary column values: Y/N, True/False, 0/1\n→ gap_reason = "Two-group statistical comparison: use independent samples t-test (scipy.stats.ttest_ind) with normality check (Shapiro-Wilk). If non-normal, use Mann-Whitney U (scipy.stats.mannwhitneyu). Do NOT use ANOVA."\n\n3-OR-MORE GROUP COMPARISON SIGNALS (use ANOVA):\n- Query mentions 3+ categories, multiple groups, or uses "across groups/categories"\n- Explicit "ANOVA", "F-test", "Tukey", "post-hoc"\n→ gap_reason = "Multi-group statistical comparison: use one-way ANOVA (scipy.stats.f_oneway)."\n\nOTHER STATISTICAL TESTS:\n- Correlation → gap_reason = "Correlation analysis: use scipy.stats.pearsonr or spearmanr."\n- Regression → gap_reason = "Regression analysis: use scipy.stats.linregress or statsmodels OLS."\n- Chi-square → gap_reason = "Independence test: use scipy.stats.chi2_contingency."\n\nSTEP 2B: Check for variation/comparison patterns\nIf query contains:\n- "variation across", "variation by", "variations across"\n- "differences across", "differences by"\n- "compare across", "compare by"\n- "distribution across", "distribution by"\n→ operation = "groupby_aggregate"\n→ has_gap = false\n\nSTEP 2C: Detect basic operations\n- "filter", "where", "only", "exclude" → filter\n- "top N", "count by", "most common" → groupby_aggregate\n- "summary", "describe", "statistics" → describe_summary\n- "pivot", "crosstab", "matrix" (EXPLICIT only) → pivot\n- "trend", "over time", "time series" → time_series_aggregate\n\nSTEP 2D: DEFAULT BEHAVIOR\nIf comparing numeric metric across categorical groups:\n→ operation = "groupby_aggregate"\n→ has_gap = false\n\nElse:\n→ operation = "custom_transform"\n\n====================\nSTEP 3 — IMPLEMENTATION PLAN\n====================\n\nCreate 5–8 clear execution steps using ONLY required_columns.\n\nIf statistical method is mentioned:\nPlan MUST describe that exact method.\nExample:\nANOVA → scipy.stats.f_oneway\nCorrelation → scipy.stats.pearsonr\nTukey → statsmodels pairwise_tukeyhsd\n\nNever substitute statistical methods.\n\nTWO-GROUP COMPARISON PLAN (when gap_reason says t-test):\nStep 1: Load data and select required columns\nStep 2: Split into exactly 2 groups based on binary column (Y / not-Y)\nStep 3: Check normality of each group with Shapiro-Wilk (scipy.stats.shapiro)\nStep 4: If both groups normal → scipy.stats.ttest_ind; else → scipy.stats.mannwhitneyu\nStep 5: Compute effect size (Cohen\'s d for t-test)\nStep 6: Return statistic, p_value, significant (bool), effect_size, group means\nNEVER use f_oneway or ANOVA for a 2-group comparison.\n\n====================\nSTEP 4 — FINAL JSON STRUCTURE\n====================\n\nReturn JSON with fields:\n\n{\n  "has_gap": boolean,\n  "gap_reason": string,\n  "operation": string,\n  "required_columns": [],\n  "missing_columns": [],\n  "implementation_plan": [],\n  "filters": [],\n  "group_by": [],\n  "metrics": [],\n  "sort_by": [],\n  "sort_order": "ascending" | "descending",\n  "limit": number | null,\n  "output_format": "table" | "summary" | "json" | "chart_spec",\n  "edge_cases": [],\n  "validation_rules": [],\n  "assumptions": [],\n  "clarifications_needed": []\n}\n'}], 'model': 'deepseek-r1:70b', 'temperature': 0.0}}
+2026-03-02 17:50:50 - DEBUG - openai._base_client - request:998 - Sending HTTP Request: POST http://localhost:11434/v1/chat/completions
+2026-03-02 17:50:50 - DEBUG - httpcore.connection - trace:47 - connect_tcp.started host='localhost' port=11434 local_address=None timeout=5.0 socket_options=None
+2026-03-02 17:50:52 - DEBUG - httpcore.connection - trace:47 - connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001F5380526F0>
+2026-03-02 17:50:52 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.started request=<Request [b'POST']>
+2026-03-02 17:50:52 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.complete
+2026-03-02 17:50:52 - DEBUG - httpcore.http11 - trace:47 - send_request_body.started request=<Request [b'POST']>
+2026-03-02 17:50:52 - DEBUG - httpcore.http11 - trace:47 - send_request_body.complete
+2026-03-02 17:50:52 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.started request=<Request [b'POST']>
+2026-03-02 17:51:59 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json'), (b'Date', b'Mon, 02 Mar 2026 09:51:59 GMT'), (b'Transfer-Encoding', b'chunked')])
+2026-03-02 17:51:59 - INFO - httpx - _send_single_request:1025 - HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-02 17:51:59 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.started request=<Request [b'POST']>
+2026-03-02 17:51:59 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.complete
+2026-03-02 17:51:59 - DEBUG - httpcore.http11 - trace:47 - response_closed.started
+2026-03-02 17:51:59 - DEBUG - httpcore.http11 - trace:47 - response_closed.complete
+2026-03-02 17:51:59 - DEBUG - openai._base_client - request:1036 - HTTP Response: POST http://localhost:11434/v1/chat/completions "200 OK" Headers({'content-type': 'application/json', 'date': 'Mon, 02 Mar 2026 09:51:59 GMT', 'transfer-encoding': 'chunked'})
+2026-03-02 17:51:59 - DEBUG - openai._base_client - request:1044 - request_id: None
+2026-03-02 17:51:59 - INFO - src.intent_extraction - log_section:117 - 
+================================================================================
+2026-03-02 17:51:59 - INFO - src.intent_extraction - log_section:118 - EXTRACTED INTENT
+2026-03-02 17:51:59 - INFO - src.intent_extraction - log_section:119 - ================================================================================
+
+2026-03-02 17:51:59 - INFO - src.intent_extraction - extract:157 - Required columns: ['intersection_related_i', 'injuries_total']
+2026-03-02 17:51:59 - INFO - src.intent_extraction - extract:158 - Missing columns: []
+2026-03-02 17:51:59 - INFO - src.intent_extraction - extract:159 - Operation: custom_transform
+2026-03-02 17:51:59 - INFO - src.intent_validator - log_section:117 - 
+================================================================================
+2026-03-02 17:51:59 - INFO - src.intent_validator - log_section:118 - INTENT VALIDATION
+2026-03-02 17:51:59 - INFO - src.intent_validator - log_section:119 - ================================================================================
+
+2026-03-02 17:51:59 - INFO - src.intent_validator - log_success:135 - ✅ ✅ Intent validation passed
+2026-03-02 17:52:00 - DEBUG - openai._base_client - _build_request:485 - Request options: {'method': 'post', 'url': '/chat/completions', 'files': None, 'idempotency_key': 'stainless-python-retry-c7abc7fc-9e48-4952-adee-e7c1a6f1ee9d', 'content': None, 'json_data': {'messages': [{'role': 'system', 'content': 'You are a JSON generation system. Return ONLY valid JSON conforming to the schema. DO NOT include any explanatory text, thinking process, commentary, or meta-text. DO NOT use <think> tags or similar reasoning markers. DO NOT add markdown code fences around the JSON. Output must be pure JSON starting with { and ending with }.'}, {'role': 'user', 'content': 'Generate a complete ToolSpec for the following data analysis operation.\n\nOPERATION: custom_transform\nREQUIRED COLUMNS: [\'intersection_related_i\', \'injuries_total\']\nGROUP BY: []\nMETRICS: [\'injuries_total\']\nFILTERS: []\nIMPLEMENTATION PLAN: Step 1: Load data and select required columns: \'intersection_related_i\' and \'injuries_total\'. - \nStep 2: Split the data into two groups based on \'intersection_related_i\': Group Y (where \'intersection_related_i\' == \'Y\') and Group not-Y (where \'intersection_related_i\' != \'Y\'). - \nStep 3: Check normality of \'injuries_total\' in both groups using Shapiro-Wilk test (scipy.stats.shapiro). - \nStep 4: If both groups are normally distributed, perform an independent samples t-test (scipy.stats.ttest_ind). If not, use Mann-Whitney U test (scipy.stats.mannwhitneyu). - \nStep 5: Compute effect size using Cohen\'s d for the t-test or Cliff\'s Delta for the Mann-Whitney U test. - \nStep 6: Return the statistic, p-value, significance (p < 0.05), and effect size along with group means. - \nEDGE CASES: []\nVALIDATION RULES: []\n\nCRITICAL: You MUST follow the IMPLEMENTATION PLAN exactly. Do NOT create a different analysis or make assumptions.\n- If the plan says "ANOVA", you MUST create a spec for ANOVA analysis (NOT correlation, NOT t-test)\n- If the plan says "correlation", you MUST create a spec for correlation analysis (NOT ANOVA)\n- If the plan says "Tukey HSD post-hoc", the spec MUST include post-hoc testing\n- The \'what_it_does\' field MUST describe exactly what\'s in the IMPLEMENTATION PLAN\n\n⚠️ STATISTICAL INJECTION GUARD:\n- DO NOT add statistical tests (ANOVA, t-test, chi-square, correlation) if NOT in IMPLEMENTATION PLAN\n- DO NOT add chi-square unless IMPLEMENTATION PLAN explicitly requests it\n- DO NOT add p-values, significance tests unless IMPLEMENTATION PLAN requests them\n- If operation is "groupby_aggregate" or "pivot", create ONLY descriptive aggregation (NO statistical tests)\n\nCreate a ToolSpec with:\n1. tool_name: A descriptive snake_case name based on operation and columns\n2. description: Clear explanation matching the IMPLEMENTATION PLAN\n3. input_schema: JSON Schema for input parameters (file_path is required)\n4. output_schema: JSON Schema for output structure (Dict with \'result\' and \'metadata\')\n5. parameters: List of parameter definitions [{"name": "file_path", "type": "str", "description": "Path to CSV file", "required": true}]\n6. when_to_use: When this tool should be selected based on the IMPLEMENTATION PLAN\n7. what_it_does: Technical description that EXACTLY follows the IMPLEMENTATION PLAN step-by-step\n8. returns: Description of return value structure\n9. prerequisites: String listing the exact required column names from REQUIRED COLUMNS in comma-separated format\n\nReturn JSON matching ToolSpec structure.\n'}], 'model': 'deepseek-r1:70b', 'temperature': 0.0}}
+2026-03-02 17:52:00 - DEBUG - openai._base_client - request:998 - Sending HTTP Request: POST http://localhost:11434/v1/chat/completions
+2026-03-02 17:52:00 - DEBUG - httpcore.connection - trace:47 - connect_tcp.started host='localhost' port=11434 local_address=None timeout=5.0 socket_options=None
+2026-03-02 17:52:02 - DEBUG - httpcore.connection - trace:47 - connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001F538336300>
+2026-03-02 17:52:02 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.started request=<Request [b'POST']>
+2026-03-02 17:52:02 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.complete
+2026-03-02 17:52:02 - DEBUG - httpcore.http11 - trace:47 - send_request_body.started request=<Request [b'POST']>
+2026-03-02 17:52:02 - DEBUG - httpcore.http11 - trace:47 - send_request_body.complete
+2026-03-02 17:52:02 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.started request=<Request [b'POST']>
+2026-03-02 17:53:37 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json'), (b'Date', b'Mon, 02 Mar 2026 09:53:37 GMT'), (b'Transfer-Encoding', b'chunked')])
+2026-03-02 17:53:37 - INFO - httpx - _send_single_request:1025 - HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-02 17:53:37 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.started request=<Request [b'POST']>
+2026-03-02 17:53:37 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.complete
+2026-03-02 17:53:37 - DEBUG - httpcore.http11 - trace:47 - response_closed.started
+2026-03-02 17:53:37 - DEBUG - httpcore.http11 - trace:47 - response_closed.complete
+2026-03-02 17:53:37 - DEBUG - openai._base_client - request:1036 - HTTP Response: POST http://localhost:11434/v1/chat/completions "200 OK" Headers({'content-type': 'application/json', 'date': 'Mon, 02 Mar 2026 09:53:37 GMT', 'transfer-encoding': 'chunked'})
+2026-03-02 17:53:37 - DEBUG - openai._base_client - request:1044 - request_id: None
+2026-03-02 17:53:37 - DEBUG - src.spec_generator - spec_generator_node:272 - Generated ToolSpec:
+{
+  "tool_name": "intersection_injury_comparison",
+  "description": "Compares injury counts between intersection-related and non-intersection incidents using appropriate statistical tests.",
+  "version": "1.0.0",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "file_path": {
+        "type": "string",
+        "description": "Path to CSV file containing data",
+        "required": true
+      }
+    },
+    "required": [
+      "file_path"
+    ]
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "result": {
+        "type": "object",
+        "properties": {
+          "test_used": {
+            "type": "string"
+          },
+          "statistic": {
+            "type": "number"
+          },
+          "p_value": {
+            "type": "number"
+          },
+          "significance": {
+            "type": "boolean"
+          },
+          "effect_size": {
+            "type": "number"
+          },
+          "group_means": {
+            "type": "object",
+            "properties": {
+              "Y": {
+                "type": "number"
+              },
+              "not_Y": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "Y",
+              "not_Y"
+            ]
+          },
+          "group_counts": {
+            "type": "object",
+            "properties": {
+              "Y": {
+                "type": "integer"
+              },
+              "not_Y": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "Y",
+              "not_Y"
+            ]
+          }
+        },
+        "required": [
+          "test_used",
+          "statistic",
+          "p_value",
+          "significance",
+          "effect_size",
+          "group_means",
+          "group_counts"
+        ]
+      },
+      "metadata": {
+        "type": "object",
+        "properties": {
+          "tool_name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "tool_name",
+          "version"
+        ]
+      }
+    },
+    "required": [
+      "result",
+      "metadata"
+    ]
+  },
+  "parameters": [
+    {
+      "name": "file_path",
+      "type": "str",
+      "description": "Path to CSV file containing data",
+      "required": true
+    }
+  ],
+  "return_type": "Dict[str, Any]",
+  "when_to_use": "When comparing injury counts between intersection-related and non-intersection incidents using statistical tests based on data distribution.",
+  "what_it_does": "Load data and select required columns: 'intersection_related_i' and 'injuries_total' Split the data into two groups based on 'intersection_related_i': Group Y (where 'intersection_related_i' == 'Y') and Group not-Y (where 'intersection_related_i' != 'Y') Check normality of 'injuries_total' in both groups using Shapiro-Wilk test If both groups are normally distributed, perform an independent samples t-test; if not, use Mann-Whitney U test Compute effect size using Cohen's d for the t-test or Cliff's Delta for the Mann-Whitney U test Return the statistic, p-value, significance (p < 0.05), and effect size along with group means",
+  "returns": "{'type': 'object', 'properties': {'result': {'type': 'object', 'properties': {'test_used': {'type': 'string'}, 'statistic': {'type': 'number'}, 'p_value': {'type': 'number'}, 'significance': {'type': 'boolean'}, 'effect_size': {'type': 'number'}, 'group_means': {'type': 'object', 'properties': {'Y': {'type': 'number'}, 'not_Y': {'type': 'number'}}, 'required': ['Y', 'not_Y']}, 'group_counts': {'type': 'object', 'properties': {'Y': {'type': 'integer'}, 'not_Y': {'type': 'integer'}}, 'required': ['Y', 'not_Y']}}, 'required': ['test_used', 'statistic', 'p_value', 'significance', 'effect_size', 'group_means', 'group_counts']}, 'metadata': {'type': 'object', 'properties': {'tool_name': {'type': 'string'}, 'version': {'type': 'string'}}, 'required': ['tool_name', 'version']}}, 'required': ['result', 'metadata']}",
+  "prerequisites": "intersection_related_i, injuries_total"
+}
+2026-03-02 17:53:37 - DEBUG - httpcore.connection - trace:47 - close.started
+2026-03-02 17:53:37 - DEBUG - httpcore.connection - trace:47 - close.complete
+2026-03-02 17:53:37 - INFO - src.code_generator - log_section:117 - 
+================================================================================
+2026-03-02 17:53:37 - INFO - src.code_generator - log_section:118 - CODE GENERATION PROMPT
+2026-03-02 17:53:37 - INFO - src.code_generator - log_section:119 - ================================================================================
+
+2026-03-02 17:53:37 - DEBUG - src.code_generator - generate:43 - Generate Python function code for this tool specification.
+
+TOOL NAME: intersection_injury_comparison
+DESCRIPTION: Compares injury counts between intersection-related and non-intersection incidents using appropriate statistical tests.
+PARAMETERS: [
+  {
+    "name": "file_path",
+    "type": "str",
+    "description": "Path to CSV file containing data",
+    "required": true
+  }
+]
+REQUIRED COLUMNS: intersection_related_i, injuries_total
+IMPLEMENTATION PLAN: Load data and select required columns: 'intersection_related_i' and 'injuries_total' Split the data into two groups based on 'intersection_related_i': Group Y (where 'intersection_related_i' == 'Y') and Group not-Y (where 'intersection_related_i' != 'Y') Check normality of 'injuries_total' in both groups using Shapiro-Wilk test If both groups are normally distributed, perform an independent samples t-test; if not, use Mann-Whitney U test Compute effect size using Cohen's d for the t-test or Cliff's Delta for the Mann-Whitney U test Retur...
+2026-03-02 17:53:37 - DEBUG - openai._base_client - _build_request:485 - Request options: {'method': 'post', 'url': '/chat/completions', 'files': None, 'idempotency_key': 'stainless-python-retry-cea9d17d-70e0-476e-a945-f7dcfb8f7646', 'content': None, 'json_data': {'messages': [{'role': 'user', 'content': 'Generate Python function code for this tool specification.\n\nTOOL NAME: intersection_injury_comparison\nDESCRIPTION: Compares injury counts between intersection-related and non-intersection incidents using appropriate statistical tests.\nPARAMETERS: [\n  {\n    "name": "file_path",\n    "type": "str",\n    "description": "Path to CSV file containing data",\n    "required": true\n  }\n]\nREQUIRED COLUMNS: intersection_related_i, injuries_total\nIMPLEMENTATION PLAN: Load data and select required columns: \'intersection_related_i\' and \'injuries_total\' Split the data into two groups based on \'intersection_related_i\': Group Y (where \'intersection_related_i\' == \'Y\') and Group not-Y (where \'intersection_related_i\' != \'Y\') Check normality of \'injuries_total\' in both groups using Shapiro-Wilk test If both groups are normally distributed, perform an independent samples t-test; if not, use Mann-Whitney U test Compute effect size using Cohen\'s d for the t-test or Cliff\'s Delta for the Mann-Whitney U test Return the statistic, p-value, significance (p < 0.05), and effect size along with group means\nWHAT IT DOES: Load data and select required columns: \'intersection_related_i\' and \'injuries_total\' Split the data into two groups based on \'intersection_related_i\': Group Y (where \'intersection_related_i\' == \'Y\') and Group not-Y (where \'intersection_related_i\' != \'Y\') Check normality of \'injuries_total\' in both groups using Shapiro-Wilk test If both groups are normally distributed, perform an independent samples t-test; if not, use Mann-Whitney U test Compute effect size using Cohen\'s d for the t-test or Cliff\'s Delta for the Mann-Whitney U test Return the statistic, p-value, significance (p < 0.05), and effect size along with group means\n\nRequirements:\n1. Use pandas for data manipulation\n2. Function signature must be: def intersection_injury_comparison(file_path: str):\n3. Add comprehensive error handling\n4. Return a dictionary with \'result\' and \'metadata\' keys\n5. **CRITICAL**: Follow the IMPLEMENTATION PLAN and WHAT IT DOES exactly - implement the EXACT statistical method specified\n   - If it says "ANOVA", use scipy.stats.f_oneway or similar (NOT pearsonr, NOT correlation)\n   - If it says "correlation", use scipy.stats.pearsonr (NOT ANOVA, NOT t-test)\n   - If it says "Tukey HSD", use statsmodels.stats.multicomp.pairwise_tukeyhsd\n   - DO NOT substitute different statistical methods than specified\n   - **STATISTICAL INJECTION GUARD**: DO NOT add statistical tests if IMPLEMENTATION PLAN does not request them\n     * If operation is groupby_aggregate → Create simple aggregation (mean, sum, count) ONLY\n     * If operation is pivot → Create pivot table ONLY (NO chi-square, NO statistical tests)\n     * DO NOT add chi-square unless explicitly requested\n     * DO NOT add ANOVA unless explicitly requested\n     * DO NOT add p-values unless explicitly requested\n6. **STATISTICAL TEST RESULTS FORMATTING**:\n   - For ANOVA: Return f_statistic, p_value, effect_size (eta_squared)\n   - For independent samples t-test (2-group comparison):\n     * Use scipy.stats.ttest_ind for normal data, scipy.stats.mannwhitneyu for non-normal\n     * Return: t_statistic (or u_statistic), p_value, significant (bool), effect_size (Cohen\'s d),\n               group_means as a dict with group label keys and float values, test_used ("t-test" or "mann-whitney-u")\n     * Compute Cohen\'s d manually — DO NOT import CohenEffectSize or anything from statsmodels.stats.power:\n       cohens_d = (mean1 - mean2) / sqrt(((n1-1)*std1**2 + (n2-1)*std2**2) / (n1+n2-2))\n     * NEVER use f_oneway for a 2-group comparison — that is ANOVA and is WRONG\n   - For Tukey HSD post-hoc: DO NOT use dict(zip(tukey.pvalues, tukey.groupsunique)) - this is WRONG\n     * Extract pairwise comparisons properly:\n       ```python\n       tukey_table = pd.DataFrame(tukey.summary().data[1:], columns=tukey.summary().data[0])\n       tukey_pairs = tukey_table[["group1", "group2", "meandiff", "p-adj", "lower", "upper", "reject"]].to_dict("records")\n       ```\n     * Return as list of comparison dicts with keys: group1, group2, meandiff, p_adj, lower, upper, reject\n   - For correlation: Return correlation_coefficient, p_value\n   - Always handle NaN values: df = df[required_columns].dropna()\n   - Guard for minimum samples: Filter groups with <2 samples, ensure >=2 groups remain\n7. **MATPLOTLIB CONFIGURATION**: If using matplotlib/seaborn for plotting:\n   - Import matplotlib FIRST before any other plotting libraries\n   - Set non-interactive backend: import matplotlib; matplotlib.use(\'Agg\')\n   - Then import pyplot: import matplotlib.pyplot as plt\n   - This prevents tkinter cleanup errors in non-GUI environments\n8. Handle edge cases gracefully\n9. Add docstring with examples\n10. CRITICAL: Use ONLY the columns listed in REQUIRED COLUMNS above - do NOT invent or assume other column names\n\nInclude:\n- pandas DataFrame input handling\n- Error handling for missing columns, invalid data types\n- Clear variable names\n- Comments for complex operations\n- Return structure: {"result": {}, "metadata": {}}\n\nIMPORTANT: Use {} or dict() to create dictionaries. Do NOT use typing classes like Dict() to instantiate objects.\n\nDO NOT INCLUDE:\n- DO NOT create placeholder decorator functions like "def mcp_tool()" or "def decorator()"\n- DO NOT create mock FastMCP classes or instances\n- DO NOT define TOOL_SPEC dictionaries or constants\n- DO NOT write explanatory text before or after the code\n- DO NOT create any wrapper functions or decorators\n- DO NOT include comments like "# Placeholder for @mcp.tool()"\n- DO NOT add import statements for \'mcp\' module\n- DO NOT write "Here\'s the code:" or any conversational text\n- DO NOT create example usage code or test functions\n- DO NOT define helper decorator functions\n\nONLY OUTPUT:\n- The single function implementation named intersection_injury_comparison\n- Standard library imports (pandas, numpy, scipy, etc.)\n- **CRITICAL IMPORT ORDER**: If using matplotlib, follow this exact pattern:\n  ```python\n  import matplotlib\n  matplotlib.use(\'Agg\')  # Set non-interactive backend BEFORE importing pyplot\n  import matplotlib.pyplot as plt\n  ```\n- The function must start with: def intersection_injury_comparison(file_path: str):\n- No decorators, no extra functions, no explanations\n\nGenerate ONLY the function implementation. Nothing else.\n'}], 'model': 'qwen2.5-coder:32b', 'temperature': 0.2}}
+2026-03-02 17:53:37 - DEBUG - openai._base_client - request:998 - Sending HTTP Request: POST http://localhost:11434/v1/chat/completions
+2026-03-02 17:53:37 - DEBUG - httpcore.connection - trace:47 - connect_tcp.started host='localhost' port=11434 local_address=None timeout=5.0 socket_options=None
+2026-03-02 17:53:39 - DEBUG - httpcore.connection - trace:47 - connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001F5383378F0>
+2026-03-02 17:53:39 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.started request=<Request [b'POST']>
+2026-03-02 17:53:39 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.complete
+2026-03-02 17:53:39 - DEBUG - httpcore.http11 - trace:47 - send_request_body.started request=<Request [b'POST']>
+2026-03-02 17:53:39 - DEBUG - httpcore.http11 - trace:47 - send_request_body.complete
+2026-03-02 17:53:39 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.started request=<Request [b'POST']>
+2026-03-02 17:54:11 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json'), (b'Date', b'Mon, 02 Mar 2026 09:54:11 GMT'), (b'Transfer-Encoding', b'chunked')])
+2026-03-02 17:54:11 - INFO - httpx - _send_single_request:1025 - HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-02 17:54:11 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.started request=<Request [b'POST']>
+2026-03-02 17:54:11 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.complete
+2026-03-02 17:54:11 - DEBUG - httpcore.http11 - trace:47 - response_closed.started
+2026-03-02 17:54:11 - DEBUG - httpcore.http11 - trace:47 - response_closed.complete
+2026-03-02 17:54:11 - DEBUG - openai._base_client - request:1036 - HTTP Response: POST http://localhost:11434/v1/chat/completions "200 OK" Headers({'content-type': 'application/json', 'date': 'Mon, 02 Mar 2026 09:54:11 GMT', 'transfer-encoding': 'chunked'})
+2026-03-02 17:54:11 - DEBUG - openai._base_client - request:1044 - request_id: None
+2026-03-02 17:54:11 - INFO - src.code_generator - log_section:117 - 
+================================================================================
+2026-03-02 17:54:11 - INFO - src.code_generator - log_section:118 - RAW LLM RESPONSE
+2026-03-02 17:54:11 - INFO - src.code_generator - log_section:119 - ================================================================================
+
+2026-03-02 17:54:11 - DEBUG - src.code_generator - generate:50 - ```python
+import pandas as pd
+import numpy as np
+from scipy.stats import shapiro, ttest_ind, mannwhitneyu
+
+def intersection_injury_comparison(file_path: str):
+    try:
+        # Load data and select required columns
+        df = pd.read_csv(file_path)
+        required_columns = ['intersection_related_i', 'injuries_total']
+        
+        if not all(column in df.columns for column in required_columns):
+            raise ValueError(f"CSV file must contain the following columns: {required_columns}")
+        
+        df = df[required_columns].dropna()
+        
+        # Split data into two groups
+        group_y = df[df['intersection_related_i'] == 'Y']['injuries_total']
+        group_not_y = df[df['intersection_related_i'] != 'Y']['injuries_total']
+        
+        # Filter out groups with less than 2 samples
+        if len(group_y) < 2 or len(group_not_y) < 2:
+            raise ValueError("Both groups must have at least 2 samples.")
+        
+        # Check normality of both groups usin...
+2026-03-02 17:54:11 - INFO - src.code_generator - log_section:117 - 
+================================================================================
+2026-03-02 17:54:11 - INFO - src.code_generator - log_section:118 - EXTRACTED CODE (before wrapping)
+2026-03-02 17:54:11 - INFO - src.code_generator - log_section:119 - ================================================================================
+
+2026-03-02 17:54:11 - DEBUG - src.code_generator - generate:57 - import numpy as np
+from scipy.stats import shapiro, ttest_ind, mannwhitneyu
+
+def intersection_injury_comparison(file_path: str):
+    try:
+        # Load data and select required columns
+        df = pd.read_csv(file_path)
+        required_columns = ['intersection_related_i', 'injuries_total']
+        
+        if not all(column in df.columns for column in required_columns):
+            raise ValueError(f"CSV file must contain the following columns: {required_columns}")
+        
+        df = df[required_columns].dropna()
+        
+        # Split data into two groups
+        group_y = df[df['intersection_related_i'] == 'Y']['injuries_total']
+        group_not_y = df[df['intersection_related_i'] != 'Y']['injuries_total']
+        
+        # Filter out groups with less than 2 samples
+        if len(group_y) < 2 or len(group_not_y) < 2:
+            raise ValueError("Both groups must have at least 2 samples.")
+        
+        # Check normality of both groups using Shapiro-Wilk test
+        _,...
+2026-03-02 17:54:11 - INFO - src.code_generator - log_section:117 - 
+================================================================================
+2026-03-02 17:54:11 - INFO - src.code_generator - log_section:118 - WRAPPED CODE (before black formatting)
+2026-03-02 17:54:11 - INFO - src.code_generator - log_section:119 - ================================================================================
+
+2026-03-02 17:54:11 - DEBUG - src.code_generator - generate:64 - """Generated MCP tool: intersection_injury_comparison"""
+
+from fastmcp import FastMCP
+import pandas as pd
+import time
+import numpy as np
+from scipy.stats import shapiro, ttest_ind, mannwhitneyu
+
+mcp = FastMCP("data_analysis_tools")
+
+
+@mcp.tool()
+def intersection_injury_comparison(file_path: str):
+    try:
+        # Load data and select required columns
+        df = pd.read_csv(file_path)
+        required_columns = ['intersection_related_i', 'injuries_total']
+        
+        if not all(column in df.columns for column in required_columns):
+            raise ValueError(f"CSV file must contain the following columns: {required_columns}")
+        
+        df = df[required_columns].dropna()
+        
+        # Split data into two groups
+        group_y = df[df['intersection_related_i'] == 'Y']['injuries_total']
+        group_not_y = df[df['intersection_related_i'] != 'Y']['injuries_total']
+        
+        # Filter out groups with less than 2 samples
+        if len(group_y) < 2 or len(group_n...
+2026-03-02 17:54:11 - INFO - src.code_generator - log_section:117 - 
+================================================================================
+2026-03-02 17:54:11 - INFO - src.code_generator - log_section:118 - FINAL FORMATTED CODE
+2026-03-02 17:54:11 - INFO - src.code_generator - log_section:119 - ================================================================================
+
+2026-03-02 17:54:11 - DEBUG - src.code_generator - generate:72 - """Generated MCP tool: intersection_injury_comparison"""
+
+from fastmcp import FastMCP
+import pandas as pd
+import time
+import numpy as np
+from scipy.stats import shapiro, ttest_ind, mannwhitneyu
+
+mcp = FastMCP("data_analysis_tools")
+
+
+@mcp.tool()
+def intersection_injury_comparison(file_path: str):
+    try:
+        # Load data and select required columns
+        df = pd.read_csv(file_path)
+        required_columns = ["intersection_related_i", "injuries_total"]
+
+        if not all(column in df.columns for column in required_columns):
+            raise ValueError(
+                f"CSV file must contain the following columns: {required_columns}"
+            )
+
+        df = df[required_columns].dropna()
+
+        # Split data into two groups
+        group_y = df[df["intersection_related_i"] == "Y"]["injuries_total"]
+        group_not_y = df[df["intersection_related_i"] != "Y"]["injuries_total"]
+
+        # Filter out groups with less than 2 samples
+        if len(group_y) < 2 or len(group_not_y) < 2:
+            raise ValueError("Both groups must have at least 2 samples.")
+
+        # Check normality of both groups using Shapiro-Wilk test
+        _, p_value_y = shapiro(group_y)
+        _, p_value_not_y = shapiro(group_not_y)
+
+        normal_data = (p_value_y > 0.05) and (p_value_not_y > 0.05)
+
+        # Perform appropriate statistical test
+        if normal_data:
+            test_result = ttest_ind(group_y, group_not_y)
+            statistic = test_result.statistic
+            p_value = test_result.pvalue
+            test_used = "t-test"
+
+            # Calculate Cohen's d for effect size
+            mean1, mean2 = group_y.mean(), group_not_y.mean()
+            std1, std2 = group_y.std(ddof=1), group_not_y.std(ddof=1)
+            n1, n2 = len(group_y), len(group_not_y)
+            cohens_d = (mean1 - mean2) / np.sqrt(
+                ((n1 - 1) * std1**2 + (n2 - 1) * std2**2) / (n1 + n2 - 2)
+            )
+            effect_size = cohens_d
+        else:
+            test_result = mannwhitneyu(group_y, group_not_y)
+            statistic = test_result.statistic
+            p_value = test_result.pvalue
+            test_used = "mann-whitney-u"
+
+            # Calculate Cliff's Delta for effect size
+            n1, n2 = len(group_y), len(group_not_y)
+            delta = (
+                np.sum(np.sign(group_y[:, None] - group_not_y))
+                + 0.5 * np.sum(np.abs(group_y[:, None] - group_not_y) == 0)
+            ) / (n1 * n2)
+            effect_size = delta
+
+        # Determine if the result is significant
+        significant = p_value < 0.05
+
+        # Prepare result and metadata
+        result = {
+            "statistic": statistic,
+            "p_value": p_value,
+            "significant": significant,
+            "effect_size": effect_size,
+            "test_used": test_used,
+        }
+
+        metadata = {
+            "group_y_count": len(group_y),
+            "group_not_y_count": len(group_not_y),
+        }
+
+        return {"result": result, "metadata": metadata}
+
+    except Exception as e:
+        return {"result": {}, "metadata": {"error": str(e)}}
+
+2026-03-02 17:54:11 - INFO - src.code_generator - code_generator_node:597 - 📝 Generated code saved to draft: tools\draft\intersection_injury_comparison_20260302_175411.py
+2026-03-02 17:54:15 - INFO - src.validator - log_section:117 - 
+================================================================================
+2026-03-02 17:54:15 - INFO - src.validator - log_section:118 - VALIDATION RESULTS
+2026-03-02 17:54:15 - INFO - src.validator - log_section:119 - ================================================================================
+
+2026-03-02 17:54:15 - INFO - src.validator - validator_node:321 - Schema OK: True
+2026-03-02 17:54:15 - INFO - src.validator - validator_node:322 - Tests OK: True
+2026-03-02 17:54:15 - INFO - src.validator - validator_node:323 - Sandbox OK: True
+2026-03-02 17:54:16 - DEBUG - httpcore.connection - trace:47 - close.started
+2026-03-02 17:54:16 - DEBUG - httpcore.connection - trace:47 - close.complete
+2026-03-02 17:54:16 - DEBUG - httpcore.connection - trace:47 - close.started
+2026-03-02 17:54:16 - DEBUG - httpcore.connection - trace:47 - close.complete
+2026-03-02 17:54:17 - DEBUG - mcp.server.lowlevel.server - __init__:162 - Initializing server 'data_analysis_tools'
+2026-03-02 17:54:17 - DEBUG - mcp.server.lowlevel.server - decorator:439 - Registering handler for ListToolsRequest
+2026-03-02 17:54:17 - DEBUG - mcp.server.lowlevel.server - decorator:301 - Registering handler for ListResourcesRequest
+2026-03-02 17:54:17 - DEBUG - mcp.server.lowlevel.server - decorator:321 - Registering handler for ListResourceTemplatesRequest
+2026-03-02 17:54:17 - DEBUG - mcp.server.lowlevel.server - decorator:263 - Registering handler for PromptListRequest
+2026-03-02 17:54:17 - DEBUG - mcp.server.lowlevel.server - decorator:519 - Registering handler for CallToolRequest
+2026-03-02 17:54:17 - DEBUG - src.executor - _load_function:136 - Module contents: ['FastMCP', 'intersection_injury_comparison', 'mannwhitneyu', 'mcp', 'np', 'pd', 'shapiro', 'time', 'ttest_ind']
+2026-03-02 17:54:17 - DEBUG - src.executor - _load_function:143 - Checking 'intersection_injury_comparison': type=<class 'fastmcp.tools.tool.FunctionTool'>, callable=False, is_function=False
+2026-03-02 17:54:17 - DEBUG - src.executor - _load_function:147 - Found FunctionTool, extracting underlying function...
+2026-03-02 17:54:17 - DEBUG - src.executor - _load_function:154 - Successfully extracted function from FunctionTool via 'fn'
+2026-03-02 17:54:18 - DEBUG - src.executor - execute:68 - Result type: <class 'dict'>
+2026-03-02 17:54:18 - DEBUG - src.executor - execute:69 - Result value: {'result': {}, 'metadata': {'error': 'Multi-dimensional indexing (e.g. `obj[:, None]`) is no longer supported. Convert to a numpy array before indexing instead.'}}
+2026-03-02 17:54:18 - INFO - src.executor - executor_node:305 - 💾 Execution results saved to: output\draft\intersection_injury_comparison_20260302_175411_output.json
+2026-03-02 17:54:18 - WARNING - src.executor - route_after_execution:363 - ⚠️  Execution error detected (attempt 1/5)
+2026-03-02 17:54:18 - ERROR - src.executor - route_after_execution:364 - Error: Multi-dimensional indexing (e.g. `obj[:, None]`) is no longer supported. Convert to a numpy array before indexing instead.
+2026-03-02 17:54:18 - INFO - src.executor - route_after_execution:365 - 🔧 Attempting automatic code repair...
+2026-03-02 17:54:18 - DEBUG - openai._base_client - _build_request:485 - Request options: {'method': 'post', 'url': '/chat/completions', 'files': None, 'idempotency_key': 'stainless-python-retry-83d319a0-d350-4c12-9fe3-8347a361c0dc', 'content': None, 'json_data': {'messages': [{'role': 'user', 'content': 'Fix the following code based on validation or execution errors.\n\nORIGINAL CODE:\n"""Generated MCP tool: intersection_injury_comparison"""\n\nfrom fastmcp import FastMCP\nimport pandas as pd\nimport time\nimport numpy as np\nfrom scipy.stats import shapiro, ttest_ind, mannwhitneyu\n\nmcp = FastMCP("data_analysis_tools")\n\n\n@mcp.tool()\ndef intersection_injury_comparison(file_path: str):\n    try:\n        # Load data and select required columns\n        df = pd.read_csv(file_path)\n        required_columns = ["intersection_related_i", "injuries_total"]\n\n        if not all(column in df.columns for column in required_columns):\n            raise ValueError(\n                f"CSV file must contain the following columns: {required_columns}"\n            )\n\n        df = df[required_columns].dropna()\n\n        # Split data into two groups\n        group_y = df[df["intersection_related_i"] == "Y"]["injuries_total"]\n        group_not_y = df[df["intersection_related_i"] != "Y"]["injuries_total"]\n\n        # Filter out groups with less than 2 samples\n        if len(group_y) < 2 or len(group_not_y) < 2:\n            raise ValueError("Both groups must have at least 2 samples.")\n\n        # Check normality of both groups using Shapiro-Wilk test\n        _, p_value_y = shapiro(group_y)\n        _, p_value_not_y = shapiro(group_not_y)\n\n        normal_data = (p_value_y > 0.05) and (p_value_not_y > 0.05)\n\n        # Perform appropriate statistical test\n        if normal_data:\n            test_result = ttest_ind(group_y, group_not_y)\n            statistic = test_result.statistic\n            p_value = test_result.pvalue\n            test_used = "t-test"\n\n            # Calculate Cohen\'s d for effect size\n            mean1, mean2 = group_y.mean(), group_not_y.mean()\n            std1, std2 = group_y.std(ddof=1), group_not_y.std(ddof=1)\n            n1, n2 = len(group_y), len(group_not_y)\n            cohens_d = (mean1 - mean2) / np.sqrt(\n                ((n1 - 1) * std1**2 + (n2 - 1) * std2**2) / (n1 + n2 - 2)\n            )\n            effect_size = cohens_d\n        else:\n            test_result = mannwhitneyu(group_y, group_not_y)\n            statistic = test_result.statistic\n            p_value = test_result.pvalue\n            test_used = "mann-whitney-u"\n\n            # Calculate Cliff\'s Delta for effect size\n            n1, n2 = len(group_y), len(group_not_y)\n            delta = (\n                np.sum(np.sign(group_y[:, None] - group_not_y))\n                + 0.5 * np.sum(np.abs(group_y[:, None] - group_not_y) == 0)\n            ) / (n1 * n2)\n            effect_size = delta\n\n        # Determine if the result is significant\n        significant = p_value < 0.05\n\n        # Prepare result and metadata\n        result = {\n            "statistic": statistic,\n            "p_value": p_value,\n            "significant": significant,\n            "effect_size": effect_size,\n            "test_used": test_used,\n        }\n\n        metadata = {\n            "group_y_count": len(group_y),\n            "group_not_y_count": len(group_not_y),\n        }\n\n        return {"result": result, "metadata": metadata}\n\n    except Exception as e:\n        return {"result": {}, "metadata": {"error": str(e)}}\n\n\nERRORS TO FIX:\n- Execution Error: Multi-dimensional indexing (e.g. `obj[:, None]`) is no longer supported. Convert to a numpy array before indexing instead.\n\nTOOL SPEC:\n{\n  "tool_name": "intersection_injury_comparison",\n  "description": "Compares injury counts between intersection-related and non-intersection incidents using appropriate statistical tests.",\n  "version": "1.0.0",\n  "input_schema": {\n    "type": "object",\n    "properties": {\n      "file_path": {\n        "type": "string",\n        "description": "Path to CSV file containing data",\n        "required": true\n      }\n    },\n    "required": [\n      "file_path"\n    ]\n  },\n  "output_schema": {\n    "type": "object",\n    "properties": {\n      "result": {\n        "type": "object",\n        "properties": {\n          "test_used": {\n            "type": "string"\n          },\n          "statistic": {\n            "type": "number"\n          },\n          "p_value": {\n            "type": "number"\n          },\n          "significance": {\n            "type": "boolean"\n          },\n          "effect_size": {\n            "type": "number"\n          },\n          "group_means": {\n            "type": "object",\n            "properties": {\n              "Y": {\n                "type": "number"\n              },\n              "not_Y": {\n                "type": "number"\n              }\n            },\n            "required": [\n              "Y",\n              "not_Y"\n            ]\n          },\n          "group_counts": {\n            "type": "object",\n            "properties": {\n              "Y": {\n                "type": "integer"\n              },\n              "not_Y": {\n                "type": "integer"\n              }\n            },\n            "required": [\n              "Y",\n              "not_Y"\n            ]\n          }\n        },\n        "required": [\n          "test_used",\n          "statistic",\n          "p_value",\n          "significance",\n          "effect_size",\n          "group_means",\n          "group_counts"\n        ]\n      },\n      "metadata": {\n        "type": "object",\n        "properties": {\n          "tool_name": {\n            "type": "string"\n          },\n          "version": {\n            "type": "string"\n          }\n        },\n        "required": [\n          "tool_name",\n          "version"\n        ]\n      }\n    },\n    "required": [\n      "result",\n      "metadata"\n    ]\n  },\n  "parameters": [\n    {\n      "name": "file_path",\n      "type": "str",\n      "description": "Path to CSV file containing data",\n      "required": true\n    }\n  ],\n  "return_type": "Dict[str, Any]",\n  "when_to_use": "When comparing injury counts between intersection-related and non-intersection incidents using statistical tests based on data distribution.",\n  "what_it_does": "Load data and select required columns: \'intersection_related_i\' and \'injuries_total\' Split the data into two groups based on \'intersection_related_i\': Group Y (where \'intersection_related_i\' == \'Y\') and Group not-Y (where \'intersection_related_i\' != \'Y\') Check normality of \'injuries_total\' in both groups using Shapiro-Wilk test If both groups are normally distributed, perform an independent samples t-test; if not, use Mann-Whitney U test Compute effect size using Cohen\'s d for the t-test or Cliff\'s Delta for the Mann-Whitney U test Return the statistic, p-value, significance (p < 0.05), and effect size along with group means",\n  "returns": "{\'type\': \'object\', \'properties\': {\'result\': {\'type\': \'object\', \'properties\': {\'test_used\': {\'type\': \'string\'}, \'statistic\': {\'type\': \'number\'}, \'p_value\': {\'type\': \'number\'}, \'significance\': {\'type\': \'boolean\'}, \'effect_size\': {\'type\': \'number\'}, \'group_means\': {\'type\': \'object\', \'properties\': {\'Y\': {\'type\': \'number\'}, \'not_Y\': {\'type\': \'number\'}}, \'required\': [\'Y\', \'not_Y\']}, \'group_counts\': {\'type\': \'object\', \'properties\': {\'Y\': {\'type\': \'integer\'}, \'not_Y\': {\'type\': \'integer\'}}, \'required\': [\'Y\', \'not_Y\']}}, \'required\': [\'test_used\', \'statistic\', \'p_value\', \'significance\', \'effect_size\', \'group_means\', \'group_counts\']}, \'metadata\': {\'type\': \'object\', \'properties\': {\'tool_name\': {\'type\': \'string\'}, \'version\': {\'type\': \'string\'}}, \'required\': [\'tool_name\', \'version\']}}, \'required\': [\'result\', \'metadata\']}",\n  "prerequisites": "intersection_related_i, injuries_total"\n}\n\nCOMMON ERROR PATTERNS AND FIXES:\n1. "complex() first argument must be a string or a number, not \'list\'" → You\'re trying to do math with a list instead of numbers. Use numeric operations on list items, not the list itself.\n2. "name \'X\' is not defined" → Missing import statement. Add the correct import at the top.\n3. "list object has no attribute \'mean\'" → Lists don\'t have .mean(). Use numpy: np.mean(list) or pandas: pd.Series(list).mean()\n4. "\'list\' object is not callable" → You\'re calling a list like a function. Check for misnamed variables.\n\nInstructions:\n1. Read the ERRORS carefully - they tell you exactly what\'s wrong\n2. If error mentions a missing function/module, add the import\n3. If error mentions wrong data type, convert or process the data correctly\n4. Maintain the original functionality and purpose\n5. Keep the function signature: def function_name(file_path: str):\n6. Ensure code follows best practices\n7. Add any missing error handling\n8. Return a dictionary with \'result\' and \'metadata\' keys\n9. Test your logic: if you\'re grouping data and need to calculate mean, use proper pandas/numpy methods\n\nCRITICAL FOR STATISTICAL FUNCTIONS:\n- After groupby().apply(list), you have a Series where each value is a list\n- To calculate statistics on groups: Use grouped.mean(), grouped.std(), etc. - NOT grouped.apply(list).mean()\n- For ANOVA on groups: Extract each group as a list, then pass to f_oneway(*groups)\n- For group statistics: Use the aggregation functions directly on the grouped object\n\nIMPORTANT: Use {} or dict() to create dictionaries. Do NOT import or use typing classes.\n\nDO NOT INCLUDE:\n- DO NOT create placeholder decorator functions\n- DO NOT create mock FastMCP classes\n- DO NOT write explanatory text before or after the code\n- DO NOT write "Here\'s the fixed code:" or conversational text\n\nONLY OUTPUT:\n- The complete corrected function with all imports\n- Make sure imports are at the top (scipy, statsmodels, numpy, etc.)\n- The function must return a dictionary\n\nReturn ONLY the corrected code (imports + function). Nothing else.\n'}], 'model': 'qwen2.5-coder:32b', 'temperature': 0.1}}
+2026-03-02 17:54:18 - DEBUG - openai._base_client - request:998 - Sending HTTP Request: POST http://localhost:11434/v1/chat/completions
+2026-03-02 17:54:18 - DEBUG - httpcore.connection - trace:47 - connect_tcp.started host='localhost' port=11434 local_address=None timeout=5.0 socket_options=None
+2026-03-02 17:54:20 - DEBUG - httpcore.connection - trace:47 - connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001F56AD9B7D0>
+2026-03-02 17:54:20 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.started request=<Request [b'POST']>
+2026-03-02 17:54:20 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.complete
+2026-03-02 17:54:20 - DEBUG - httpcore.http11 - trace:47 - send_request_body.started request=<Request [b'POST']>
+2026-03-02 17:54:20 - DEBUG - httpcore.http11 - trace:47 - send_request_body.complete
+2026-03-02 17:54:20 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.started request=<Request [b'POST']>
+2026-03-02 17:54:45 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json'), (b'Date', b'Mon, 02 Mar 2026 09:54:45 GMT'), (b'Transfer-Encoding', b'chunked')])
+2026-03-02 17:54:45 - INFO - httpx - _send_single_request:1025 - HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-02 17:54:45 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.started request=<Request [b'POST']>
+2026-03-02 17:54:45 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.complete
+2026-03-02 17:54:45 - DEBUG - httpcore.http11 - trace:47 - response_closed.started
+2026-03-02 17:54:45 - DEBUG - httpcore.http11 - trace:47 - response_closed.complete
+2026-03-02 17:54:45 - DEBUG - openai._base_client - request:1036 - HTTP Response: POST http://localhost:11434/v1/chat/completions "200 OK" Headers({'content-type': 'application/json', 'date': 'Mon, 02 Mar 2026 09:54:45 GMT', 'transfer-encoding': 'chunked'})
+2026-03-02 17:54:45 - DEBUG - openai._base_client - request:1044 - request_id: None
+2026-03-02 17:54:49 - INFO - src.validator - log_section:117 - 
+================================================================================
+2026-03-02 17:54:49 - INFO - src.validator - log_section:118 - VALIDATION RESULTS
+2026-03-02 17:54:49 - INFO - src.validator - log_section:119 - ================================================================================
+
+2026-03-02 17:54:49 - INFO - src.validator - validator_node:321 - Schema OK: True
+2026-03-02 17:54:49 - INFO - src.validator - validator_node:322 - Tests OK: True
+2026-03-02 17:54:49 - INFO - src.validator - validator_node:323 - Sandbox OK: True
+2026-03-02 17:54:49 - DEBUG - mcp.server.lowlevel.server - __init__:162 - Initializing server 'data_analysis_tools'
+2026-03-02 17:54:49 - DEBUG - mcp.server.lowlevel.server - decorator:439 - Registering handler for ListToolsRequest
+2026-03-02 17:54:49 - DEBUG - mcp.server.lowlevel.server - decorator:301 - Registering handler for ListResourcesRequest
+2026-03-02 17:54:49 - DEBUG - mcp.server.lowlevel.server - decorator:321 - Registering handler for ListResourceTemplatesRequest
+2026-03-02 17:54:49 - DEBUG - mcp.server.lowlevel.server - decorator:263 - Registering handler for PromptListRequest
+2026-03-02 17:54:49 - DEBUG - mcp.server.lowlevel.server - decorator:519 - Registering handler for CallToolRequest
+2026-03-02 17:54:49 - DEBUG - src.executor - _load_function:136 - Module contents: ['FastMCP', 'intersection_injury_comparison', 'mannwhitneyu', 'mcp', 'np', 'pd', 'shapiro', 'time', 'ttest_ind']
+2026-03-02 17:54:49 - DEBUG - src.executor - _load_function:143 - Checking 'intersection_injury_comparison': type=<class 'fastmcp.tools.tool.FunctionTool'>, callable=False, is_function=False
+2026-03-02 17:54:49 - DEBUG - src.executor - _load_function:147 - Found FunctionTool, extracting underlying function...
+2026-03-02 17:54:49 - DEBUG - src.executor - _load_function:154 - Successfully extracted function from FunctionTool via 'fn'
+2026-03-02 17:54:50 - DEBUG - src.executor - execute:68 - Result type: <class 'dict'>
+2026-03-02 17:54:50 - DEBUG - src.executor - execute:69 - Result value: {'result': {'test_used': 'Mann-Whitney U', 'statistic': np.float64(1061458326.0), 'p_value': np.float64(3.849758468061666e-49), 'significant': np.True_, 'effect_size': np.float64(0.15480503500572437), 'group_means': {'Y': np.float64(0.38813188577391583), 'not_Y': np.float64(0.27459426968543377)}, 'group_counts': {'Y': 199324, 'not_Y': 9982}}, 'metadata': {'tool_name': 'intersection_injury_comparison', 'version': '1.0'}}
+2026-03-02 17:54:50 - INFO - src.executor - executor_node:305 - 💾 Execution results saved to: output\draft\intersection_injury_comparison_20260302_175411_output.json
+2026-03-02 17:54:50 - INFO - src.promoter - promote:85 - 💾 Moved output file to: output\active\intersection_injury_comparison_20260302_175411_output.json
+2026-03-02 17:54:50 - INFO - src.promoter - log_section:117 - 
+================================================================================
+2026-03-02 17:54:50 - INFO - src.promoter - log_section:118 - 🎉 TOOL PROMOTED TO ACTIVE REGISTRY
+2026-03-02 17:54:50 - INFO - src.promoter - log_section:119 - ================================================================================
+
+2026-03-02 17:54:50 - INFO - src.promoter - promoter_node:196 - Tool Name: intersection_injury_comparison_20260302_175411
+2026-03-02 17:54:50 - INFO - src.promoter - promoter_node:198 - Draft Path: tools\draft\intersection_injury_comparison_20260302_175411.py
+2026-03-02 17:54:50 - INFO - src.promoter - promoter_node:199 - Active Path: tools\active\intersection_injury_comparison_20260302_175411.py
+2026-03-02 17:54:50 - INFO - src.promoter - promoter_node:201 - Output Path: output\active\intersection_injury_comparison_20260302_175411_output.json
+2026-03-02 17:54:50 - INFO - src.promoter - promoter_node:202 - Registry: tools\registry.json
+2026-03-02 17:54:50 - INFO - src.promoter - promoter_node:203 - ✅ Tool successfully executed and promoted to active
+2026-03-02 17:54:50 - DEBUG - httpcore.connection - trace:47 - close.started
+2026-03-02 17:54:50 - DEBUG - httpcore.connection - trace:47 - close.complete

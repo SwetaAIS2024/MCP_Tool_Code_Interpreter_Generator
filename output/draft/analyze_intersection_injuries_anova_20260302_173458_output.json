@@ -1,0 +1,20 @@
+{
+  "tool_name": "analyze_intersection_injuries_anova_20260302_173458",
+  "user_query": "Compare injury distributions between records where intersection_related_i = 'Y' versus others. Perform statistical testing to evaluate whether total injuries differ significantly.",
+  "execution_timestamp": "2026-03-02T17:35:05.456786",
+  "data_path": "C:\\Users\\admin\\Desktop\\sweta\\code_generator_interpreter\\MCP_Tool_Code_Interpreter_Generator\\reference_files\\sample_planner_output\\traffic_accidents.csv",
+  "result": {
+    "result": {
+      "f_statistic": 191.7762398234495,
+      "p_value": 1.3611011068280495e-43,
+      "effect_size": 0.0009154255257448592
+    },
+    "metadata": {
+      "groups_count": 2,
+      "total_records": 209306
+    }
+  },
+  "summary_markdown": null,
+  "execution_time_ms": 2647.5579738616943,
+  "error": null
+}

@@ -25,6 +25,13 @@ Requirements:
      * DO NOT add p-values unless explicitly requested
 6. **STATISTICAL TEST RESULTS FORMATTING**:
    - For ANOVA: Return f_statistic, p_value, effect_size (eta_squared)
+   - For independent samples t-test (2-group comparison):
+     * Use scipy.stats.ttest_ind for normal data, scipy.stats.mannwhitneyu for non-normal
+     * Return: t_statistic (or u_statistic), p_value, significant (bool), effect_size (Cohen's d),
+               group_means as a dict with group label keys and float values, test_used ("t-test" or "mann-whitney-u")
+     * Compute Cohen's d manually — DO NOT import CohenEffectSize or anything from statsmodels.stats.power:
+       cohens_d = (mean1 - mean2) / sqrt(((n1-1)*std1**2 + (n2-1)*std2**2) / (n1+n2-2))
+     * NEVER use f_oneway for a 2-group comparison — that is ANOVA and is WRONG
    - For Tukey HSD post-hoc: DO NOT use dict(zip(tukey.pvalues, tukey.groupsunique)) - this is WRONG
      * Extract pairwise comparisons properly:
        ```python

@@ -201,7 +201,7 @@ llm:
 
 sandbox:
   mode: "docker"  # or "subprocess" for faster testing
-  timeout_seconds: 60
+  timeout_seconds: 120
   memory_limit_mb: 512
 ```
 
@@ -215,8 +215,8 @@ python test.py "Calculate average values by group"
 python test.py "Run ANOVA across groups with Tukey HSD post-hoc test"
 
 # Adjust verbosity
-python test.py --verbosity verbose "your query here"
-python test.py --verbosity debug "your query here"
+python test.py -v "your query here"
+python test.py -d "your query here"
 ```
 
 ---
@@ -230,12 +230,41 @@ The system uses **two specialized models** for optimal performance:
 - **Why:** Better at understanding complex requirements and planning
 - **Behavior:** May include `<think>` tags in reasoning process (automatically stripped)
 
-### Coding Model (Qwen 2.5-Coder 32B)  
+### Coding Model (Qwen 2.5-Coder 32B)
 - **Used for:** Code generation, code repair
 - **Why:** Specialized for generating clean, efficient Python code
 - **Behavior:** Focused output without meta-commentary
 
-See [MULTI_MODEL_SETUP.md](MULTI_MODEL_SETUP.md) for detailed configuration guide.
+### LLM Client Internals ([src/llm_client.py](src/llm_client.py))
+
+- `model_override` parameter on `QwenLLMClient.__init__` selects model by alias (`"reasoning"` or `"coding"`)
+- Temperature fixed at `0.0` for deterministic structured output
+- `<think>` tag stripping: all content between `<think>...</think>` is removed before JSON parsing
+- Smart brace boundary detection: finds the outermost `{...}` block in the response to handle wrapped or padded output
+- Markdown code fence extraction: strips triple-backtick blocks before JSON parsing
+
+### Prompt Design ([config/prompts/](config/prompts/))
+
+Strict JSON enforcement instructions sent with every reasoning-model call:
+
+```
+CRITICAL INSTRUCTIONS:
+- Return ONLY valid JSON conforming to the schema below
+- DO NOT include any explanatory text, thinking process, or commentary
+- DO NOT use <think> tags or similar meta-text
+- DO NOT add markdown code fences around the JSON
+- Output must be pure JSON starting with { and ending with }
+```
+
+Operation selection guide embedded in the intent extraction prompt:
+
+```
+OPERATION SELECTION GUIDE:
+- "top N X by Y" or "most common X"  -> use "groupby_aggregate"
+- "filter by X"                      -> use "filter"
+- "summary statistics"               -> use "describe_summary"
+- "ANOVA / statistical test"         -> use "statistical_test"
+```
 
 ---
 
@@ -250,7 +279,7 @@ For development and testing, use the interactive test script:
 python test.py "your analysis query"
 
 # Adjust verbosity
-python test.py --verbosity debug "query here"
+python test.py -d "query here"
 ```
 
 ---
@@ -458,16 +487,16 @@ python test.py "your analysis query"
 
 ```bash
 # Quiet - minimal output
-python test.py --verbosity quiet "query"
+python test.py -q "query"
 
 # Normal - standard progress (default)
-python test.py --verbosity normal "query"
+python test.py "query"
 
 # Verbose - detailed step information
-python test.py --verbosity verbose "query"
+python test.py -v "query"
 
 # Debug - full LLM prompts and responses
-python test.py --verbosity debug "query"
+python test.py -d "query"
 ```
 
 ---
@@ -490,7 +519,7 @@ All generated code runs in an isolated sandbox with:
 ```yaml
 sandbox:
   mode: "docker"
-  timeout_seconds: 60
+  timeout_seconds: 120
   memory_limit_mb: 512
 ```
 
@@ -562,13 +591,13 @@ paths:
 
 # Validation settings
 validation:
-  max_repair_attempts: 3            # Code repair retry limit
-  sandbox_timeout_seconds: 30
+  max_repair_attempts: 5            # Code repair retry limit
+  sandbox_timeout_seconds: 120
 
 # Sandbox configuration
 sandbox:
   mode: "docker"                    # "docker" or "subprocess"
-  timeout_seconds: 60               # Execution timeout
+  timeout_seconds: 120              # Execution timeout
   memory_limit_mb: 512              # Memory limit
 
 # Logging
@@ -729,7 +758,7 @@ Enable detailed logging to troubleshoot issues:
 
 ```bash
 # Set debug verbosity
-python test.py --verbosity debug "query"
+python test.py -d "query"
 ```
 
 Or configure in code:
@@ -768,7 +797,6 @@ cat output/active/anova_tukeyhsd_traffic_injuries_<timestamp>_output.json
 
 ### For Developers
 - **[Module PRs](module_prs/README.md)** - Complete implementation specs
-- **[Multi-Model Setup](MULTI_MODEL_SETUP.md)** - LLM configuration guide
 - **[Sandbox Security](docs/SANDBOX_SECURITY.md)** - Security policies and implementation
 - **[Logging](docs/LOGGING.md)** - Logging configuration and usage
 - **[Architecture Docs](docs/)** - Design decisions and diagrams
