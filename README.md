@@ -802,12 +802,12 @@ cat output/active/anova_tukeyhsd_traffic_injuries_<timestamp>_output.json
 - **[Architecture Docs](docs/)** - Design decisions and diagrams
 
 ---
-## Acknowledgments
+## Open Source tools - acknowledgement
 
 - **LangGraph** - Workflow orchestration and graph composition
 - **Ollama** - Local LLM inference
 - **DeepSeek** - Reasoning model
-- **Qwen Team** - Code generation model
+- **Qwen** - Code generation model
 
 ---
  
