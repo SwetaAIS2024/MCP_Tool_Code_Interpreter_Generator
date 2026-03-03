@@ -1,0 +1,486 @@
+{
+  "tool_name": "time_series_injury_aggregator_20260303_171933",
+  "user_query": "Show monthly trend of total injuries.",
+  "execution_timestamp": "2026-03-03T17:20:09.444456",
+  "data_path": "reference_files/sample_planner_output/traffic_accidents.csv",
+  "result": {
+    "result": [
+      {
+        "period": "2013-03",
+        "injury_count": 2
+      },
+      {
+        "period": "2013-06",
+        "injury_count": 1
+      },
+      {
+        "period": "2015-02",
+        "injury_count": 0
+      },
+      {
+        "period": "2015-05",
+        "injury_count": 0
+      },
+      {
+        "period": "2015-08",
+        "injury_count": 11
+      },
+      {
+        "period": "2015-09",
+        "injury_count": 29
+      },
+      {
+        "period": "2015-10",
+        "injury_count": 70
+      },
+      {
+        "period": "2015-11",
+        "injury_count": 79
+      },
+      {
+        "period": "2015-12",
+        "injury_count": 100
+      },
+      {
+        "period": "2016-01",
+        "injury_count": 91
+      },
+      {
+        "period": "2016-02",
+        "injury_count": 70
+      },
+      {
+        "period": "2016-03",
+        "injury_count": 122
+      },
+      {
+        "period": "2016-04",
+        "injury_count": 114
+      },
+      {
+        "period": "2016-05",
+        "injury_count": 95
+      },
+      {
+        "period": "2016-06",
+        "injury_count": 85
+      },
+      {
+        "period": "2016-07",
+        "injury_count": 99
+      },
+      {
+        "period": "2016-08",
+        "injury_count": 132
+      },
+      {
+        "period": "2016-09",
+        "injury_count": 163
+      },
+      {
+        "period": "2016-10",
+        "injury_count": 152
+      },
+      {
+        "period": "2016-11",
+        "injury_count": 135
+      },
+      {
+        "period": "2016-12",
+        "injury_count": 123
+      },
+      {
+        "period": "2017-01",
+        "injury_count": 129
+      },
+      {
+        "period": "2017-02",
+        "injury_count": 153
+      },
+      {
+        "period": "2017-03",
+        "injury_count": 150
+      },
+      {
+        "period": "2017-04",
+        "injury_count": 207
+      },
+      {
+        "period": "2017-05",
+        "injury_count": 298
+      },
+      {
+        "period": "2017-06",
+        "injury_count": 284
+      },
+      {
+        "period": "2017-07",
+        "injury_count": 475
+      },
+      {
+        "period": "2017-08",
+        "injury_count": 659
+      },
+      {
+        "period": "2017-09",
+        "injury_count": 903
+      },
+      {
+        "period": "2017-10",
+        "injury_count": 930
+      },
+      {
+        "period": "2017-11",
+        "injury_count": 818
+      },
+      {
+        "period": "2017-12",
+        "injury_count": 826
+      },
+      {
+        "period": "2018-01",
+        "injury_count": 857
+      },
+      {
+        "period": "2018-02",
+        "injury_count": 584
+      },
+      {
+        "period": "2018-03",
+        "injury_count": 673
+      },
+      {
+        "period": "2018-04",
+        "injury_count": 800
+      },
+      {
+        "period": "2018-05",
+        "injury_count": 958
+      },
+      {
+        "period": "2018-06",
+        "injury_count": 882
+      },
+      {
+        "period": "2018-07",
+        "injury_count": 968
+      },
+      {
+        "period": "2018-08",
+        "injury_count": 920
+      },
+      {
+        "period": "2018-09",
+        "injury_count": 932
+      },
+      {
+        "period": "2018-10",
+        "injury_count": 908
+      },
+      {
+        "period": "2018-11",
+        "injury_count": 798
+      },
+      {
+        "period": "2018-12",
+        "injury_count": 945
+      },
+      {
+        "period": "2019-01",
+        "injury_count": 689
+      },
+      {
+        "period": "2019-02",
+        "injury_count": 631
+      },
+      {
+        "period": "2019-03",
+        "injury_count": 775
+      },
+      {
+        "period": "2019-04",
+        "injury_count": 854
+      },
+      {
+        "period": "2019-05",
+        "injury_count": 987
+      },
+      {
+        "period": "2019-06",
+        "injury_count": 929
+      },
+      {
+        "period": "2019-07",
+        "injury_count": 936
+      },
+      {
+        "period": "2019-08",
+        "injury_count": 920
+      },
+      {
+        "period": "2019-09",
+        "injury_count": 900
+      },
+      {
+        "period": "2019-10",
+        "injury_count": 960
+      },
+      {
+        "period": "2019-11",
+        "injury_count": 829
+      },
+      {
+        "period": "2019-12",
+        "injury_count": 729
+      },
+      {
+        "period": "2020-01",
+        "injury_count": 786
+      },
+      {
+        "period": "2020-02",
+        "injury_count": 754
+      },
+      {
+        "period": "2020-03",
+        "injury_count": 646
+      },
+      {
+        "period": "2020-04",
+        "injury_count": 428
+      },
+      {
+        "period": "2020-05",
+        "injury_count": 655
+      },
+      {
+        "period": "2020-06",
+        "injury_count": 901
+      },
+      {
+        "period": "2020-07",
+        "injury_count": 1000
+      },
+      {
+        "period": "2020-08",
+        "injury_count": 1006
+      },
+      {
+        "period": "2020-09",
+        "injury_count": 886
+      },
+      {
+        "period": "2020-10",
+        "injury_count": 845
+      },
+      {
+        "period": "2020-11",
+        "injury_count": 753
+      },
+      {
+        "period": "2020-12",
+        "injury_count": 645
+      },
+      {
+        "period": "2021-01",
+        "injury_count": 619
+      },
+      {
+        "period": "2021-02",
+        "injury_count": 438
+      },
+      {
+        "period": "2021-03",
+        "injury_count": 666
+      },
+      {
+        "period": "2021-04",
+        "injury_count": 814
+      },
+      {
+        "period": "2021-05",
+        "injury_count": 966
+      },
+      {
+        "period": "2021-06",
+        "injury_count": 1066
+      },
+      {
+        "period": "2021-07",
+        "injury_count": 1052
+      },
+      {
+        "period": "2021-08",
+        "injury_count": 1002
+      },
+      {
+        "period": "2021-09",
+        "injury_count": 968
+      },
+      {
+        "period": "2021-10",
+        "injury_count": 975
+      },
+      {
+        "period": "2021-11",
+        "injury_count": 840
+      },
+      {
+        "period": "2021-12",
+        "injury_count": 769
+      },
+      {
+        "period": "2022-01",
+        "injury_count": 696
+      },
+      {
+        "period": "2022-02",
+        "injury_count": 643
+      },
+      {
+        "period": "2022-03",
+        "injury_count": 791
+      },
+      {
+        "period": "2022-04",
+        "injury_count": 818
+      },
+      {
+        "period": "2022-05",
+        "injury_count": 912
+      },
+      {
+        "period": "2022-06",
+        "injury_count": 1052
+      },
+      {
+        "period": "2022-07",
+        "injury_count": 991
+      },
+      {
+        "period": "2022-08",
+        "injury_count": 881
+      },
+      {
+        "period": "2022-09",
+        "injury_count": 904
+      },
+      {
+        "period": "2022-10",
+        "injury_count": 918
+      },
+      {
+        "period": "2022-11",
+        "injury_count": 819
+      },
+      {
+        "period": "2022-12",
+        "injury_count": 801
+      },
+      {
+        "period": "2023-01",
+        "injury_count": 736
+      },
+      {
+        "period": "2023-02",
+        "injury_count": 659
+      },
+      {
+        "period": "2023-03",
+        "injury_count": 817
+      },
+      {
+        "period": "2023-04",
+        "injury_count": 849
+      },
+      {
+        "period": "2023-05",
+        "injury_count": 923
+      },
+      {
+        "period": "2023-06",
+        "injury_count": 917
+      },
+      {
+        "period": "2023-07",
+        "injury_count": 943
+      },
+      {
+        "period": "2023-08",
+        "injury_count": 931
+      },
+      {
+        "period": "2023-09",
+        "injury_count": 962
+      },
+      {
+        "period": "2023-10",
+        "injury_count": 1045
+      },
+      {
+        "period": "2023-11",
+        "injury_count": 883
+      },
+      {
+        "period": "2023-12",
+        "injury_count": 888
+      },
+      {
+        "period": "2024-01",
+        "injury_count": 697
+      },
+      {
+        "period": "2024-02",
+        "injury_count": 707
+      },
+      {
+        "period": "2024-03",
+        "injury_count": 883
+      },
+      {
+        "period": "2024-04",
+        "injury_count": 893
+      },
+      {
+        "period": "2024-05",
+        "injury_count": 1160
+      },
+      {
+        "period": "2024-06",
+        "injury_count": 1113
+      },
+      {
+        "period": "2024-07",
+        "injury_count": 1121
+      },
+      {
+        "period": "2024-08",
+        "injury_count": 1029
+      },
+      {
+        "period": "2024-09",
+        "injury_count": 1082
+      },
+      {
+        "period": "2024-10",
+        "injury_count": 1115
+      },
+      {
+        "period": "2024-11",
+        "injury_count": 889
+      },
+      {
+        "period": "2024-12",
+        "injury_count": 869
+      },
+      {
+        "period": "2025-01",
+        "injury_count": 419
+      }
+    ],
+    "metadata": {}
+  },
+  "summary_markdown": null,
+  "execution_time_ms": 13471.900463104248,
+  "error": null
+}

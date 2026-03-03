@@ -135,6 +135,346 @@
       ],
       "return_type": "Dict[str, Any]",
       "output_file": "output\\active\\intersection_injury_comparison_20260302_175411_output.json"
+    },
+    {
+      "name": "crash_hour_injury_regression_20260303_111250",
+      "description": "Analyzes the variation in total injuries across different hours of the day using linear regression.",
+      "user_query": "aggregate crashes by crash hour and fit a regression model to estimate whether the injury counts significantly vary hours of the day.",
+      "tool_path": "tools\\active\\crash_hour_injury_regression_20260303_111250.py",
+      "log_file": "logs/pipeline_20260303_111250.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file containing crash data",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\crash_hour_injury_regression_20260303_111250_output.json"
+    },
+    {
+      "name": "groupby_aggregate_weather_condition_injuries_fatal_20260303_135727",
+      "description": "This tool performs a group by aggregation on weather_condition and calculates the count of fatal injuries.",
+      "user_query": "Group data by weather condition and calculate the count of fatal injuries for each group after filtering records where injuries_fatal > 0.",
+      "tool_path": "tools\\active\\groupby_aggregate_weather_condition_injuries_fatal_20260303_135727.py",
+      "log_file": "logs/pipeline_20260303_135727.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\groupby_aggregate_weather_condition_injuries_fatal_20260303_135727_output.json"
+    },
+    {
+      "name": "groupby_weather_injuries_20260303_135751",
+      "description": "Groups data by weather_condition and calculates the count of records where injuries_fatal > 0.",
+      "user_query": "Group data by weather condition and calculate the count of fatal injuries for each group after filtering records where injuries_fatal > 0.",
+      "tool_path": "tools\\active\\groupby_weather_injuries_20260303_135751.py",
+      "log_file": "logs/pipeline_20260303_135751.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\groupby_weather_injuries_20260303_135751_output.json"
+    },
+    {
+      "name": "linear_regression_injuries_num_units_20260303_141030",
+      "description": "Performs linear regression analysis on injuries_total and num_units columns to calculate regression coefficients and statistical significance metrics.",
+      "user_query": "Perform linear regression predicting injuries_total using num_units.",
+      "tool_path": "tools\\active\\linear_regression_injuries_num_units_20260303_141030.py",
+      "log_file": "logs/pipeline_20260303_141030.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file containing the data",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\linear_regression_injuries_num_units_20260303_141030_output.json"
+    },
+    {
+      "name": "custom_transform_injuries_num_units_linear_regression_20260303_141910",
+      "description": "Performs linear regression analysis on injuries_total and num_units columns to calculate slope, intercept, R-squared value, and p-value.",
+      "user_query": "Perform linear regression predicting injuries_total using num_units.",
+      "tool_path": "tools\\active\\custom_transform_injuries_num_units_linear_regression_20260303_141910.py",
+      "log_file": "logs/pipeline_20260303_141910.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file containing the data",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\custom_transform_injuries_num_units_linear_regression_20260303_141910_output.json"
+    },
+    {
+      "name": "injuries_num_units_linear_regression_20260303_141910",
+      "description": "Performs linear regression analysis of injuries_total as a function of num_units using scipy.stats.linregress or statsmodels OLS.",
+      "user_query": "Perform linear regression predicting injuries_total using num_units.",
+      "tool_path": "tools\\active\\injuries_num_units_linear_regression_20260303_141910.py",
+      "log_file": "logs/pipeline_20260303_141910.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file containing the data",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\injuries_num_units_linear_regression_20260303_141910_output.json"
+    },
+    {
+      "name": "chi_square_weather_crash_independence_test_20260303_142409",
+      "description": "Performs a chi-square test of independence between weather_condition and crash_type to determine if there is a significant association.",
+      "user_query": "Test independence between weather_condition and crash_type using chi-square.",
+      "tool_path": "tools\\active\\chi_square_weather_crash_independence_test_20260303_142409.py",
+      "log_file": "logs/pipeline_20260303_142409.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file containing weather_condition and crash_type columns",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\chi_square_weather_crash_independence_test_20260303_142409_output.json"
+    },
+    {
+      "name": "chi_square_weather_crash_type_analysis_20260303_143423",
+      "description": "Performs a chi-square test of independence between weather_condition and crash_type.",
+      "user_query": "Test independence between weather_condition and crash_type using chi-square.",
+      "tool_path": "tools\\active\\chi_square_weather_crash_type_analysis_20260303_143423.py",
+      "log_file": "logs/pipeline_20260303_143423.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file containing data",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\chi_square_weather_crash_type_analysis_20260303_143423_output.json"
+    },
+    {
+      "name": "time_series_crash_injury_aggregator_20260303_154226",
+      "description": "Aggregates injury data over time by extracting month and year from crash dates, grouping by these periods, summing total injuries, sorting results chronologically, and returning the aggregated time series.",
+      "user_query": "Aggregate injuries total over time by crash month.",
+      "tool_path": "tools\\active\\time_series_crash_injury_aggregator_20260303_154226.py",
+      "log_file": "logs/pipeline_20260303_154226.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file containing crash data",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\time_series_crash_injury_aggregator_20260303_154226_output.json"
+    },
+    {
+      "name": "time_series_crash_injury_aggregator_20260303_163434",
+      "description": "Aggregates injury data over time by month, calculating total injuries and handling missing months.",
+      "user_query": "Show monthly trend of total injuries.",
+      "tool_path": "tools\\active\\time_series_crash_injury_aggregator_20260303_163434.py",
+      "log_file": "logs/pipeline_20260303_163434.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file containing crash data.",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\time_series_crash_injury_aggregator_20260303_163434_output.json"
+    },
+    {
+      "name": "time_series_crash_injury_aggregator_20260303_164440",
+      "description": "Aggregates injury data over time by month, calculating total injuries and handling missing months.",
+      "user_query": "Show monthly trend of total injuries.",
+      "tool_path": "tools\\active\\time_series_crash_injury_aggregator_20260303_164440.py",
+      "log_file": "logs/pipeline_20260303_164440.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file containing crash data.",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\time_series_crash_injury_aggregator_20260303_164440_output.json"
+    },
+    {
+      "name": "time_series_crash_injury_aggregator_20260303_165608",
+      "description": "Aggregates crash injury data by monthly periods, calculating injury counts.",
+      "user_query": "Show monthly trend of total injuries.",
+      "tool_path": "tools\\active\\time_series_crash_injury_aggregator_20260303_165608.py",
+      "log_file": "logs/pipeline_20260303_165608.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file containing crash data.",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\time_series_crash_injury_aggregator_20260303_165608_output.json"
+    },
+    {
+      "name": "time_series_injury_aggregator_20260303_171933",
+      "description": "This tool performs time series aggregation of injury counts by month. It loads data, extracts the year-month period from dates, groups by these periods, calculates injury counts, and returns chronologically ordered results.",
+      "user_query": "Show monthly trend of total injuries.",
+      "tool_path": "tools\\active\\time_series_injury_aggregator_20260303_171933.py",
+      "log_file": "logs/pipeline_20260303_171933.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file containing crash data",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\time_series_injury_aggregator_20260303_171933_output.json"
+    },
+    {
+      "name": "time_series_aggregate_crash_date_injuries_total_20260303_172320",
+      "description": "This tool performs a time series aggregation on crash data, grouping by year and summing total injuries.",
+      "user_query": "Show yearly trend of total injuries.",
+      "tool_path": "tools\\active\\time_series_aggregate_crash_date_injuries_total_20260303_172320.py",
+      "log_file": "logs/pipeline_20260303_172320.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file containing crash data.",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\time_series_aggregate_crash_date_injuries_total_20260303_172320_output.json"
+    },
+    {
+      "name": "time_series_aggregate_injuries_by_period_20260303_173455",
+      "description": "This tool performs time series aggregation of injury data by period, summing total injuries within each defined time period.",
+      "user_query": "Show yearly trend of total injuries.",
+      "tool_path": "tools\\active\\time_series_aggregate_injuries_by_period_20260303_173455.py",
+      "log_file": "logs/pipeline_20260303_173455.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file containing crash data",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\time_series_aggregate_injuries_by_period_20260303_173455_output.json"
+    },
+    {
+      "name": "time_series_aggregate_crash_date_injuries_total_20260303_173813",
+      "description": "This tool performs a time series aggregation on crash data, grouping by year and summing total injuries.",
+      "user_query": "Show yearly trend of total injuries.",
+      "tool_path": "tools\\active\\time_series_aggregate_crash_date_injuries_total_20260303_173813.py",
+      "log_file": "logs/pipeline_20260303_173813.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file containing crash data.",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\time_series_aggregate_crash_date_injuries_total_20260303_173813_output.json"
+    },
+    {
+      "name": "time_series_aggregate_injuries_by_period_20260303_174636",
+      "description": "This tool performs time series aggregation of injury data by period, summing total injuries within each defined time period.",
+      "user_query": "Show yearly trend of total injuries.",
+      "tool_path": "tools\\active\\time_series_aggregate_injuries_by_period_20260303_174636.py",
+      "log_file": "logs/pipeline_20260303_174636.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file containing crash data",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\time_series_aggregate_injuries_by_period_20260303_174636_output.json"
+    },
+    {
+      "name": "groupby_weather_injuries_20260303_175130",
+      "description": "This tool performs a group-by aggregation to calculate total injuries for each weather condition.",
+      "user_query": "Show injury distribution by weather_condition.",
+      "tool_path": "tools\\active\\groupby_weather_injuries_20260303_175130.py",
+      "log_file": "logs/pipeline_20260303_175130.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\groupby_weather_injuries_20260303_175130_output.json"
+    },
+    {
+      "name": "groupby_weather_condition_year_injuries_20260303_175812",
+      "description": "This tool performs a group by operation on weather condition and year, then calculates the total injuries for each group.",
+      "user_query": "Show injury distribution by weather_condition and year.",
+      "tool_path": "tools\\active\\groupby_weather_condition_year_injuries_20260303_175812.py",
+      "log_file": "logs/pipeline_20260303_175812.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file containing injury data",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\groupby_weather_condition_year_injuries_20260303_175812_output.json"
+    },
+    {
+      "name": "groupby_weather_condition_year_injuries_20260303_180326",
+      "description": "This tool performs a group by operation on weather condition and year, then calculates the total injuries for each group.",
+      "user_query": "Show injury distribution by weather_condition and year.",
+      "tool_path": "tools\\active\\groupby_weather_condition_year_injuries_20260303_180326.py",
+      "log_file": "logs/pipeline_20260303_180326.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file containing injury data",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\groupby_weather_condition_year_injuries_20260303_180326_output.json"
     }
   ]
 }

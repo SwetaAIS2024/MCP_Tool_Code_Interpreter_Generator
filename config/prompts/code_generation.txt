@@ -50,6 +50,25 @@ Requirements:
 8. Handle edge cases gracefully
 9. Add docstring with examples
 10. CRITICAL: Use ONLY the columns listed in REQUIRED COLUMNS above - do NOT invent or assume other column names
+11. **PANDAS FREQUENCY ALIASES** — the correct alias depends on the API:
+    - `df.resample(...)`, `pd.Grouper(freq=...)`, `pd.date_range(freq=...)` — use NEW aliases:
+        Month-end → 'ME',  Quarter-end → 'QE',  Year-end → 'YE',  Business month-end → 'BME'
+    - `dt.to_period(...)`, `pd.Period(...)`, `pd.PeriodIndex(freq=...)` — use OLD aliases (they NEVER changed):
+        Monthly period → 'M',  Quarterly period → 'Q',  Yearly period → 'Y'
+    NEVER mix them: do NOT use 'YE' with to_period() — that raises ValueError.
+    CORRECT examples:
+        df['period'] = pd.to_datetime(df['crash_date']).dt.to_period('Y')   # yearly period groupby
+        df.resample('YE', on='crash_date').sum()                              # yearly resample
+12. **TIME-SERIES / MONTHLY TREND COLUMNS**:
+    - Columns named 'crash_month', 'month', 'crash_year', etc. are often INTEGERS (e.g. 1–12), NOT datetime strings.
+    - Calling pd.to_datetime() on an integer month number (e.g. 7) produces a Unix-epoch nanosecond offset → all rows collapse to 1970-01. NEVER do this.
+    - To build a proper monthly time series:
+      * If a full date column exists (e.g. 'crash_date', 'date', 'timestamp'), ALWAYS parse that column:
+          df['period'] = pd.to_datetime(df['crash_date']).dt.to_period('M')
+          Then group by 'period'.
+      * Only use the integer month column for simple groupby aggregation (not resample):
+          df.groupby('crash_month')['injuries_total'].sum()
+    - NEVER call resample() or pd.to_datetime() on an integer 1-12 month column.
 
 Include:
 - pandas DataFrame input handling

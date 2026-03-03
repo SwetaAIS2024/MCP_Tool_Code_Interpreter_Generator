@@ -1,0 +1,24 @@
+{
+  "tool_name": "time_series_crash_injury_aggregator_20260303_164440",
+  "user_query": "Show monthly trend of total injuries.",
+  "execution_timestamp": "2026-03-03T16:44:45.332377",
+  "data_path": "reference_files/sample_planner_output/traffic_accidents.csv",
+  "result": {
+    "result": {
+      "monthly_injuries": [
+        {
+          "crash_month": "1970-01-31 00:00:00",
+          "injuries_total": 80105
+        }
+      ]
+    },
+    "metadata": {
+      "total_months": 1,
+      "first_month": "1970-01",
+      "last_month": "1970-01"
+    }
+  },
+  "summary_markdown": null,
+  "execution_time_ms": 1874.06325340271,
+  "error": null
+}

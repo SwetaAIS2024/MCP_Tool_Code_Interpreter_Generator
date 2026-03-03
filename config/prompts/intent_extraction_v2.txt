@@ -44,6 +44,11 @@ Rules:
 5. Never select time columns unless query mentions:
    time, hour, day, date, month, year
 6. If concept exists in query but no column matches → add to missing_columns
+7. **TIME-SERIES COLUMN PRIORITY**: If query asks for a "monthly trend", "trend over time", "time series" etc:
+   - ALWAYS prefer the full datetime column (e.g. crash_date, date, timestamp, incident_date) over an integer period column (crash_month, month, crash_year, year).
+   - Integer columns named 'crash_month', 'month', 'crash_year' contain only 1-12 or year numbers — they LOSE year information and cannot form a proper time series across years.
+   - Include BOTH the full date column AND the integer column in required_columns, but instruct the implementation_plan to parse the full date column.
+   - If only an integer month column exists (no full date column), note in the implementation_plan that results will be grouped by month-of-year (1–12) without year context.
 
 required_columns = matched columns from this step
 
@@ -139,6 +144,14 @@ Correlation → scipy.stats.pearsonr
 Tukey → statsmodels pairwise_tukeyhsd
 
 Never substitute statistical methods.
+
+TIME-SERIES AGGREGATE PLAN (when operation = time_series_aggregate):
+Step 1: Load data and select required columns including the full date column (e.g. crash_date)
+Step 2: Parse the full date column with pd.to_datetime() — NEVER call pd.to_datetime() on an integer month column
+Step 3: Extract year-month period: df['period'] = df['crash_date'].dt.to_period('M')
+Step 4: Group by 'period' and aggregate the metric (sum / mean / count)
+Step 5: Sort by period ascending
+Step 6: Return list of {{period, metric}} records ordered chronologically
 
 TWO-GROUP COMPARISON PLAN (when gap_reason says t-test):
 Step 1: Load data and select required columns

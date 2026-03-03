@@ -112,7 +112,14 @@ class QwenLLMClient(BaseLLMClient):
                 messages=messages,
                 temperature=temperature
             )
-            return response.choices[0].message.content
+            raw = response.choices[0].message.content
+            # Strip <think>…</think> reasoning blocks emitted by reasoning models
+            if "<think>" in raw and "</think>" in raw:
+                raw = raw.split("</think>", 1)[1].strip()
+            elif raw.strip().startswith("<think>"):
+                # Incomplete think block — drop everything up to and including it
+                raw = raw.split("<think>", 1)[0].strip() or raw.split("\n", 1)[-1].strip()
+            return raw
         except Exception as e:
             raise RuntimeError(f"LLM generation failed: {e}")
     

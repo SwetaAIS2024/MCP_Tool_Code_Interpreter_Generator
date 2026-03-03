@@ -1,0 +1,61 @@
+{
+  "tool_name": "groupby_weather_injuries_20260303_175130",
+  "user_query": "Show injury distribution by weather_condition.",
+  "execution_timestamp": "2026-03-03T17:51:34.038780",
+  "data_path": "reference_files/sample_planner_output/traffic_accidents.csv",
+  "result": {
+    "result": [
+      {
+        "weather_condition": "SEVERE CROSS WIND GATE",
+        "injuries_total": 8
+      },
+      {
+        "weather_condition": "BLOWING SNOW",
+        "injuries_total": 40
+      },
+      {
+        "weather_condition": "SLEET/HAIL",
+        "injuries_total": 142
+      },
+      {
+        "weather_condition": "FOG/SMOKE/HAZE",
+        "injuries_total": 160
+      },
+      {
+        "weather_condition": "FREEZING RAIN/DRIZZLE",
+        "injuries_total": 235
+      },
+      {
+        "weather_condition": "OTHER",
+        "injuries_total": 303
+      },
+      {
+        "weather_condition": "UNKNOWN",
+        "injuries_total": 1085
+      },
+      {
+        "weather_condition": "SNOW",
+        "injuries_total": 2120
+      },
+      {
+        "weather_condition": "CLOUDY/OVERCAST",
+        "injuries_total": 2782
+      },
+      {
+        "weather_condition": "RAIN",
+        "injuries_total": 8931
+      },
+      {
+        "weather_condition": "CLEAR",
+        "injuries_total": 64299
+      }
+    ],
+    "metadata": {
+      "status": "success",
+      "message": "Group-by aggregation completed successfully."
+    }
+  },
+  "summary_markdown": null,
+  "execution_time_ms": 561.5792274475098,
+  "error": null
+}

@@ -1,0 +1,15 @@
+{
+  "tool_name": "crash_injury_groupby_aggregate_20260303_160631",
+  "user_query": "Compare injury distributions across crash_type",
+  "execution_timestamp": "2026-03-03T16:09:13.337086",
+  "data_path": "reference_files/sample_planner_output/traffic_accidents.csv",
+  "result": {
+    "result": {},
+    "metadata": {
+      "error": "CSV file must contain the following columns: ['crash_type', 'injuries_total', 'injuries_fatal', 'injuries_severe', 'injuries_minor']"
+    }
+  },
+  "summary_markdown": null,
+  "execution_time_ms": 540.8153533935547,
+  "error": null
+}

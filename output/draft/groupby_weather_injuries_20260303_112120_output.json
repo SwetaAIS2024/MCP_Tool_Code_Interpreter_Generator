@@ -1,0 +1,49 @@
+{
+  "tool_name": "groupby_weather_injuries_20260303_112120",
+  "user_query": "Group data by weather condition and calculate the count of fatal injuries for each group after filtering records where injuries_fatal > 0.",
+  "execution_timestamp": "2026-03-03T11:24:20.170085",
+  "data_path": "reference_files/sample_planner_output/traffic_accidents.csv",
+  "result": {
+    "result": [
+      {
+        "weather_condition": "CLEAR",
+        "injuries_fatal": 323
+      },
+      {
+        "weather_condition": "CLOUDY/OVERCAST",
+        "injuries_fatal": 13
+      },
+      {
+        "weather_condition": "FOG/SMOKE/HAZE",
+        "injuries_fatal": 1
+      },
+      {
+        "weather_condition": "FREEZING RAIN/DRIZZLE",
+        "injuries_fatal": 1
+      },
+      {
+        "weather_condition": "RAIN",
+        "injuries_fatal": 41
+      },
+      {
+        "weather_condition": "SEVERE CROSS WIND GATE",
+        "injuries_fatal": 1
+      },
+      {
+        "weather_condition": "SNOW",
+        "injuries_fatal": 3
+      },
+      {
+        "weather_condition": "UNKNOWN",
+        "injuries_fatal": 6
+      }
+    ],
+    "metadata": {
+      "total_records": 351,
+      "unique_weather_conditions": 8
+    }
+  },
+  "summary_markdown": null,
+  "execution_time_ms": 572.8821754455566,
+  "error": null
+}

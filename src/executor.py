@@ -312,68 +312,60 @@ def executor_node(state: ToolGeneratorState) -> ToolGeneratorState:
 
 
 def route_after_execution(state: ToolGeneratorState) -> str:
-    """Route after execution based on success/failure.
-    
-    Args:
-        state: Current generator state
-        
-    Returns:
-        Next node name
-    """
+    """Route after execution based on success/failure."""
     from langgraph.graph import END
-    
+
     execution_output = state.get("execution_output")
     repair_attempts = state.get("repair_attempts", 0)
 
-    # Read max_repair_attempts from config (fallback to 3)
+    # Read max_repair_attempts from config
     try:
         import yaml
         with open("config/config.yaml") as f:
             _cfg = yaml.safe_load(f)
-        max_repair_attempts = _cfg.get("validation", {}).get("max_repair_attempts", 3)
+        max_repair_attempts = _cfg.get("validation", {}).get("max_repair_attempts", 5)
     except Exception:
-        max_repair_attempts = 3
-    
+        max_repair_attempts = 5
+
     if not execution_output:
-        # No execution output - something went wrong, end
         return END
-    
-    # execution_output is now a dict (converted from RunArtifacts)
-    # Structure: {"result": {...}, "error": "...", "execution_time_ms": ...}
+
     has_error = False
-    error_msg = "Unknown error"
-    
-    # Check for error field
+    error_msg = ""
+
+    # Top-level error field (set by sandbox/subprocess runner)
     if execution_output.get("error"):
         has_error = True
-        error_msg = execution_output.get("error")
-    # Also check for error in result metadata
-    elif execution_output.get("result") and isinstance(execution_output.get("result"), dict):
-        metadata = execution_output["result"].get("metadata", {})
-        if "error" in metadata:
+        error_msg = execution_output["error"]
+    # Error buried inside result dict
+    elif isinstance(execution_output.get("result"), dict):
+        result_dict = execution_output["result"]
+        # Case 1: result itself is {"error": "..."}  (generated code returned error dict)
+        if "error" in result_dict and result_dict["error"]:
             has_error = True
-            error_msg = metadata.get("error", "Unknown error")
-        # Check if result is empty (no actual result returned)
-        elif not execution_output["result"].get("result"):
-            has_error = True
-            error_msg = "Empty result returned"
-    
-    # If there's an error and we haven't exceeded repair attempts, try repair
-    if has_error and repair_attempts < max_repair_attempts:
+            error_msg = result_dict["error"]
+        else:
+            # Case 2: error buried in result["metadata"]["error"]
+            metadata = result_dict.get("metadata", {})
+            if isinstance(metadata, dict) and metadata.get("error"):
+                has_error = True
+                error_msg = metadata["error"]
+        # Empty result dict — not repairable (no message to give LLM), just proceed
+        # elif len(result_dict) == 0 → fall through to promoter
+
+    if not has_error:
+        # Success — promote the tool
+        return "promoter_node"
+
+    # There is a real error with a message — attempt repair if budget allows
+    if repair_attempts < max_repair_attempts:
         logger.warning(f"⚠️  Execution error detected (attempt {repair_attempts + 1}/{max_repair_attempts})")
         logger.error(f"Error: {error_msg}")
         logger.info("🔧 Attempting automatic code repair...")
-        
-        # Store the error message in a way repair_node can access it
-        # Update the state to ensure repair node can see the error
         return "repair_node"
-    
-    # If repair attempts exceeded, end the pipeline
-    if has_error and repair_attempts >= max_repair_attempts:
-        logger.error(f"❌ Maximum repair attempts ({max_repair_attempts}) exceeded")
-        logger.error(f"Final error: {error_msg}")
-        logger.info("⚠️  Tool generation failed - ending pipeline")
-        return END
-    
-    # Always proceed directly to promoter (no human feedback)
-    return "promoter_node"
+
+    # Budget exhausted
+    logger.error(f"❌ Maximum repair attempts ({max_repair_attempts}) exceeded")
+    logger.error(f"Final error: {error_msg}")
+    logger.info("⚠️  Tool generation failed - ending pipeline")
+    return END

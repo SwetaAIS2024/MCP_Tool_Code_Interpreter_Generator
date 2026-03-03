@@ -381,19 +381,21 @@ class CodeRepairer:
         self.llm = llm_client
         self.prompt_template_path = Path("config/prompts/code_repair.txt")
     
-    def repair(self, code: str, errors: List[str], spec: ToolSpec) -> str:
+    def repair(self, code: str, errors: List[str], spec: ToolSpec,
+              available_columns: List[str] = None) -> str:
         """Repair code based on validation errors.
         
         Args:
             code: Original code with errors
             errors: List of error messages
             spec: Original ToolSpec
+            available_columns: Dataset column names available for use
             
         Returns:
             Repaired code
         """
         # Build repair prompt
-        prompt = self._build_repair_prompt(code, errors, spec)
+        prompt = self._build_repair_prompt(code, errors, spec, available_columns)
         
         # Generate repaired code
         raw_repaired = self.llm.generate(prompt, temperature=0.1)
@@ -451,26 +453,42 @@ class CodeRepairer:
         
         return text.strip()
     
-    def _build_repair_prompt(self, code: str, errors: List[str], spec: ToolSpec) -> str:
+    def _build_repair_prompt(self, code: str, errors: List[str], spec: ToolSpec,
+                             available_columns: List[str] = None) -> str:
         """Build prompt for code repair.
         
         Args:
             code: Original code
             errors: List of errors
             spec: ToolSpec
+            available_columns: Dataset column names
             
         Returns:
             Repair prompt
         """
+        # Resolve available columns text
+        if available_columns:
+            columns_text = ', '.join(available_columns)
+        else:
+            columns_text = "(unknown — infer from the data file at runtime)"
+        
+        # Resolve function name from spec
+        function_name = getattr(spec, 'tool_name', 'unknown_function')
+        
         # Try to load template
         if self.prompt_template_path.exists():
             with open(self.prompt_template_path, encoding='utf-8') as f:
                 template = f.read()
-            return template.format(
-                code=code,
-                errors='\n'.join(f"- {error}" for error in errors),
-                spec=spec.model_dump_json(indent=2)
-            )
+            # Use manual replacement instead of str.format() to avoid
+            # KeyErrors caused by {…} in the spec JSON being mis-parsed.
+            errors_str = '\n'.join(f"- {error}" for error in errors)
+            result = template
+            result = result.replace("{code}", code)
+            result = result.replace("{errors}", errors_str)
+            result = result.replace("{spec}", spec.model_dump_json(indent=2))
+            result = result.replace("{available_columns}", columns_text)
+            result = result.replace("{function_name}", function_name)
+            return result
         
         # Fallback inline prompt
         errors_str = '\n'.join(f"- {error}" for error in errors)
@@ -488,10 +506,13 @@ VALIDATION ERRORS:
 TOOL SPEC:
 {spec.model_dump_json(indent=2)}
 
+AVAILABLE DATASET COLUMNS (ONLY use these exact column names — do NOT invent column names):
+{columns_text}
+
 Instructions:
 1. Fix each error listed above
 2. Maintain the original functionality
-3. Keep the same function signature
+3. Keep the EXACT function name and signature: def {function_name}(file_path: str): — do NOT rename the function
 4. Ensure code follows best practices
 5. Add any missing error handling
 6. Verify return value is a dictionary with 'result' and 'metadata' keys
@@ -525,7 +546,8 @@ def generate_code(spec: ToolSpec, llm_client: QwenLLMClient = None) -> str:
 
 
 def repair_code(code: str, errors: List[str], spec: ToolSpec = None, 
-                llm_client: QwenLLMClient = None) -> str:
+                llm_client: QwenLLMClient = None,
+                available_columns: List[str] = None) -> str:
     """Repair code based on errors.
     
     Args:
@@ -533,6 +555,7 @@ def repair_code(code: str, errors: List[str], spec: ToolSpec = None,
         errors: List of error messages
         spec: Optional ToolSpec
         llm_client: Optional LLM client
+        available_columns: Dataset column names for grounding
         
     Returns:
         Repaired code
@@ -558,7 +581,7 @@ def repair_code(code: str, errors: List[str], spec: ToolSpec = None,
             prerequisites=""
         )
     
-    return repairer.repair(code, errors, spec)
+    return repairer.repair(code, errors, spec, available_columns)
 
 
 # ============================================================================
@@ -630,17 +653,27 @@ def repair_node(state: ToolGeneratorState) -> ToolGeneratorState:
             exec_error = f"Execution Error: {exec_output['error']}"
             errors.append(exec_error)
             print(f"\n[REPAIR] Repairing execution error: {exec_output['error']}\n")
-        # Also check for error in result metadata
         elif exec_output.get("result") and isinstance(exec_output.get("result"), dict):
-            metadata = exec_output["result"].get("metadata", {})
-            if "error" in metadata:
-                exec_error = f"Execution Error: {metadata['error']}"
+            result_dict = exec_output["result"]
+            # Case 1: result itself is {"error": "..."} (generated code returned error dict)
+            if result_dict.get("error"):
+                exec_error = f"Execution Error: {result_dict['error']}"
                 errors.append(exec_error)
-                print(f"\n[REPAIR] Repairing execution error: {metadata['error']}\n")
+                print(f"\n[REPAIR] Repairing execution error: {result_dict['error']}\n")
+            else:
+                # Case 2: error buried in result["metadata"]["error"]
+                metadata = result_dict.get("metadata", {})
+                if isinstance(metadata, dict) and metadata.get("error"):
+                    exec_error = f"Execution Error: {metadata['error']}"
+                    errors.append(exec_error)
+                    print(f"\n[REPAIR] Repairing execution error: {metadata['error']}\n")
     
     if not errors:
-        print("\n[WARN] No errors found to repair")
-        return state
+        print("\n[WARN] No errors found to repair — incrementing attempt counter and continuing")
+        return {
+            **state,
+            "repair_attempts": state.get("repair_attempts", 0) + 1
+        }
     
     # DEBUG: Print repair info
     print("\n" + "="*80)
@@ -653,7 +686,21 @@ def repair_node(state: ToolGeneratorState) -> ToolGeneratorState:
     
     # Use coding model for code repair
     llm_client = create_llm_client(model_type="coding")
-    repaired = repair_code(state["generated_code"], errors, state["tool_spec"], llm_client)
+    
+    # Extract dataset columns from data_path for grounding
+    available_columns = None
+    data_path = state.get("data_path")
+    if data_path:
+        try:
+            import pandas as pd
+            df_head = pd.read_csv(data_path, nrows=0)
+            available_columns = df_head.columns.tolist()
+            print(f"[REPAIR] Dataset columns: {available_columns}")
+        except Exception as col_err:
+            print(f"[REPAIR] Could not read columns from {data_path}: {col_err}")
+    
+    repaired = repair_code(state["generated_code"], errors, state["tool_spec"], llm_client,
+                           available_columns=available_columns)
     
     # Update the draft file with repaired code
     if state.get("draft_path"):

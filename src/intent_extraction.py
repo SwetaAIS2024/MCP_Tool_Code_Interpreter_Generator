@@ -4,7 +4,6 @@ import json
 import pandas as pd
 from pathlib import Path
 from typing import Dict, Any, Optional, List, Tuple
-from difflib import SequenceMatcher
 from src.models import ToolGeneratorState
 from src.llm_client import QwenLLMClient
 from src.logger_config import get_logger, log_section
@@ -130,10 +129,12 @@ CRITICAL RULES:
             log_section(logger, "COLUMN GROUNDING - Resolving hallucinated columns")
             logger.warning(f"Hallucinated columns: {hallucinated_cols}")
             logger.info(f"Available columns: {columns}")
-            logger.info("Attempting fuzzy matching...")
+            logger.info("Attempting LLM-based grounding...")
             
             # Try to ground hallucinated columns to actual columns
-            grounded, unresolved = self._ground_columns(query, columns, hallucinated_cols)
+            grounded, unresolved = self._ground_columns(query, columns, hallucinated_cols,
+                                                        dtypes=dtypes,
+                                                        sample_values=sample_values)
             
             # Keep non-hallucinated columns that were correct
             valid_cols = [col for col in required_cols if col in columns]
@@ -149,7 +150,7 @@ CRITICAL RULES:
             
             logger.info("GROUNDING RESULTS:")
             logger.info(f"  Valid columns (already existed): {valid_cols}")
-            logger.info(f"  Grounded columns (fuzzy matched): {grounded}")
+            logger.info(f"  Grounded columns (LLM matched): {grounded}")
             logger.info(f"  Unresolved columns (moved to missing): {unresolved}")
         
         # Log extracted intent
@@ -160,91 +161,82 @@ CRITICAL RULES:
         
         return intent
     
-    def _ground_columns(self, query: str, available_columns: List[str], 
-                       required_columns: List[str]) -> Tuple[List[str], List[str]]:
-        """Ground hallucinated column names to actual dataset columns using fuzzy matching.
-        
+    def _ground_columns(self, query: str, available_columns: List[str],
+                       required_columns: List[str],
+                       dtypes: Dict[str, str] = None,
+                       sample_values: Dict[str, list] = None) -> Tuple[List[str], List[str]]:
+        """Ground hallucinated column names to actual dataset columns using the LLM.
+
+        The LLM receives the user query, all available columns with their dtypes
+        and sample values, and each hallucinated name — and picks the semantically
+        correct real column (or NONE).  This prevents numeric/text confusion that
+        pure string-similarity matching causes (e.g. mapping 'injury_count' →
+        'most_severe_injury' instead of 'injuries_total').
+
         Args:
             query: User's natural language query
             available_columns: Actual columns in the dataset
-            required_columns: Columns extracted by LLM (may be hallucinated)
-            
+            required_columns: Hallucinated column names to resolve
+            dtypes: Optional column dtype map
+            sample_values: Optional sample values per column
+
         Returns:
             Tuple of (grounded_columns, unresolved_columns)
         """
         grounded = []
         unresolved = []
-        
-        # Common concept mappings for traffic accident data
-        concept_mappings = {
-            'accident_type': ['crash_type', 'first_crash_type', 'trafficway_type'],
-            'crash_type': ['crash_type', 'first_crash_type'],
-            'type': ['crash_type', 'first_crash_type', 'trafficway_type'],
-            'severity': ['most_severe_injury', 'damage', 'injuries_fatal'],
-            'injury': ['most_severe_injury', 'injuries_total', 'injuries_fatal'],
-            'date': ['crash_date'],
-            'time': ['crash_hour', 'crash_date'],
-            'year': ['crash_date', 'crash_month'],
-            'month': ['crash_month', 'crash_date'],
-            'day': ['crash_day_of_week', 'crash_date'],
-            'hour': ['crash_hour'],
-            'weather': ['weather_condition'],
-            'location': ['alignment', 'trafficway_type'],
-            'cause': ['prim_contributory_cause'],
-            'control': ['traffic_control_device'],
-            'lighting': ['lighting_condition'],
-            'surface': ['roadway_surface_cond'],
-            'defect': ['road_defect']
-        }
-        
+
+        # Build a concise schema description for the LLM
+        schema_lines = []
+        for col in available_columns:
+            dtype = dtypes.get(col, "unknown") if dtypes else "unknown"
+            samples = sample_values.get(col, [])[:3] if sample_values else []
+            schema_lines.append(f"  - {col}  (dtype: {dtype},  samples: {samples})")
+        schema_text = "\n".join(schema_lines)
+
         for req_col in required_columns:
-            # Check if column exists exactly
-            if req_col in available_columns:
-                grounded.append(req_col)
-                continue
-            
-            # Try concept mapping first
-            req_col_lower = req_col.lower()
-            candidates = []
-            for concept, col_list in concept_mappings.items():
-                if concept in req_col_lower or req_col_lower in concept:
-                    candidates.extend([c for c in col_list if c in available_columns])
-            
-            # If no concept match, do fuzzy matching
-            if not candidates:
-                # Calculate similarity scores
-                similarities = []
-                for avail_col in available_columns:
-                    # Token-based matching (split on underscores)
-                    req_tokens = set(req_col_lower.split('_'))
-                    avail_tokens = set(avail_col.lower().split('_'))
-                    
-                    # Jaccard similarity (token overlap)
-                    intersection = len(req_tokens & avail_tokens)
-                    union = len(req_tokens | avail_tokens)
-                    token_score = intersection / union if union > 0 else 0
-                    
-                    # Levenshtein-like similarity (entire string)
-                    string_score = SequenceMatcher(None, req_col_lower, avail_col.lower()).ratio()
-                    
-                    # Combined score (weighted)
-                    combined_score = 0.6 * token_score + 0.4 * string_score
-                    similarities.append((avail_col, combined_score))
-                
-                # Get best match above threshold
-                similarities.sort(key=lambda x: x[1], reverse=True)
-                if similarities and similarities[0][1] >= 0.3:
-                    candidates = [similarities[0][0]]
-            
-            # Use first candidate if found
-            if candidates:
-                best_match = candidates[0]
-                print(f"  [OK] Grounded '{req_col}' -> '{best_match}'")
-                grounded.append(best_match)
-            else:
-                print(f"  [FAIL] Could not ground '{req_col}' (no match in dataset)")
+            prompt = f"""Dataset columns and their dtypes/samples:
+{schema_text}
+
+User query: "{query}"
+Hallucinated column name that does NOT exist: "{req_col}"
+
+Pick the single best matching column from the dataset for "{req_col}".
+- Prefer numeric (int64/float64) columns if the name implies a count or total.
+- Prefer object columns if the name implies a category or label.
+- Reply with ONLY the exact column name from the list above, nothing else.
+- If nothing matches, reply: NONE"""
+
+            try:
+                # Use generate (not generate_structured) so the reasoning model
+                # can use its <think> block freely — we scan the full raw response
+                # (thinking + answer) for any real column name.
+                raw_response = self.llm.generate(prompt, temperature=0.0)
+
+                # 1. Try the final answer line first (after </think> if present)
+                if "</think>" in raw_response:
+                    answer_part = raw_response.split("</think>", 1)[1].strip()
+                else:
+                    answer_part = raw_response.strip()
+
+                cleaned = answer_part.strip('`\'".,: \n').split('\n')[0].strip()
+
+                if cleaned and cleaned != "NONE" and cleaned in available_columns:
+                    print(f"  [OK] Grounded '{req_col}' -> '{cleaned}'")
+                    grounded.append(cleaned)
+                else:
+                    # 2. Scan ENTIRE raw response (incl. <think> reasoning) for any column name
+                    matched = next((col for col in available_columns if col in raw_response), None)
+                    if matched:
+                        print(f"  [OK] Grounded '{req_col}' -> '{matched}' (found in reasoning)")
+                        grounded.append(matched)
+                    else:
+                        print(f"  [FAIL] LLM could not ground '{req_col}' (replied: '{cleaned}')")
+                        unresolved.append(req_col)
+            except Exception as e:
+                logger.warning(f"LLM grounding failed for '{req_col}': {e}")
                 unresolved.append(req_col)
-        
+
         return grounded, unresolved
     
     def _build_prompt(self, query: str, data_path: str, columns: list, 

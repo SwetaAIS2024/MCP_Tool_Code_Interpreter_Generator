@@ -348,10 +348,25 @@ def route_after_validation(state: ToolGeneratorState) -> str:
     validation_result = state.get("validation_result")
     if validation_result and validation_result.is_valid:
         return "executor_node"
-    elif state.get("repair_attempts", 0) < 3:
+
+    # Read max_repair_attempts from config (fallback to 5)
+    try:
+        import yaml
+        with open("config/config.yaml") as f:
+            _cfg = yaml.safe_load(f)
+        max_repair_attempts = _cfg.get("validation", {}).get("max_repair_attempts", 5)
+    except Exception:
+        max_repair_attempts = 5
+
+    # Only route to repair if there are actual error messages to work with
+    has_repairable_errors = bool(validation_result and validation_result.errors)
+
+    if has_repairable_errors and state.get("repair_attempts", 0) < max_repair_attempts:
         return "repair_node"
     else:
-        # Max repair attempts reached, proceed to executor anyway
-        # Let execution/feedback catch any remaining issues
-        logger.warning("⚠️  Max repair attempts reached, proceeding to execution...")
+        # No errors to repair, or max attempts reached — proceed to executor
+        if not has_repairable_errors:
+            logger.warning("⚠️  Validation marked invalid but no error messages found — proceeding to execution")
+        else:
+            logger.warning("⚠️  Max repair attempts reached, proceeding to execution...")
         return "executor_node"

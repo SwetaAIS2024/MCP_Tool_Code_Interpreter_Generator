@@ -1,0 +1,20 @@
+{
+  "tool_name": "custom_transform_injuries_num_units_linear_regression_20260303_141910",
+  "user_query": "Perform linear regression predicting injuries_total using num_units.",
+  "execution_timestamp": "2026-03-03T14:19:17.798039",
+  "data_path": "reference_files/sample_planner_output/traffic_accidents.csv",
+  "result": {
+    "result": {
+      "slope": 0.3228207889672491,
+      "intercept": -0.28335885614452117,
+      "r_squared": 0.025554273081849294,
+      "p_value": 0.0
+    },
+    "metadata": {
+      "num_samples": 209306
+    }
+  },
+  "summary_markdown": null,
+  "execution_time_ms": 2627.657413482666,
+  "error": null
+}

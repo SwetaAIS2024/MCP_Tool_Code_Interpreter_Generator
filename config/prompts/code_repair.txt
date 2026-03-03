@@ -9,18 +9,28 @@ ERRORS TO FIX:
 TOOL SPEC:
 {spec}
 
+AVAILABLE DATASET COLUMNS (ONLY use these exact column names — do NOT invent column names):
+{available_columns}
+
 COMMON ERROR PATTERNS AND FIXES:
 1. "complex() first argument must be a string or a number, not 'list'" → You're trying to do math with a list instead of numbers. Use numeric operations on list items, not the list itself.
 2. "name 'X' is not defined" → Missing import statement. Add the correct import at the top.
 3. "list object has no attribute 'mean'" → Lists don't have .mean(). Use numpy: np.mean(list) or pandas: pd.Series(list).mean()
 4. "'list' object is not callable" → You're calling a list like a function. Check for misnamed variables.
+5. "KeyError: 'column_name'" or "column not found" → You used a wrong column name. Look at AVAILABLE DATASET COLUMNS above and use the EXACT column name from that list.
+6. "Invalid frequency: M" / "'M' is no longer supported" → Used in resample/Grouper/date_range: replace 'M'→'ME', 'Q'→'QE', 'Y'→'YE', 'A'→'YE'. BUT if used in dt.to_period() or pd.Period(), keep the OLD alias ('M', 'Q', 'Y') — to_period() never adopted the new aliases.
+   "for Period, please use 'Y' instead of 'YE'" → You passed 'YE' to dt.to_period() or pd.Period(). Replace 'YE'→'Y', 'ME'→'M', 'QE'→'Q' inside ALL to_period() / pd.Period() calls only.
+7. Result shows dates in 1970 / all data collapsed to one month → You called pd.to_datetime() on an INTEGER month column (e.g. crash_month=7). Integer values are treated as nanosecond Unix offsets → 1970. Fix: use the full date column (e.g. 'crash_date') instead:
+     df['period'] = pd.to_datetime(df['crash_date']).dt.to_period('M')
+     monthly = df.groupby('period')['injuries_total'].sum().reset_index()
+   NEVER call pd.to_datetime() or resample() on an integer 1-12 month column.
 
 Instructions:
 1. Read the ERRORS carefully - they tell you exactly what's wrong
 2. If error mentions a missing function/module, add the import
 3. If error mentions wrong data type, convert or process the data correctly
 4. Maintain the original functionality and purpose
-5. Keep the function signature: def function_name(file_path: str):
+5. Keep the EXACT function name and signature: def {function_name}(file_path: str): — do NOT rename the function
 6. Ensure code follows best practices
 7. Add any missing error handling
 8. Return a dictionary with 'result' and 'metadata' keys

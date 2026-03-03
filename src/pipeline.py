@@ -233,15 +233,15 @@ def run_pipeline(user_query: str, data_path: str, thread_id: str = None) -> Dict
     Args:
         user_query: Natural language query from user
         data_path: Path to data file to analyze
-        thread_id: Unique identifier for this run (auto-generated UUID if not provided).
-                   Pass a stable string to resume a checkpointed run.
+        thread_id: LangGraph thread identifier for checkpointer isolation.
+                   Defaults to a new UUID if not provided.
         
     Returns:
         Final state dict with all pipeline results
     """
-    import uuid
+    import uuid as _uuid
     if thread_id is None:
-        thread_id = str(uuid.uuid4())
+        thread_id = str(_uuid.uuid4())
 
     # Build graph
     graph = build_graph()
@@ -270,7 +270,8 @@ def run_pipeline(user_query: str, data_path: str, thread_id: str = None) -> Dict
         "messages": []
     }
     
-    # Run graph
-    result = graph.invoke(initial_state, config={"configurable": {"thread_id": thread_id}})
+    # Run graph — thread_id is required by the MemorySaver checkpointer
+    config = {"configurable": {"thread_id": thread_id}}
+    result = graph.invoke(initial_state, config=config)
     
     return result

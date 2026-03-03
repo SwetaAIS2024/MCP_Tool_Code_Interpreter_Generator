@@ -1,0 +1,15 @@
+{
+  "tool_name": "time_series_crash_injury_aggregator_20260303_162405",
+  "user_query": "Show monthly trend of total injuries.",
+  "execution_timestamp": "2026-03-03T16:24:09.572802",
+  "data_path": "reference_files/sample_planner_output/traffic_accidents.csv",
+  "result": {
+    "result": {},
+    "metadata": {
+      "error": "Invalid frequency: M. Failed to parse with error message: ValueError(\"'M' is no longer supported for offsets. Please use 'ME' instead.\")"
+    }
+  },
+  "summary_markdown": null,
+  "execution_time_ms": 640.3102874755859,
+  "error": null
+}
