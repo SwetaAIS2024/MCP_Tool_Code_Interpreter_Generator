@@ -110,10 +110,14 @@ class QwenLLMClient(BaseLLMClient):
         )
 
         # Initialize OpenAI-compatible client (works with Ollama, llama-server, vLLM)
+        # max_retries=0: disable SDK-level retries — our generate_structured() loop
+        # already handles retries. SDK retries on top of ours cause confusing
+        # "Retrying request" log spam and double-wait on model load errors.
         self.client = OpenAI(
             base_url=base_url,
             api_key=api_key,
-            http_client=httpx.Client(timeout=timeout)
+            http_client=httpx.Client(timeout=timeout),
+            max_retries=0
         )
         
         # Determine which model to use - must be 'reasoning' or 'coding'

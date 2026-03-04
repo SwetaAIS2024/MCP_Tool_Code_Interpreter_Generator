@@ -15,7 +15,10 @@ llm:
 
   # HTTP timeouts (seconds)
   connect_timeout: 10
-  read_timeout: 180
+  # read_timeout: allow up to 10 minutes for large models (deepseek-r1:70b)
+  # to respond on the first request after Ollama restarts (model load into VRAM
+  # can take several minutes before inference even begins).
+  read_timeout: 600
 
   # Model aliases — for Ollama use ollama names, for llama-server use --alias values
   models:
