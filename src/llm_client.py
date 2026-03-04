@@ -9,7 +9,12 @@ from typing import Dict, Any, Optional
 from pathlib import Path
 import httpx
 from openai import OpenAI
+from dotenv import load_dotenv
 from src.logger_config import get_logger
+
+# Load .env from the repo root so LLM_BASE_URL and LLM_API_KEY are available
+# regardless of which entry point (test.py, pipeline, server) starts the process.
+load_dotenv()
 
 logger = get_logger(__name__)
 
