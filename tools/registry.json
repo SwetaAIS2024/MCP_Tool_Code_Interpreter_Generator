@@ -475,6 +475,23 @@
       ],
       "return_type": "Dict[str, Any]",
       "output_file": "output\\active\\groupby_weather_condition_year_injuries_20260303_180326_output.json"
+    },
+    {
+      "name": "groupby_trafficway_composite_index_20260304_151849",
+      "description": "This tool performs a group by operation on trafficway_type and calculates a normalized composite crash severity index using injuries_total, injuries_fatal, and num_units.",
+      "user_query": "Construct a composite crash severity index using: injuries_total,injuries_fatal, num_units. Normalize the index and rank by trafficway_type.",
+      "tool_path": "tools\\active\\groupby_trafficway_composite_index_20260304_151849.py",
+      "log_file": "logs\\pipeline_20260304_151547.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file containing the data",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\groupby_trafficway_composite_index_20260304_151849_output.json"
     }
   ]
 }

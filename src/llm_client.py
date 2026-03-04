@@ -1,11 +1,17 @@
 """LLM Client Module - Abstraction layer for LLM interactions."""
 
 import json
+import os
+import time
 import yaml
 from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional
 from pathlib import Path
+import httpx
 from openai import OpenAI
+from src.logger_config import get_logger
+
+logger = get_logger(__name__)
 
 
 # ============================================================================
@@ -65,10 +71,44 @@ class QwenLLMClient(BaseLLMClient):
         with open(config_file) as f:
             self.config = yaml.safe_load(f)
         
-        # Initialize OpenAI-compatible client
+        # Resolve the Ollama base URL — two supported scenarios:
+        #
+        #   Scenario A (running ON the GPU machine):
+        #     LLM_BASE_URL is not set → falls back to config.yaml base_url
+        #     which defaults to http://localhost:11434/v1.
+        #
+        #   Scenario B (running on a CLIENT machine):
+        #     Set LLM_BASE_URL=http://<GPU_IP>:11434/v1 in .env
+        #     The env var takes priority over config.yaml.
+        #
+        # Both models share this single URL — Ollama routes each request
+        # to the correct model via the model name field.
+        base_url = (
+            os.getenv("LLM_BASE_URL")
+            or self.config["llm"]["base_url"]
+        )
+        logger.debug("LLM base_url=%s  model_type=%s", base_url, model_override)
+
+        api_key = (
+            os.getenv("LLM_API_KEY")
+            or self.config["llm"].get("api_key", "not-needed")
+        )
+
+        # HTTP timeouts — important when llama-server is on a remote machine
+        connect_timeout = self.config["llm"].get("connect_timeout", 10)
+        read_timeout    = self.config["llm"].get("read_timeout", 180)
+        timeout = httpx.Timeout(
+            connect=connect_timeout,
+            read=read_timeout,
+            write=30,
+            pool=5
+        )
+
+        # Initialize OpenAI-compatible client (works with Ollama, llama-server, vLLM)
         self.client = OpenAI(
-            base_url=self.config["llm"]["base_url"],
-            api_key="not-needed"  # vLLM doesn't require API key
+            base_url=base_url,
+            api_key=api_key,
+            http_client=httpx.Client(timeout=timeout)
         )
         
         # Determine which model to use - must be 'reasoning' or 'coding'
@@ -149,44 +189,45 @@ class QwenLLMClient(BaseLLMClient):
             )
         
         # Use very low temperature for structured output
-        response = self.generate(prompt, temperature=0.0, system_message=system_message)
-        
-        try:
-            # Remove <think> tags if present (common with reasoning models)
-            if "<think>" in response and "</think>" in response:
-                # Extract content after </think>
-                response = response.split("</think>", 1)[1].strip()
-            
-            # Try to extract JSON from markdown code blocks if present
-            if "```json" in response:
-                # Extract JSON from markdown code block
-                start = response.find("```json") + 7
-                end = response.find("```", start)
-                json_str = response[start:end].strip()
-            elif "```" in response:
-                # Generic code block
-                start = response.find("```") + 3
-                end = response.find("```", start)
-                json_str = response[start:end].strip()
-            else:
-                # Look for JSON object boundaries
-                # Find first { and last }
-                first_brace = response.find("{")
-                last_brace = response.rfind("}")
-                
-                if first_brace != -1 and last_brace != -1 and last_brace > first_brace:
-                    json_str = response[first_brace:last_brace+1].strip()
+        # Retry up to 3 times on malformed JSON
+        last_error = None
+        for attempt in range(1, 4):
+            retry_hint = "" if attempt == 1 else " Return ONLY valid JSON, no other text."
+            response = self.generate(prompt + retry_hint, temperature=0.0, system_message=system_message)
+
+            try:
+                # Remove <think> tags if present (common with reasoning models)
+                if "<think>" in response and "</think>" in response:
+                    response = response.split("</think>", 1)[1].strip()
+
+                # Try to extract JSON from markdown code blocks if present
+                if "```json" in response:
+                    start = response.find("```json") + 7
+                    end = response.find("```", start)
+                    json_str = response[start:end].strip()
+                elif "```" in response:
+                    start = response.find("```") + 3
+                    end = response.find("```", start)
+                    json_str = response[start:end].strip()
                 else:
-                    json_str = response.strip()
-            
-            return json.loads(json_str)
-        except json.JSONDecodeError as e:
-            # Enhanced error message showing what we tried to parse
-            raise ValueError(
-                f"Failed to parse JSON response: {e}\n"
-                f"Extracted JSON string (first 500 chars): {json_str[:500]}\n"
-                f"Full response (first 1000 chars): {response[:1000]}"
-            )
+                    first_brace = response.find("{")
+                    last_brace  = response.rfind("}")
+                    if first_brace != -1 and last_brace != -1 and last_brace > first_brace:
+                        json_str = response[first_brace:last_brace+1].strip()
+                    else:
+                        json_str = response.strip()
+
+                return json.loads(json_str)
+
+            except json.JSONDecodeError as e:
+                last_error = e
+                logger.warning(f"JSON parse failed (attempt {attempt}/3): {e} — retrying")
+                time.sleep(0.5)
+
+        raise ValueError(
+            f"Failed to parse JSON response after 3 attempts: {last_error}\n"
+            f"Full response (first 1000 chars): {response[:1000]}"
+        )
 
 
 # ============================================================================
