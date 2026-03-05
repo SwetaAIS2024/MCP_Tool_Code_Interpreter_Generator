@@ -1,0 +1,224 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15" version="29.3.7">
+  <diagram name="MCP Tool Code Interpreter" id="arch-main">
+    <mxGraphModel dx="2014" dy="705" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;fontStyle=1;" value="MCP Tool Code Interpreter Generator — End-to-End Architecture" vertex="1">
+          <mxGeometry height="40" width="1300" x="-32" y="7" as="geometry" />
+        </mxCell>
+        <mxCell id="bg-llm" parent="1" style="swimlane;startSize=30;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=12;" value="LLM Infrastructure" vertex="1">
+          <mxGeometry height="1060" width="240" x="40" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="vllm" parent="bg-llm" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=11;" value="vLLM / Ollama Server&#xa;(Qwen 2.5-Coder)" vertex="1">
+          <mxGeometry height="60" width="200" x="20" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="llm-client" parent="bg-llm" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1ba1e2;fontColor=#ffffff;strokeColor=#006EAF;fontSize=10;" value="QwenLLMClient&#xa;(src/llm_client.py)&#xa;generate() / generate_structured()" vertex="1">
+          <mxGeometry height="70" width="200" x="20" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="config-yaml" parent="bg-llm" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;size=14;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" value="config/config.yaml&#xa;(model, timeouts, retries)" vertex="1">
+          <mxGeometry height="60" width="200" x="20" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="prompts" parent="bg-llm" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;size=14;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" value="config/prompts/&#xa;intent_extraction_v2.txt&#xa;spec_generation.txt&#xa;code_generation.txt&#xa;code_repair.txt" vertex="1">
+          <mxGeometry height="90" width="200" x="20" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="sandbox" parent="bg-llm" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" value="SubprocessSandboxExecutor&#xa;(src/sandbox.py)&#xa;Isolated subprocess execution" vertex="1">
+          <mxGeometry height="60" width="200" x="20" y="490" as="geometry" />
+        </mxCell>
+        <mxCell id="sandbox-policy" parent="bg-llm" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;size=14;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" value="config/sandbox_policy.yaml&#xa;(resource limits, timeout)" vertex="1">
+          <mxGeometry height="50" width="200" x="20" y="580" as="geometry" />
+        </mxCell>
+        <mxCell id="models" parent="bg-llm" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;" value="src/models.py&#xa;ToolSpec · ValidationReport&#xa;RunArtifacts · ToolGeneratorState" vertex="1">
+          <mxGeometry height="60" width="200" x="20" y="660" as="geometry" />
+        </mxCell>
+        <mxCell id="logger" parent="bg-llm" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;" value="src/logger_config.py&#xa;Structured logging + sections" vertex="1">
+          <mxGeometry height="50" width="200" x="20" y="750" as="geometry" />
+        </mxCell>
+        <mxCell id="bg-pipeline" parent="1" style="swimlane;startSize=30;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;fontStyle=1;fontSize=12;" value="LangGraph Pipeline  (src/pipeline.py)" vertex="1">
+          <mxGeometry height="1060" width="560" x="340" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="user-input" parent="bg-pipeline" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f0a30a;fontColor=#000000;strokeColor=#BD7000;fontStyle=1;fontSize=12;" value="USER INPUT&#xa;user_query (NL) + data_path" vertex="1">
+          <mxGeometry height="60" width="250" x="155" y="55" as="geometry" />
+        </mxCell>
+        <mxCell id="run-pipeline" parent="bg-pipeline" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;fontSize=10;" value="run_pipeline()&#xa;Initialises ToolGeneratorState&#xa;MemorySaver checkpointer" vertex="1">
+          <mxGeometry height="60" width="250" x="155" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="intent-node" parent="bg-pipeline" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" value="intent_node&#xa;(src/intent_extraction.py)&#xa;IntentExtractor · QwenLLMClient&#xa;→ extracted_intent + has_gap" vertex="1">
+          <mxGeometry height="70" width="250" x="155" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="route-intent" parent="bg-pipeline" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" value="route_after_intent&#xa;has_gap?" vertex="1">
+          <mxGeometry height="70" width="190" x="185" y="345" as="geometry" />
+        </mxCell>
+        <mxCell id="end-no-gap" parent="bg-pipeline" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" value="END&#xa;(no capability gap)" vertex="1">
+          <mxGeometry height="50" width="120" x="410" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="spec-node" parent="bg-pipeline" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" value="spec_generator_node&#xa;(src/spec_generator.py)&#xa;SpecGenerator · QwenLLMClient&#xa;→ tool_spec (ToolSpec)" vertex="1">
+          <mxGeometry height="70" width="250" x="155" y="455" as="geometry" />
+        </mxCell>
+        <mxCell id="codegen-node" parent="bg-pipeline" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" value="code_generator_node&#xa;(src/code_generator.py)&#xa;CodeGenerator · black fmt&#xa;FastMCP @mcp.tool() wrap&#xa;→ generated_code + draft_path" vertex="1">
+          <mxGeometry height="80" width="250" x="155" y="565" as="geometry" />
+        </mxCell>
+        <mxCell id="validator-node" parent="bg-pipeline" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" value="validator_node&#xa;(src/validator.py)&#xa;Syntax · Schema · Sandbox&#xa;→ validation_result" vertex="1">
+          <mxGeometry height="70" width="250" x="155" y="690" as="geometry" />
+        </mxCell>
+        <mxCell id="route-validation" parent="bg-pipeline" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" value="route_after_validation&#xa;is_valid?" vertex="1">
+          <mxGeometry height="70" width="190" x="185" y="795" as="geometry" />
+        </mxCell>
+        <mxCell id="repair-node" parent="bg-pipeline" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" value="repair_node&#xa;(src/code_generator.py)&#xa;LLM repair · repair_attempts++&#xa;→ generated_code (patched)" vertex="1">
+          <mxGeometry height="80" width="140" x="20" y="795" as="geometry" />
+        </mxCell>
+        <mxCell id="executor-node" parent="bg-pipeline" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" value="executor_node&#xa;(src/executor.py)&#xa;ToolExecutor · load func · run&#xa;FunctionTool-first discovery&#xa;→ execution_output + draft_output_path" vertex="1">
+          <mxGeometry height="80" width="250" x="155" y="910" as="geometry" />
+        </mxCell>
+        <mxCell id="route-execution" parent="bg-pipeline" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" value="route_after_execution&#xa;error? repair budget?" vertex="1">
+          <mxGeometry height="70" width="190" x="185" y="1025" as="geometry" />
+        </mxCell>
+        <mxCell id="end-max-repair" parent="bg-pipeline" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" value="END&#xa;(max repairs exceeded)" vertex="1">
+          <mxGeometry height="50" width="120" x="410" y="1040" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="bg-pipeline" source="user-input" style="edgeStyle=orthogonalEdgeStyle;" target="run-pipeline">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="bg-pipeline" source="run-pipeline" style="edgeStyle=orthogonalEdgeStyle;" target="intent-node">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="bg-pipeline" source="intent-node" style="edgeStyle=orthogonalEdgeStyle;" target="route-intent">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="bg-pipeline" source="route-intent" style="edgeStyle=orthogonalEdgeStyle;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" target="end-no-gap" value="False&#xa;(no gap)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="bg-pipeline" source="route-intent" style="edgeStyle=orthogonalEdgeStyle;" target="spec-node" value="True (gap detected)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="bg-pipeline" source="spec-node" style="edgeStyle=orthogonalEdgeStyle;" target="codegen-node">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="bg-pipeline" source="codegen-node" style="edgeStyle=orthogonalEdgeStyle;" target="validator-node">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="bg-pipeline" source="validator-node" style="edgeStyle=orthogonalEdgeStyle;" target="route-validation">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="bg-pipeline" source="route-validation" style="edgeStyle=orthogonalEdgeStyle;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" target="repair-node" value="Invalid">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" edge="1" parent="bg-pipeline" source="repair-node" style="edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="validator-node" value="retry">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="90" y="730" />
+              <mxPoint x="90" y="725" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e11" edge="1" parent="bg-pipeline" source="route-validation" style="edgeStyle=orthogonalEdgeStyle;" target="executor-node" value="Valid">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" edge="1" parent="bg-pipeline" source="executor-node" style="edgeStyle=orthogonalEdgeStyle;" target="route-execution">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e13" edge="1" parent="bg-pipeline" source="route-execution" style="edgeStyle=orthogonalEdgeStyle;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" target="end-max-repair" value="Max repairs">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e14" edge="1" parent="bg-pipeline" source="route-execution" style="edgeStyle=orthogonalEdgeStyle;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="repair-node" value="Error + budget">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="90" y="1060" />
+              <mxPoint x="90" y="835" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bg-storage" parent="1" style="swimlane;startSize=30;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=12;" value="Storage &amp; Registry" vertex="1">
+          <mxGeometry height="1060" width="240" x="980" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="tools-draft" parent="bg-storage" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" value="tools/draft/&#xa;*.py  (generated, not yet run)" vertex="1">
+          <mxGeometry height="70" width="200" x="20" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="output-draft" parent="bg-storage" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" value="output/draft/&#xa;*_output.json  (raw results)" vertex="1">
+          <mxGeometry height="70" width="200" x="20" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="tools-active" parent="bg-storage" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" value="tools/active/&#xa;*.py  (promoted, production)" vertex="1">
+          <mxGeometry height="70" width="200" x="20" y="290" as="geometry" />
+        </mxCell>
+        <mxCell id="output-active" parent="bg-storage" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" value="output/active/&#xa;*_output.json  (promoted results)" vertex="1">
+          <mxGeometry height="70" width="200" x="20" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="registry" parent="bg-storage" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" value="tools/registry.json&#xa;Promoted tool catalog&#xa;(name, path, spec, timestamp)" vertex="1">
+          <mxGeometry height="80" width="200" x="20" y="510" as="geometry" />
+        </mxCell>
+        <mxCell id="data-input" parent="bg-storage" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" value="data/sample_datasets/&#xa;*.csv  (input data)" vertex="1">
+          <mxGeometry height="70" width="200" x="20" y="630" as="geometry" />
+        </mxCell>
+        <mxCell id="bg-integration" parent="1" style="swimlane;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=12;" value="Integration Layer  (integration/mapper.py)" vertex="1">
+          <mxGeometry height="120" width="560" x="340" y="1160" as="geometry" />
+        </mxCell>
+        <mxCell id="promoter-node" parent="bg-integration" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=10;" value="promoter_node&#xa;(src/promoter.py)&#xa;draft → active · registry.json update" vertex="1">
+          <mxGeometry height="55" width="210" x="30" y="45" as="geometry" />
+        </mxCell>
+        <mxCell id="projection-node" parent="bg-integration" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" value="projection_node (pipeline.py)&#xa;Packages projected_* fields&#xa;for parent AnalysisPipelineState" vertex="1">
+          <mxGeometry height="55" width="210" x="290" y="45" as="geometry" />
+        </mxCell>
+        <mxCell id="pe2" edge="1" parent="bg-integration" source="promoter-node" style="edgeStyle=orthogonalEdgeStyle;" target="projection-node">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="end-final" parent="bg-integration" style="ellipse;whiteSpace=wrap;html=1;fillColor=#82b366;fontColor=#ffffff;strokeColor=#67AB9F;fontStyle=1;fontSize=12;" value="END" vertex="1">
+          <mxGeometry height="30" width="30" x="510" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="pe3" edge="1" parent="bg-integration" source="projection-node" style="edgeStyle=orthogonalEdgeStyle;" target="end-final">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ce1" edge="1" parent="1" source="vllm" style="edgeStyle=orthogonalEdgeStyle;" target="llm-client">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ce2" edge="1" parent="1" source="llm-client" style="edgeStyle=orthogonalEdgeStyle;dashed=1;strokeColor=#6c8ebf;" target="intent-node" value="LLM call">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ce3" edge="1" parent="1" source="llm-client" style="edgeStyle=orthogonalEdgeStyle;dashed=1;strokeColor=#6c8ebf;" target="spec-node" value="LLM call">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ce4" edge="1" parent="1" source="llm-client" style="edgeStyle=orthogonalEdgeStyle;dashed=1;strokeColor=#6c8ebf;" target="codegen-node" value="LLM call">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ce5" edge="1" parent="1" source="llm-client" style="edgeStyle=orthogonalEdgeStyle;dashed=1;strokeColor=#b85450;" target="repair-node" value="LLM repair">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ce6" edge="1" parent="1" source="sandbox" style="edgeStyle=orthogonalEdgeStyle;dashed=1;strokeColor=#b85450;" target="validator-node" value="sandbox exec">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ce7" edge="1" parent="1" source="prompts" style="edgeStyle=orthogonalEdgeStyle;dashed=1;strokeColor=#d6b656;" target="intent-node" value="prompt">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ce8" edge="1" parent="1" source="prompts" style="edgeStyle=orthogonalEdgeStyle;dashed=1;strokeColor=#d6b656;" target="spec-node" value="prompt">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ce9" edge="1" parent="1" source="prompts" style="edgeStyle=orthogonalEdgeStyle;dashed=1;strokeColor=#d6b656;" target="codegen-node" value="prompt">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ce10" edge="1" parent="1" source="data-input" style="edgeStyle=orthogonalEdgeStyle;dashed=1;strokeColor=#82b366;" target="intent-node" value="CSV schema">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ce11" edge="1" parent="1" source="codegen-node" style="edgeStyle=orthogonalEdgeStyle;dashed=1;strokeColor=#82b366;" target="tools-draft" value="writes .py">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ce12" edge="1" parent="1" source="executor-node" style="edgeStyle=orthogonalEdgeStyle;dashed=1;strokeColor=#82b366;" target="output-draft" value="writes _output.json">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ce13" edge="1" parent="1" source="promoter-node" style="edgeStyle=orthogonalEdgeStyle;dashed=1;strokeColor=#82b366;" target="tools-active" value="promotes .py">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ce14" edge="1" parent="1" source="promoter-node" style="edgeStyle=orthogonalEdgeStyle;dashed=1;strokeColor=#82b366;" target="output-active" value="moves _output.json">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ce15" edge="1" parent="1" source="promoter-node" style="edgeStyle=orthogonalEdgeStyle;dashed=1;strokeColor=#82b366;" target="registry" value="updates catalog">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pe1" edge="1" parent="1" source="route-execution" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#82b366;fontColor=#82b366;fontStyle=1;" target="promoter-node" value="Success">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ce16" edge="1" parent="1" source="data-input" style="edgeStyle=orthogonalEdgeStyle;dashed=1;strokeColor=#d6b656;" target="executor-node" value="data_path">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -134,40 +134,48 @@ class ToolExecutor:
         # DEBUG: Print what's in the module
         all_attrs = [name for name in dir(module) if not name.startswith('_')]
         logger.debug(f"Module contents: {all_attrs}")
-        
-        # Find the actual function - look for user-defined functions
+
         import types
-        for attr_name in dir(module):
-            if not attr_name.startswith('_') and attr_name not in ['mcp', 'FastMCP', 'pd', 'pandas', 'time', 'sns', 'plt', 'seaborn', 'matplotlib', 'chi2_contingency']:
-                attr = getattr(module, attr_name)
-                logger.debug(f"Checking '{attr_name}': type={type(attr)}, callable={callable(attr)}, is_function={isinstance(attr, types.FunctionType)}")
-                
-                # Check if it's a FunctionTool from FastMCP (decorated function)
-                if type(attr).__name__ == 'FunctionTool':
-                    logger.debug("Found FunctionTool, extracting underlying function...")
-                    # The FunctionTool has the original function stored
-                    # Try common attribute names for the wrapped function
-                    for key in ['func', 'fn', '_func', 'function', '_fn', '__wrapped__']:
-                        if hasattr(attr, key):
-                            func = getattr(attr, key)
-                            if callable(func):
-                                logger.debug(f"Successfully extracted function from FunctionTool via '{key}'")
-                                return func
-                    # If we can't extract, try calling the FunctionTool directly
-                    # but this might not work as expected
-                    logger.warning("Could not extract function from FunctionTool, trying direct call")
-                    return attr
-                
-                # Check if it's a regular function
-                if isinstance(attr, types.FunctionType):
-                    logger.debug(f"Found regular function: {attr_name}")
-                    return attr
-                
-                # Check if it's any other callable (but not a class)
-                if callable(attr) and not isinstance(attr, type):
-                    logger.debug(f"Found callable: {attr_name}")
-                    return attr
-        
+
+        EXCLUDED = frozenset([
+            'mcp', 'FastMCP', 'pd', 'pandas', 'np', 'numpy',
+            'time', 'sns', 'plt', 'seaborn', 'matplotlib',
+            'chi2_contingency', 'pearsonr', 'spearmanr', 'kendalltau',
+            'json', 'os', 'sys', 'Path', 'datetime', 'defaultdict',
+            'Counter', 'itertools', 'functools', 'collections',
+        ])
+
+        candidate_attrs = [
+            name for name in dir(module)
+            if not name.startswith('_') and name not in EXCLUDED
+        ]
+
+        # Pass 1: prefer @mcp.tool()-decorated functions (FunctionTool objects)
+        # These are always the actual generated tool, regardless of alphabetical order.
+        for attr_name in candidate_attrs:
+            attr = getattr(module, attr_name)
+            if type(attr).__name__ == 'FunctionTool':
+                logger.debug(f"Found FunctionTool '{attr_name}', extracting underlying function...")
+                for key in ['func', 'fn', '_func', 'function', '_fn', '__wrapped__']:
+                    if hasattr(attr, key):
+                        func = getattr(attr, key)
+                        if callable(func):
+                            logger.debug(f"Extracted function from FunctionTool via '{key}'")
+                            return func
+                logger.warning("Could not extract function from FunctionTool, trying direct call")
+                return attr
+
+        # Pass 2: fall back to the first plain user-defined function found
+        for attr_name in candidate_attrs:
+            attr = getattr(module, attr_name)
+            logger.debug(f"Checking '{attr_name}': type={type(attr)}, callable={callable(attr)}, is_function={isinstance(attr, types.FunctionType)}")
+            if isinstance(attr, types.FunctionType):
+                logger.debug(f"Found regular function: {attr_name}")
+                return attr
+            if callable(attr) and not isinstance(attr, type):
+                logger.debug(f"Found callable: {attr_name}")
+                return attr
+
         raise ValueError("No executable function found in module")
     
     def _execute_with_timeout(self, func: Callable, kwargs: Dict[str, Any], 
