@@ -1,0 +1,89 @@
+{
+  "tool_name": "injury_statistics_groupby_20260305_174344",
+  "user_query": "Compare injury distributions across the dataset.",
+  "execution_timestamp": "2026-03-05T17:43:47.923273",
+  "data_path": "/Users/swetapattnaik/Desktop/ST_ENGG_work/code_gen_run_client/MCP_Tool_Code_Interpreter_Generator/reference_files/sample_planner_output/traffic_accidents.csv",
+  "result": {
+    "result": {
+      "comparison": {
+        "injuries_fatal": {
+          "count": 209306.0,
+          "mean": 0.001858522928153039,
+          "std": 0.04750164090768463,
+          "min": 0.0,
+          "25%": 0.0,
+          "75%": 0.0,
+          "max": 3.0
+        },
+        "injuries_incapacitating": {
+          "count": 209306.0,
+          "mean": 0.03810210887408866,
+          "std": 0.2339635630072055,
+          "min": 0.0,
+          "25%": 0.0,
+          "75%": 0.0,
+          "max": 7.0
+        },
+        "injuries_non_incapacitating": {
+          "count": 209306.0,
+          "mean": 0.22124067155265498,
+          "std": 0.6149596972692436,
+          "min": 0.0,
+          "25%": 0.0,
+          "75%": 0.0,
+          "max": 21.0
+        },
+        "injuries_reported_not_evident": {
+          "count": 209306.0,
+          "mean": 0.12151586672145089,
+          "std": 0.45086501269532775,
+          "min": 0.0,
+          "25%": 0.0,
+          "75%": 0.0,
+          "max": 15.0
+        },
+        "injuries_no_indication": {
+          "count": 209306.0,
+          "mean": 2.2440016053051512,
+          "std": 1.2411750428697175,
+          "min": 0.0,
+          "25%": 2.0,
+          "75%": 3.0,
+          "max": 49.0
+        }
+      },
+      "difference": {
+        "injuries_fatal_vs_injuries_incapacitating": {
+          "absolute_difference": 0.036243585945935616,
+          "percentage_difference": 1950.1285347043702
+        },
+        "injuries_incapacitating_vs_injuries_non_incapacitating": {
+          "absolute_difference": 0.18313856267856632,
+          "percentage_difference": 480.6520376175548
+        },
+        "injuries_non_incapacitating_vs_injuries_reported_not_evident": {
+          "absolute_difference": 0.09972480483120409,
+          "percentage_difference": 45.07525860021164
+        },
+        "injuries_reported_not_evident_vs_injuries_no_indication": {
+          "absolute_difference": 2.1224857385837,
+          "percentage_difference": 1746.6737438075015
+        }
+      }
+    },
+    "metadata": {
+      "file_path": "/Users/swetapattnaik/Desktop/ST_ENGG_work/code_gen_run_client/MCP_Tool_Code_Interpreter_Generator/reference_files/sample_planner_output/traffic_accidents.csv",
+      "columns_used": [
+        "injuries_total",
+        "injuries_fatal",
+        "injuries_incapacitating",
+        "injuries_non_incapacitating",
+        "injuries_reported_not_evident",
+        "injuries_no_indication"
+      ]
+    }
+  },
+  "summary_markdown": null,
+  "execution_time_ms": 1693.6228275299072,
+  "error": null
+}

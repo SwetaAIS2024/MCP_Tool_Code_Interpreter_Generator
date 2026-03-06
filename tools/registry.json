@@ -50,6 +50,108 @@
       ],
       "return_type": "Dict[str, Any]",
       "output_file": "output/active/weather_injuries_correlation_20260305_111542_output.json"
+    },
+    {
+      "name": "custom_transform_injuries_total_intersection_related_i_20260305_114834",
+      "description": "Performs a custom transformation to compare injuries_total between groups based on intersection_related_i, including statistical tests and effect size calculation.",
+      "user_query": "Compare injury distributions between Y and not-Y intersection cases.",
+      "tool_path": "tools/active/custom_transform_injuries_total_intersection_related_i_20260305_114834.py",
+      "log_file": "logs/pipeline_20260305_113834.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output/active/custom_transform_injuries_total_intersection_related_i_20260305_114834_output.json"
+    },
+    {
+      "name": "custom_transform_lighting_condition_injuries_total_20260305_133122",
+      "description": "Performs a custom transformation to compare injuries_total under different lighting conditions using statistical tests.",
+      "user_query": "Compare injuries_total between lighting_condition = \u2018DAYLIGHT\u2019 and not DAYLIGHT.",
+      "tool_path": "tools/active/custom_transform_lighting_condition_injuries_total_20260305_133122.py",
+      "log_file": "logs/pipeline_20260305_132242.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output/active/custom_transform_lighting_condition_injuries_total_20260305_133122_output.json"
+    },
+    {
+      "name": "groupby_aggregate_lighting_condition_injuries_total_20260305_140850",
+      "description": "This tool performs a group-by aggregation on the 'lighting_condition' column and computes descriptive statistics for 'injuries_total'. It compares 'DAYLIGHT' vs non-'DAYLIGHT' conditions.",
+      "user_query": "Compare injuries_total between lighting_condition = \u2018DAYLIGHT\u2019 and not DAYLIGHT.",
+      "tool_path": "tools/active/groupby_aggregate_lighting_condition_injuries_total_20260305_140850.py",
+      "log_file": "logs/pipeline_20260305_135746.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output/active/groupby_aggregate_lighting_condition_injuries_total_20260305_140850_output.json"
+    },
+    {
+      "name": "custom_transform_intersection_injuries_20260305_150229",
+      "description": "Performs a custom transformation to analyze injuries based on intersection-related incidents. The analysis includes normality testing and appropriate statistical tests (t-test or Mann-Whitney U) to compare injury distributions between groups.",
+      "user_query": "Compare injury distributions between Y and not-Y intersection cases.",
+      "tool_path": "tools/active/custom_transform_intersection_injuries_20260305_150229.py",
+      "log_file": "logs/pipeline_20260305_145141.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file containing the data",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output/active/custom_transform_intersection_injuries_20260305_150229_output.json"
+    },
+    {
+      "name": "custom_transform_intersection_injuries_20260305_161659",
+      "description": "Performs a custom transformation to analyze injuries based on intersection-related incidents. The analysis includes normality testing and appropriate statistical tests (t-test or Mann-Whitney U) to compare injury distributions between groups.",
+      "user_query": "Compare injury distributions between Y and not-Y intersection cases.",
+      "tool_path": "tools/active/custom_transform_intersection_injuries_20260305_161659.py",
+      "log_file": "logs/pipeline_20260305_155731.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file containing the data",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output/active/custom_transform_intersection_injuries_20260305_161659_output.json"
+    },
+    {
+      "name": "injury_summary_statistics_20260305_183155",
+      "description": "Generates descriptive statistics for injury-related columns in a dataset.",
+      "user_query": "Compare injury distributions across the dataset.",
+      "tool_path": "tools/active/injury_summary_statistics_20260305_183155.py",
+      "log_file": "logs/pipeline_20260305_182058.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file containing injury data",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output/active/injury_summary_statistics_20260305_183155_output.json"
     }
   ]
 }

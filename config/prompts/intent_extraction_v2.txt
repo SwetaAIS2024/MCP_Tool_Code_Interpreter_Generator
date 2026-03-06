@@ -83,9 +83,14 @@ OPERATION SELECTION PRIORITY:
 STEP 2A: Check for explicit statistical keywords
 If query contains:
 ANOVA, t-test, chi-square, correlation, regression, Tukey, post-hoc, p-value, effect size,
-statistical testing, significantly differ, compare distributions, hypothesis test, differ significantly
+statistical testing, significantly differ, hypothesis test, differ significantly
 → operation = "custom_transform"
 → has_gap = true
+
+NOTE: "compare distributions" alone is NOT a statistical keyword. It only triggers
+custom_transform when ALSO combined with an explicit grouping signal:
+  "Y versus others", "vs", "between X and Y", "compared to", "versus"
+Without a grouping signal, treat it as STEP 2B/2D (groupby_aggregate or describe_summary).
 
 DETERMINE TEST TYPE (set in gap_reason):
 
@@ -105,6 +110,16 @@ OTHER STATISTICAL TESTS:
 - Correlation → gap_reason = "Correlation analysis: use scipy.stats.pearsonr or spearmanr."
 - Regression → gap_reason = "Regression analysis: use scipy.stats.linregress or statsmodels OLS."
 - Chi-square → gap_reason = "Independence test: use scipy.stats.chi2_contingency."
+
+STEP 2A.5: AMBIGUITY GUARD — "compare distributions" without a grouping variable
+If query contains "compare distributions" OR "distribution" AND does NOT contain:
+  "versus", "vs", " vs ", "between", "compared to", "Y versus", "differ significantly",
+  "t-test", "ANOVA", "chi-square", "Mann-Whitney", "statistically"
+→ The query is too vague to pick a statistical test.
+→ operation = "describe_summary"
+→ has_gap = false
+→ implementation_plan: descriptive statistics (mean, median, std, percentiles, value_counts)
+   on injury-related columns. Do NOT apply any statistical test.
 
 STEP 2B: Check for variation/comparison patterns
 If query contains:

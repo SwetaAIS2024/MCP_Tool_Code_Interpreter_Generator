@@ -347,100 +347,123 @@ Return JSON with this structure:
 class GapDetector:
     """Detect if a new tool is needed or existing tool can handle the request."""
     
-    def __init__(self, registry_path: str = "registry/tools.json"):
+    def __init__(self, registry_path: str = "tools/registry.json"):
         """Initialize gap detector.
         
         Args:
-            registry_path: Path to tools registry
+            registry_path: Path to tools registry (default: tools/registry.json written by ToolPromoter)
         """
         self.registry_path = Path(registry_path)
     
-    def detect(self, intent: Dict[str, Any]) -> bool:
+    def detect(self, intent: Dict[str, Any], user_query: str = "") -> tuple:
         """Detect if there's a capability gap requiring a new tool.
         
         Args:
             intent: Extracted intent dictionary
+            user_query: Original natural language query (used for similarity)
             
         Returns:
-            True if new tool is needed, False if existing tool can handle it
+            Tuple of (has_gap: bool, best_match: Optional[Dict])
+            best_match is the highest-scoring registry entry, or None if registry is empty.
         """
         existing_tools = self._load_registry()
         
         if not existing_tools:
             # No tools in registry, always need new tool
-            return True
+            return True, None
         
-        # Calculate overlap with each existing tool
-        overlap_scores = [
-            self._calculate_overlap(intent, tool) 
-            for tool in existing_tools.values()
-        ]
+        # Find the best-matching tool and its score
+        best_tool = None
+        best_score = 0.0
+        for tool in existing_tools.values():
+            score = self._calculate_overlap(intent, tool, user_query)
+            if score > best_score:
+                best_score = score
+                best_tool = tool
         
-        # If best overlap is < 85%, we need a new tool
-        max_overlap = max(overlap_scores, default=0)
-        return max_overlap < 0.85
+        threshold = 0.5
+        logger.info(f"🔍 Gap detection: best registry match score = {best_score:.3f} (threshold {threshold})")
+        has_gap = best_score < threshold
+        return has_gap, (best_tool if not has_gap else None)
     
     def _load_registry(self) -> Dict[str, Any]:
         """Load tools from registry.
-        
+
+        tools/registry.json stores tools as a LIST of dicts (written by ToolPromoter).
+        Normalise to a name-keyed dict so the rest of the logic is uniform.
+
         Returns:
-            Dictionary of registered tools
+            Dict mapping tool name -> tool metadata
         """
         if not self.registry_path.exists():
             return {}
-        
+
         try:
             with open(self.registry_path) as f:
                 registry = json.load(f)
-            return registry.get("tools", {})
+            tools_raw = registry.get("tools", {})
+
+            # Handle list format (current promoter output)
+            if isinstance(tools_raw, list):
+                return {t["name"]: t for t in tools_raw if isinstance(t, dict) and "name" in t}
+
+            # Handle legacy dict format
+            if isinstance(tools_raw, dict):
+                return tools_raw
+
+            return {}
         except Exception:
             return {}
     
-    def _calculate_overlap(self, intent: Dict, tool: Dict) -> float:
+    def _calculate_overlap(self, intent: Dict, tool: Dict, user_query: str = "") -> float:
         """Calculate overlap score between intent and existing tool.
-        
+
+        Scoring:
+          - user_query word overlap:             0.5 weight
+          - required_columns Jaccard similarity: 0.3 weight
+          - operation match:                     0.2 weight
+
         Args:
             intent: Extracted intent
-            tool: Existing tool metadata
-            
+            tool: Existing tool metadata (from tools/registry.json)
+            user_query: Original natural language query
+
         Returns:
             Overlap score between 0.0 and 1.0
         """
         score = 0.0
-        weights = {"operation": 0.4, "columns": 0.3, "metrics": 0.3}
-        
-        # Compare operation
-        if intent.get("operation") == tool.get("operation"):
-            score += weights["operation"]
-        
-        # Compare columns (set intersection)
-        # Note: intent uses "required_columns" in new schema
+
+        # --- 1. Operation match (0.2) ---
+        intent_op = intent.get("operation", "")
+        tool_op = tool.get("operation", "")
+        if intent_op and tool_op and intent_op == tool_op:
+            score += 0.2
+        elif not tool_op:
+            # Registry entries don't store operation — don't penalise
+            score += 0.1
+
+        # --- 2. Required columns Jaccard (0.3) ---
         intent_cols = set(intent.get("required_columns", intent.get("columns", [])))
         tool_cols = set(tool.get("required_columns", tool.get("columns", [])))
+        if not tool_cols:
+            # Try to infer from tool name tokens (e.g. weather_injuries_correlation)
+            tool_name_tokens = set(tool.get("name", "").lower().split("_"))
+            tool_cols = {c for c in intent_cols if c.lower() in tool_name_tokens}
         if intent_cols and tool_cols:
             col_overlap = len(intent_cols & tool_cols) / len(intent_cols | tool_cols)
-            score += weights["columns"] * col_overlap
-        
-        # Compare metrics (set intersection)
-        # Note: metrics is now array of objects, extract names
-        intent_metrics_raw = intent.get("metrics", [])
-        if isinstance(intent_metrics_raw, list) and intent_metrics_raw and isinstance(intent_metrics_raw[0], dict):
-            # New schema: extract metric names
-            intent_metrics = set(m.get("name") for m in intent_metrics_raw if m.get("name"))
-        else:
-            # Old schema or simple strings
-            intent_metrics = set(intent_metrics_raw) if isinstance(intent_metrics_raw, list) else set()
-        
-        tool_metrics_raw = tool.get("metrics", [])
-        if isinstance(tool_metrics_raw, list) and tool_metrics_raw and isinstance(tool_metrics_raw[0], dict):
-            tool_metrics = set(m.get("name") for m in tool_metrics_raw if m.get("name"))
-        else:
-            tool_metrics = set(tool_metrics_raw) if isinstance(tool_metrics_raw, list) else set()
-        
-        if intent_metrics and tool_metrics:
-            metric_overlap = len(intent_metrics & tool_metrics) / len(intent_metrics | tool_metrics)
-            score += weights["metrics"] * metric_overlap
-        
+            score += 0.3 * col_overlap
+
+        # --- 3. User-query word overlap (0.5) ---
+        tool_query = tool.get("user_query", "").lower()
+        if user_query and tool_query:
+            stop = {"the", "a", "an", "of", "in", "and", "or", "by", "for",
+                    "with", "to", "from", "is", "are", "was", "were", "be"}
+            iw = set(user_query.lower().split()) - stop
+            tw = set(tool_query.split()) - stop
+            if iw and tw:
+                query_overlap = len(iw & tw) / len(iw | tw)
+                score += 0.5 * query_overlap
+
         return score
 
 
@@ -467,17 +490,18 @@ def extract_intent(query: str, data_path: str, llm_client: Optional[QwenLLMClien
     return extractor.extract(query, data_path)
 
 
-def detect_capability_gap(intent: Dict) -> bool:
+def detect_capability_gap(intent: Dict, user_query: str = "") -> tuple:
     """Detect if new tool is needed.
     
     Args:
         intent: Extracted intent dictionary
+        user_query: Original natural language query (used for similarity matching)
         
     Returns:
-        True if new tool needed, False if existing tool can handle it
+        Tuple of (has_gap: bool, best_match: Optional[Dict])
     """
     detector = GapDetector()
-    return detector.detect(intent)
+    return detector.detect(intent, user_query=user_query)
 
 
 # ============================================================================
@@ -500,7 +524,7 @@ def intent_node(state: ToolGeneratorState) -> ToolGeneratorState:
     # Use reasoning model for intent extraction and planning
     llm_client = create_llm_client(model_type="reasoning")
     intent = extract_intent(state["user_query"], state["data_path"], llm_client)
-    gap_detected = detect_capability_gap(intent)
+    gap_detected, best_match = detect_capability_gap(intent, user_query=state["user_query"])
     
     # Validate intent before proceeding
     # Load dataset to get available columns
@@ -534,7 +558,8 @@ def intent_node(state: ToolGeneratorState) -> ToolGeneratorState:
     return {
         **state,
         "extracted_intent": intent,
-        "has_gap": gap_detected
+        "has_gap": gap_detected,
+        "matched_tool": best_match,
     }
 
 
@@ -604,5 +629,19 @@ def route_after_intent(state: ToolGeneratorState) -> str:
         print(f"   Grounded: {required_cols}")
         print(f"   Missing: {missing_cols}\n")
     
-    # Proceed to spec generation if gates passed
-    return "spec_generator_node" if not state["has_gap"] else "spec_generator_node"
+    # Route based on gap detection result
+    # has_gap=True  → a new tool is needed → generate spec → code → ...
+    # has_gap=False → an existing tool already covers this request → done
+    if not state["has_gap"]:
+        logger.info("✅ Existing tool covers this request — skipping generation")
+        matched = state.get("matched_tool") or {}
+        tool_name = matched.get("name", "unknown")
+        tool_path = matched.get("tool_path", "")
+        output_file = matched.get("output_file", "")
+        logger.info(f"   📦 Matched tool : {tool_name}")
+        if tool_path:
+            logger.info(f"   📄 Tool path    : {tool_path}")
+        if output_file:
+            logger.info(f"   📊 Last output  : {output_file}")
+        return END
+    return "spec_generator_node"
