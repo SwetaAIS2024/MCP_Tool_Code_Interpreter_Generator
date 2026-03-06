@@ -475,6 +475,57 @@
       ],
       "return_type": "Dict[str, Any]",
       "output_file": "output\\active\\groupby_weather_condition_year_injuries_20260303_180326_output.json"
+    },
+    {
+      "name": "intersection_injury_analysis_20260305_161723",
+      "description": "Performs a custom transformation to analyze injuries based on intersection relation using statistical tests.",
+      "user_query": "Compare injury distributions between records where intersection_related_i = 'Y' versus others. Perform statistical testing to evaluate whether total injuries differ significantly.",
+      "tool_path": "tools\\active\\intersection_injury_analysis_20260305_161723.py",
+      "log_file": "logs\\pipeline_20260305_160228.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\intersection_injury_analysis_20260305_161723_output.json"
+    },
+    {
+      "name": "injury_intersection_analysis_20260305_170527",
+      "description": "A custom data analysis tool that performs statistical tests to compare injuries based on intersection relatedness.",
+      "user_query": "Compare injury distributions between records where intersection_related_i = 'Y' versus others. Perform statistical testing to evaluate whether total injuries differ significantly.",
+      "tool_path": "tools\\active\\injury_intersection_analysis_20260305_170527.py",
+      "log_file": "logs\\pipeline_20260305_164834.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file containing the data.",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\injury_intersection_analysis_20260305_170527_output.json"
+    },
+    {
+      "name": "injury_distribution_chi_square_20260305_173600",
+      "description": "Analyzes injury distributions using chi-square test of independence to compare injury distributions across groups.",
+      "user_query": "Compare injury distributions across the dataset.",
+      "tool_path": "tools\\active\\injury_distribution_chi_square_20260305_173600.py",
+      "log_file": "logs\\pipeline_20260305_172240.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file containing injury data",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\injury_distribution_chi_square_20260305_173600_output.json"
     }
   ]
 }

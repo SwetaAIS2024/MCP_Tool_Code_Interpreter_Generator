@@ -104,6 +104,7 @@ class ToolGeneratorState(TypedDict):
     # Intent
     extracted_intent: Optional[Dict]
     has_gap: bool
+    matched_tool: Optional[Dict]
     
     # Generation
     tool_spec: Optional[ToolSpec]

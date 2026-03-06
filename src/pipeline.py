@@ -252,6 +252,7 @@ def run_pipeline(user_query: str, data_path: str, thread_id: str = None) -> Dict
         "data_path": data_path,
         "extracted_intent": None,
         "has_gap": False,
+        "matched_tool": None,
         "tool_spec": None,
         "generated_code": None,
         "draft_path": None,
