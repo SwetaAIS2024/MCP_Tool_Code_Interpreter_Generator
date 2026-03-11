@@ -96,7 +96,7 @@ If the query is asking for the TOTAL COUNT of rows/records WITHOUT any grouping 
   → operation = "describe_summary"
   → required_columns = []
   → has_gap = false
-  → metrics = [{"name": "count", "column": null, "alias": "total_count"}]
+  → metrics = [{{"name": "count", "column": null, "alias": "total_count"}}]
   → implementation_plan:
       Step 1: Load the dataset
       Step 2: Compute total_count = len(df)

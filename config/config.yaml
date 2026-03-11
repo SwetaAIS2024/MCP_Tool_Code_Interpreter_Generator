@@ -26,6 +26,12 @@ llm:
     coding: "qwen2.5-coder:32b"    # For code generation and repair
   temperature: 0.4
 
+  # Context window size (tokens).
+  # Default Ollama value is 262144, which allocates ~40GB KV cache — far more
+  # than needed for this pipeline (each stage uses <2000 tokens).
+  # 16384 reduces KV cache to ~3-6GB and cuts latency from ~2-3 min to ~20-40 sec.
+  num_ctx: 16384
+
 # Paths
 paths:
   draft_dir: "./tools/draft"
@@ -56,6 +62,6 @@ logging:
 server:
   host: "0.0.0.0"           # bind on all interfaces so other machines can reach it
   port: 8000
-  max_concurrent_pipelines: 2   # how many pipeline runs share the GPU at once
+  max_concurrent_pipelines: 1   # how many pipeline runs share the GPU at once
                                  # raise only if VRAM allows parallel inference
   job_ttl_seconds: 3600         # how long to keep finished job records in memory
