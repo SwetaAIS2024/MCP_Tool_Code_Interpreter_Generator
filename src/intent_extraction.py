@@ -45,7 +45,7 @@ class IntentExtractor:
         
         # Log available columns
         log_section(logger, "INTENT EXTRACTION - AVAILABLE COLUMNS")
-        logger.debug(f"Columns: {columns}")
+        logger.info(f"Columns: {columns}")
         
         # Build comprehensive analysis prompt
         prompt = self._build_prompt(query, data_path, columns, dtypes, sample_values)

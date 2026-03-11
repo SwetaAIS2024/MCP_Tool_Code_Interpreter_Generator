@@ -17,6 +17,8 @@ CORE TASK
 Given:
 USER_QUERY: {query}
 AVAILABLE_COLUMNS: {columns}
+COLUMN_TYPES: {dtypes}
+SAMPLE_VALUES: {sample_values}
 
 You must determine:
 - operation
@@ -30,7 +32,8 @@ You must determine:
 STEP 1 — COLUMN MATCHING (DO FIRST)
 ====================
 
-Find dataset columns needed for the query using substring matching.
+Find dataset columns needed for the query using substring matching AND semantic reasoning
+over COLUMN_TYPES and SAMPLE_VALUES.
 
 Rules:
 1. Split query into meaningful words (ignore: the, and, by, across, for, with, etc.)
@@ -41,13 +44,19 @@ Rules:
    fatal → injuries_fatal
    weather → weather_condition
    injury (generic) → injuries_total (unless fatal specified)
-5. Never select time columns (columns containing: date, time, timestamp, hour, month, year, e.g. crash_date, crash_hour, crash_month, crash_day_of_week) unless query EXPLICITLY mentions:
-   time, hour, day, date, month, year
+5. For FILTER CONCEPTS (semantic qualifiers like "weekend", "night", "rainy", "January",
+   "fatal", "intersection-related"):
+   - Do NOT rely on keyword-in-column-name matching alone.
+   - Search AVAILABLE_COLUMNS for the semantically correct column, then confirm by
+     inspecting SAMPLE_VALUES to verify the column contains values that correspond
+     to the concept (e.g. day-of-week integers, hour integers, category strings).
+   - Include that column in required_columns even if the query uses a synonym.
+6. Never select pure date/timestamp columns (e.g. crash_date) unless the query
+   EXPLICITLY mentions: time, hour, day, date, month, year.
    IMPORTANT: Domain synonyms do NOT override this rule.
-   Examples: "accidents" ≠ crash_date, "crashes" ≠ crash_date, "incidents" ≠ crash_date.
-   Do NOT select crash_date simply because the query mentions accidents or crashes.
-6. If concept exists in query but no column matches → add to missing_columns
-7. **TIME-SERIES COLUMN PRIORITY**: If query asks for a "monthly trend", "trend over time", "time series" etc:
+   Examples: "accidents" ≠ crash_date, "crashes" ≠ crash_date.
+7. If concept exists in query but no column matches → add to missing_columns
+8. **TIME-SERIES COLUMN PRIORITY**: If query asks for a "monthly trend", "trend over time", "time series" etc:
    - ALWAYS prefer the full datetime column (e.g. crash_date, date, timestamp, incident_date) over an integer period column (crash_month, month, crash_year, year).
    - Integer columns named 'crash_month', 'month', 'crash_year' contain only 1-12 or year numbers — they LOSE year information and cannot form a proper time series across years.
    - Include BOTH the full date column AND the integer column in required_columns, but instruct the implementation_plan to parse the full date column.
@@ -85,14 +94,30 @@ OPERATION SELECTION PRIORITY:
 
 ⚠️ SIMPLE COUNT / TOTAL GUARD — CHECK THIS FIRST BEFORE ALL OTHER STEPS:
 
-If the query is asking for the TOTAL COUNT of rows/records WITHOUT any grouping signal:
-  COUNT SIGNALS (any of): "total number of", "how many", "total count", "count all",
-    "total no of", "total [records/rows/accidents/entries/incidents/cases/crashes]",
-    "give the total", "what is the total", "overall count"
+This guard fires ONLY when the query asks for a plain, unfiltered total count of ALL rows.
 
-  NO grouping signals present: no "by", "per", "across", "for each", "group by",
-    "grouped", "breakdown", "split by"
+Step A — Check for COUNT SIGNALS (any of):
+  "total number of", "how many", "total count", "count all",
+  "total no of", "total [records/rows/accidents/entries/incidents/cases/crashes]",
+  "give the total", "what is the total", "overall count"
 
+Step B — Check for FILTER / CONDITION SIGNALS that BLOCK this guard:
+  If the query contains ANY of the following, this guard does NOT apply:
+  - Conditional words: "which", "that", "where", "only", "with", "having", "when"
+  - Time/day qualifiers: "on weekends", "on monday", "in january", "at night",
+    "during", "between [time]", "at [hour]"
+  - Attribute filters: "with [attribute]", "caused by", "in [category]", "under [condition]"
+  - Any adjective narrowing the set: "fatal", "severe", "intersection-related", etc.
+  Examples of BLOCKED queries (→ use filter operation instead):
+    ✗ "total accidents on weekends"      → has filter: "on weekends"
+    ✗ "how many fatal accidents"         → has filter: "fatal"
+    ✗ "total crashes in January"         → has filter: "in January"
+    ✗ "accidents which happened at night"→ has filter: "at night"
+
+Step C — NO grouping signals present: no "by", "per", "across", "for each",
+  "group by", "grouped", "breakdown", "split by"
+
+If Step A matches AND Step B does NOT block AND Step C is satisfied:
   → operation = "describe_summary"
   → required_columns = []
   → has_gap = false
@@ -102,8 +127,37 @@ If the query is asking for the TOTAL COUNT of rows/records WITHOUT any grouping 
       Step 2: Compute total_count = len(df)
       Step 3: Return {{"total_count": total_count}}
 
-  ⛔ HARD OVERRIDE: Do NOT map this to groupby_aggregate, even if the query contains
-     words like "count" or "total". If there is no grouping column, it is NOT a groupby.
+  ⛔ HARD OVERRIDE: Do NOT map this to groupby_aggregate if there is no grouping column.
+
+If Step B BLOCKS (filter condition present):
+  → operation = "filter"
+  → required_columns = [columns needed for the filter condition]
+  → has_gap = false
+  → implementation_plan must:
+      Step 1: Load the dataset and select required columns
+      Step 2: Apply the filter condition(s) to produce a subset DataFrame
+      Step 3: Compute total_count = len(filtered_df)
+      Step 4: Return {{"total_count": total_count, "filter_applied": "<describe filter>"}}
+
+  FILTER COLUMN RESOLUTION — use COLUMN_TYPES and SAMPLE_VALUES to derive the correct
+  column and filter values. Do NOT hardcode assumptions. Reason as follows:
+
+  1. Identify the semantic concept in the filter (e.g. "weekend", "night", "January",
+     "rainy", "fatal", "intersection").
+  2. Search AVAILABLE_COLUMNS for a column whose name semantically matches the concept.
+     Examples of semantic matching:
+       - "day of week" concept → look for a column with "day" or "week" in the name
+       - "hour / time of day" concept → look for a column with "hour" or "time" in the name
+       - "month" concept → look for a column with "month" or "date" in the name
+       - "severity / fatal" concept → look for a column with "fatal", "severe", or "injury" in the name
+  3. Inspect SAMPLE_VALUES for that column to understand its encoding.
+     Examples:
+       - If a day-of-week column has samples [1, 2, 3, 6, 7], those are likely integer codes —
+         look at the range to infer whether 1-based or 0-based, and which values mean weekend.
+       - If an hour column has samples [0, 13, 22], it is 0–23 — infer time-of-day ranges.
+       - If a severity column has samples ['FATAL', 'NO INJURY'], filter on the exact string.
+  4. Include the inferred filter values in the implementation_plan step for the filter.
+  5. If no column clearly matches the filter concept, add it to missing_columns.
 
 STEP 2A: Check for explicit statistical keywords
 If query contains:
@@ -157,6 +211,9 @@ If query contains:
 
 STEP 2C: Detect basic operations
 - "filter", "where", "only", "exclude" → filter
+- "which happened on [condition]", "that occurred [condition]", "on weekends",
+  "on weekdays", "at night", "in [month]", "with [attribute]" → filter
+  (count-with-condition queries: total/count + a narrowing filter → operation = "filter")
 - "top N", "count by", "most common" → groupby_aggregate
 - "summary", "describe", "statistics" → describe_summary
 - "pivot", "crosstab", "matrix" (EXPLICIT only) → pivot

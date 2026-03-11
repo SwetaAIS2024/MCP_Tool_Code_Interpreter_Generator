@@ -169,6 +169,91 @@
       ],
       "return_type": "Dict[str, Any]",
       "output_file": "output/active/describe_summary_total_count_20260311_155637_output.json"
+    },
+    {
+      "name": "describe_summary_total_count_20260311_180932",
+      "description": "Computes the total count of rows in the dataset.",
+      "user_query": "give the total no of accidents",
+      "tool_path": "tools/active/describe_summary_total_count_20260311_180932.py",
+      "log_file": "logs/pipeline_20260311_180023.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output/active/describe_summary_total_count_20260311_180932_output.json"
+    },
+    {
+      "name": "describe_summary_total_count_20260311_182733",
+      "description": "Computes the total count of rows in the dataset.",
+      "user_query": "give the total no of accidents",
+      "tool_path": "tools/active/describe_summary_total_count_20260311_182733.py",
+      "log_file": "logs/pipeline_20260311_181554.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output/active/describe_summary_total_count_20260311_182733_output.json"
+    },
+    {
+      "name": "describe_summary_total_count_20260311_183209",
+      "description": "Computes the total count of rows in a dataset.",
+      "user_query": "give the total no of accidents which happened on Weekends.",
+      "tool_path": "tools/active/describe_summary_total_count_20260311_183209.py",
+      "log_file": "logs/pipeline_20260311_183043.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output/active/describe_summary_total_count_20260311_183209_output.json"
+    },
+    {
+      "name": "filter_crash_day_of_week_20260311_185008",
+      "description": "Filters the dataset to include only crashes occurring on weekends (Sunday or Saturday) and returns the total count of such crashes.",
+      "user_query": "give the total no of accidents which happened on Weekends.",
+      "tool_path": "tools/active/filter_crash_day_of_week_20260311_185008.py",
+      "log_file": "logs/pipeline_20260311_184745.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output/active/filter_crash_day_of_week_20260311_185008_output.json"
+    },
+    {
+      "name": "filter_crash_day_of_week_20260311_185335",
+      "description": "Filters the dataset to include only crashes occurring on weekdays (Monday to Friday) and returns the total count of such crashes.",
+      "user_query": "give the total no of accidents which happened on Weekdays.",
+      "tool_path": "tools/active/filter_crash_day_of_week_20260311_185335.py",
+      "log_file": "logs/pipeline_20260311_185125.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output/active/filter_crash_day_of_week_20260311_185335_output.json"
     }
   ]
 }

@@ -38,38 +38,38 @@ class CodeGenerator:
         # Build prompt for code generation
         prompt = self._build_prompt(spec)
         
-        # Debug: Log prompt
+        # Log prompt
         log_section(logger, "CODE GENERATION PROMPT")
-        logger.debug(prompt[:1000] + "..." if len(prompt) > 1000 else prompt)
+        logger.info(prompt[:1000] + "..." if len(prompt) > 1000 else prompt)
         
         # Generate code with low temperature for consistency
         raw_code = self.llm.generate(prompt, temperature=0.2)
         
-        # Debug: Log raw response
+        # Log raw response
         log_section(logger, "RAW LLM RESPONSE")
-        logger.debug(raw_code[:1000] + "..." if len(raw_code) > 1000 else raw_code)
+        logger.info(raw_code[:2000] + "..." if len(raw_code) > 2000 else raw_code)
         
         # Extract code from markdown blocks or conversational text
         code = self._extract_code(raw_code)
         
-        # Debug: Log extracted code
+        # Log extracted code
         log_section(logger, "EXTRACTED CODE (before wrapping)")
-        logger.debug(code[:1000] + "..." if len(code) > 1000 else code)
+        logger.info(code[:2000] + "..." if len(code) > 2000 else code)
         
         # Wrap with MCP decorator and imports
         full_code = self._wrap_with_mcp(code, spec.tool_name, spec.parameters)
         
-        # Debug: Log wrapped code
+        # Log wrapped code
         log_section(logger, "WRAPPED CODE (before black formatting)")
-        logger.debug(full_code[:1000] + "..." if len(full_code) > 1000 else full_code)
+        logger.info(full_code[:2000] + "..." if len(full_code) > 2000 else full_code)
         
         # Format with black
         try:
             formatted_code = black.format_str(full_code, mode=black.FileMode())
             
-            # Debug: Log final formatted code
+            # Log final formatted code
             log_section(logger, "FINAL FORMATTED CODE")
-            logger.debug(formatted_code)
+            logger.info(formatted_code[:2000] + "..." if len(formatted_code) > 2000 else formatted_code)
             
             return formatted_code
         except Exception as e:
