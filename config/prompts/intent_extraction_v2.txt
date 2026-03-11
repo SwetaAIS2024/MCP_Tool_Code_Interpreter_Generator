@@ -41,8 +41,11 @@ Rules:
    fatal → injuries_fatal
    weather → weather_condition
    injury (generic) → injuries_total (unless fatal specified)
-5. Never select time columns unless query mentions:
+5. Never select time columns (columns containing: date, time, timestamp, hour, month, year, e.g. crash_date, crash_hour, crash_month, crash_day_of_week) unless query EXPLICITLY mentions:
    time, hour, day, date, month, year
+   IMPORTANT: Domain synonyms do NOT override this rule.
+   Examples: "accidents" ≠ crash_date, "crashes" ≠ crash_date, "incidents" ≠ crash_date.
+   Do NOT select crash_date simply because the query mentions accidents or crashes.
 6. If concept exists in query but no column matches → add to missing_columns
 7. **TIME-SERIES COLUMN PRIORITY**: If query asks for a "monthly trend", "trend over time", "time series" etc:
    - ALWAYS prefer the full datetime column (e.g. crash_date, date, timestamp, incident_date) over an integer period column (crash_month, month, crash_year, year).
@@ -79,6 +82,28 @@ STEP 2 — OPERATION DETECTION
    "chi-square", "chi2", "contingency test", "independence test"
 
 OPERATION SELECTION PRIORITY:
+
+⚠️ SIMPLE COUNT / TOTAL GUARD — CHECK THIS FIRST BEFORE ALL OTHER STEPS:
+
+If the query is asking for the TOTAL COUNT of rows/records WITHOUT any grouping signal:
+  COUNT SIGNALS (any of): "total number of", "how many", "total count", "count all",
+    "total no of", "total [records/rows/accidents/entries/incidents/cases/crashes]",
+    "give the total", "what is the total", "overall count"
+
+  NO grouping signals present: no "by", "per", "across", "for each", "group by",
+    "grouped", "breakdown", "split by"
+
+  → operation = "describe_summary"
+  → required_columns = []
+  → has_gap = false
+  → metrics = [{"name": "count", "column": null, "alias": "total_count"}]
+  → implementation_plan:
+      Step 1: Load the dataset
+      Step 2: Compute total_count = len(df)
+      Step 3: Return {{"total_count": total_count}}
+
+  ⛔ HARD OVERRIDE: Do NOT map this to groupby_aggregate, even if the query contains
+     words like "count" or "total". If there is no grouping column, it is NOT a groupby.
 
 STEP 2A: Check for explicit statistical keywords
 If query contains:
