@@ -688,6 +688,64 @@ The pipeline automatically generates a Mermaid diagram (`pipeline_graph.mmd`) sh
 
 ---
 
+## Ollama Server Configuration
+
+Set these environment variables on the **GPU machine** before starting `ollama serve` to maximise performance on multi-GPU setups.
+
+
+![alt text](ollama_env_server.png)
+
+```powershell
+# Windows — set persistently for the current user (no admin rights required)
+[System.Environment]::SetEnvironmentVariable("OLLAMA_HOST",             "0.0.0.0:11434", "User")
+[System.Environment]::SetEnvironmentVariable("OLLAMA_FLASH_ATTENTION",  "1",             "User")
+[System.Environment]::SetEnvironmentVariable("OLLAMA_KEEP_ALIVE",       "-1",            "User")
+[System.Environment]::SetEnvironmentVariable("OLLAMA_KV_CACHE_TYPE",    "q8_0",          "User")
+[System.Environment]::SetEnvironmentVariable("OLLAMA_MAX_LOADED_MODELS","2",             "User")
+[System.Environment]::SetEnvironmentVariable("OLLAMA_MAX_QUEUE",        "512",           "User")
+[System.Environment]::SetEnvironmentVariable("OLLAMA_NUM_PARALLEL",     "2",             "User")
+[System.Environment]::SetEnvironmentVariable("OLLAMA_SCHED_SPREAD",     "1",             "User")
+```
+
+```bash
+# Linux / macOS — add to ~/.bashrc or ~/.zshrc
+export OLLAMA_HOST=0.0.0.0:11434
+export OLLAMA_FLASH_ATTENTION=1
+export OLLAMA_KEEP_ALIVE=-1
+export OLLAMA_KV_CACHE_TYPE=q8_0
+export OLLAMA_MAX_LOADED_MODELS=2
+export OLLAMA_MAX_QUEUE=512
+export OLLAMA_NUM_PARALLEL=2
+export OLLAMA_SCHED_SPREAD=1
+```
+
+### Variable Reference
+
+| Variable | Value | Purpose |
+|---|---|---|
+| `OLLAMA_HOST` | `0.0.0.0:11434` | Bind on all interfaces so client machines can reach Ollama over the network |
+| `OLLAMA_FLASH_ATTENTION` | `1` | Enable Flash Attention — reduces memory usage and speeds up attention computation |
+| `OLLAMA_KEEP_ALIVE` | `-1` | Keep models loaded in VRAM indefinitely (no auto-unload after idle timeout) |
+| `OLLAMA_KV_CACHE_TYPE` | `q8_0` | Quantise the KV cache to 8-bit — cuts KV cache VRAM from ~40 GB to ~5 GB |
+| `OLLAMA_MAX_LOADED_MODELS` | `2` | Allow both `deepseek-r1:70b` and `qwen2.5-coder:32b` to stay loaded simultaneously |
+| `OLLAMA_MAX_QUEUE` | `512` | Maximum number of requests that can queue before Ollama returns 503 |
+| `OLLAMA_NUM_PARALLEL` | `2` | Number of parallel inference requests per model (matches `max_concurrent_pipelines`) |
+| `OLLAMA_SCHED_SPREAD` | `1` | Spread model layers evenly across all available GPUs (important for 2× A6000 setups) |
+
+> **After setting these variables, restart Ollama:**
+> ```powershell
+> Get-Process | Where-Object { $_.Name -like "*ollama*" } | Stop-Process -Force
+> Start-Sleep -Seconds 3
+> ollama serve
+> ```
+> Verify the server is listening on all interfaces:
+> ```powershell
+> netstat -an | findstr 11434
+> # Must show: 0.0.0.0:11434
+> ```
+
+---
+
 ## Troubleshooting
 
 ### Common Issues
@@ -810,6 +868,8 @@ cat output/active/anova_tukeyhsd_traffic_injuries_<timestamp>_output.json
 - **Qwen** - Code generation model
 
 ---
+
+
  
 **Last Updated**: February 25, 2026
 
