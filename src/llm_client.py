@@ -135,6 +135,7 @@ class QwenLLMClient(BaseLLMClient):
         self.model = models_dict[model_override]
         
         self.default_temperature = self.config["llm"].get("temperature", 0.3)
+        self.num_ctx = self.config["llm"].get("num_ctx", 16384)
     
     def generate(self, prompt: str, temperature: float = None, system_message: str = None) -> str:
         """Generate free-form text response.
@@ -159,7 +160,8 @@ class QwenLLMClient(BaseLLMClient):
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=messages,
-                temperature=temperature
+                temperature=temperature,
+                extra_body={"options": {"num_ctx": self.num_ctx}}
             )
             raw = response.choices[0].message.content
             # Strip <think>…</think> reasoning blocks emitted by reasoning models
