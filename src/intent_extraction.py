@@ -45,7 +45,7 @@ class IntentExtractor:
         
         # Log available columns
         log_section(logger, "INTENT EXTRACTION - AVAILABLE COLUMNS")
-        logger.debug(f"Columns: {columns}")
+        logger.info(f"Columns: {columns}")
         
         # Build comprehensive analysis prompt
         prompt = self._build_prompt(query, data_path, columns, dtypes, sample_values)
@@ -524,7 +524,10 @@ def intent_node(state: ToolGeneratorState) -> ToolGeneratorState:
     # Use reasoning model for intent extraction and planning
     llm_client = create_llm_client(model_type="reasoning")
     intent = extract_intent(state["user_query"], state["data_path"], llm_client)
-    gap_detected, best_match = detect_capability_gap(intent, user_query=state["user_query"])
+
+    # CURRENTLY DISABLED GAP DETECTION - always proceed to generation, but store best match if any for later use
+    # gap_detected, best_match = detect_capability_gap(intent, user_query=state["user_query"]) 
+    gap_detected, best_match = True, None  # Force generation for now while we iterate on intent extraction quality
     
     # Validate intent before proceeding
     # Load dataset to get available columns
