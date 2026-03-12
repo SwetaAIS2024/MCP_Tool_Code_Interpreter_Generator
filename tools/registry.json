@@ -254,6 +254,23 @@
       ],
       "return_type": "Dict[str, Any]",
       "output_file": "output/active/filter_crash_day_of_week_20260311_185335_output.json"
+    },
+    {
+      "name": "groupby_aggregate_crash_day_of_week_injuries_20260312_160358",
+      "description": "This tool performs a group-by aggregation on crash data to analyze injury distributions across weekend days (Sunday and Saturday). It calculates total injuries and specific injury types for each day.",
+      "user_query": "Compare injury distributions across the dataset over weekends only.",
+      "tool_path": "tools\\active\\groupby_aggregate_crash_day_of_week_injuries_20260312_160358.py",
+      "log_file": "logs\\pipeline_20260312_160054.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\groupby_aggregate_crash_day_of_week_injuries_20260312_160358_output.json"
     }
   ]
 }

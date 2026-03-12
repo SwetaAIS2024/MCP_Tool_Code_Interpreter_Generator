@@ -1,0 +1,15 @@
+{
+  "tool_name": "describe_injury_summary_weekends_20260312_154035",
+  "user_query": "Compare injury distributions across the dataset over weekends only.",
+  "execution_timestamp": "2026-03-12T15:42:53.153908",
+  "data_path": "C:\\Users\\admin\\Desktop\\sweta\\code_generator_interpreter\\MCP_Tool_Code_Interpreter_Generator\\reference_files\\sample_planner_output\\traffic_accidents.csv",
+  "result": {
+    "result": {},
+    "metadata": {
+      "error": "Not enough data points to compute statistics."
+    }
+  },
+  "summary_markdown": null,
+  "execution_time_ms": 540.1754379272461,
+  "error": null
+}
