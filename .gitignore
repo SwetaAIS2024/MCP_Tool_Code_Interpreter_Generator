@@ -3,6 +3,19 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# Generated pipeline artifacts — excluded so watchfiles (langgraph dev) does
+# not reload the server every time the pipeline writes a temp/draft file.
+tools/sandbox/temp_code/
+tools/draft/
+tools/active/
+tools/staged/
+output/
+logs/
+pipeline_graph.png
+
+# LangGraph dev server internal state — stale files here cause FileExistsError on restart
+.langgraph_api/
+
 # C extensions
 *.so
 

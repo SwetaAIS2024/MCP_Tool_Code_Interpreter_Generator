@@ -91,13 +91,26 @@ class SubprocessSandboxExecutor(BaseSandbox):
             # Use sys.executable to ensure same Python as current process
             import sys
             python_executable = sys.executable
+
+            # Build a clean environment to prevent Anaconda/conda base from
+            # injecting its PYTHONPATH into the subprocess and causing
+            # stdlib conflicts (e.g. anaconda3/Lib/warnings.py shadowing
+            # the real stdlib when (base) conda env is active).
+            import os
+            clean_env = os.environ.copy()
+            # Remove conda/Anaconda path contamination
+            clean_env.pop("PYTHONPATH", None)
+            clean_env.pop("PYTHONHOME", None)
+            # Prevent user-site packages from mixing in
+            clean_env["PYTHONNOUSERSITE"] = "1"
             
             result = subprocess.run(
                 [python_executable, str(temp_file), data_path],  # Pass data_path as argument
                 capture_output=True,
                 text=True,
                 timeout=timeout,
-                cwd=self.workspace
+                cwd=self.workspace,
+                env=clean_env,
             )
             
             execution_time = (time.time() - start) * 1000

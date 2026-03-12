@@ -13,6 +13,7 @@ This module assembles the complete tool generation pipeline:
 from typing import Dict, Any, List, Optional
 from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
+from langchain_core.messages import AIMessage
 
 from .models import ToolGeneratorState
 from .intent_extraction import intent_node, route_after_intent
@@ -145,6 +146,89 @@ def projection_node(state: ToolGeneratorState) -> ToolGeneratorState:
             },
         })
 
+    # ---- Build Chat response (shown in LangGraph Studio Chat UI) -----------
+    if promoted_tool:
+        tool_name = promoted_tool.get("name", "unknown")
+        tool_path = promoted_tool.get("path", "")
+
+        # Validation badge
+        vr = state.get("validation_result")
+        repair_count = state.get("repair_attempts", 0)
+        if vr:
+            schema_ok  = "pass" if getattr(vr, "schema_ok", False)  else "fail"
+            tests_ok   = "pass" if getattr(vr, "tests_ok", False)   else "fail"
+            sandbox_ok = "pass" if getattr(vr, "sandbox_ok", False) else "fail"
+            val_line = f"Schema: {schema_ok} | Tests: {tests_ok} | Sandbox: {sandbox_ok} | Repairs: {repair_count}"
+        else:
+            val_line = ""
+
+        # Code output — extract from RunArtifacts structure:
+        # execution_output = {"result": {"result": {...}, "metadata": {...}},
+        #                     "summary_markdown": ..., "execution_time_ms": ..., "error": ...}
+        exec_out      = state.get("execution_output") or {}
+        outer_result  = exec_out.get("result") or {}
+        inner_result  = outer_result.get("result", {}) if isinstance(outer_result, dict) else {}
+        inner_meta    = outer_result.get("metadata", {}) if isinstance(outer_result, dict) else {}
+        summary_md    = exec_out.get("summary_markdown") or ""
+        exec_time_ms  = exec_out.get("execution_time_ms")
+        exec_error    = exec_out.get("error")
+
+        # Result table — show the actual computed values
+        if exec_error:
+            result_block = f"```\n{exec_error}\n```"
+        elif isinstance(inner_result, dict) and inner_result:
+            rows = "\n".join(f"| `{k}` | {v} |" for k, v in list(inner_result.items())[:20])
+            result_block = f"| Key | Value |\n|---|---|\n{rows}"
+        elif inner_result:
+            result_block = f"```\n{str(inner_result)[:600]}\n```"
+        else:
+            result_block = "_no result data_"
+
+        # Execution time line
+        if exec_time_ms is not None:
+            exec_time_line = f"_Execution time: {exec_time_ms / 1000:.2f}s_"
+        else:
+            exec_time_line = ""
+
+        # Metadata bullets (from inner metadata, not RunArtifacts metadata)
+        if isinstance(inner_meta, dict) and inner_meta:
+            meta_block = "\n".join(f"- **{k}:** {v}" for k, v in inner_meta.items())
+        else:
+            meta_block = ""
+
+        # Generated code — read from active file
+        code = state.get("generated_code") or ""
+        if not code and tool_path:
+            try:
+                import os as _os
+                abs_p = tool_path if _os.path.isabs(tool_path) else _os.path.join(
+                    _os.getcwd(), tool_path.replace("\\", _os.sep)
+                )
+                with open(abs_p, "r", encoding="utf-8") as _f:
+                    code = _f.read()
+            except Exception:
+                code = ""
+
+        code_block = f"\n---\n**Generated Code**\n```python\n{code}\n```" if code else ""
+
+        parts = [
+            f"**Tool:** `{tool_name}`",
+            val_line,
+            f"",
+            f"**Output**",
+            result_block,
+            exec_time_line,
+            meta_block,
+            f"\n{summary_md}" if summary_md else "",
+            code_block,
+        ]
+        response_text = "\n".join(p for p in parts if p is not None)
+
+    elif errors:
+        response_text = "**Pipeline failed**\n\n" + "\n".join(f"- {e}" for e in errors)
+    else:
+        response_text = "Pipeline completed but no tool was promoted."
+
     return {
         **state,
         "projected_tool_transcript": transcript or None,
@@ -153,6 +237,7 @@ def projection_node(state: ToolGeneratorState) -> ToolGeneratorState:
         "projected_errors": errors or None,
         "projected_warnings": warnings or None,
         "projected_final_artifacts": final_artifacts,
+        "messages": [AIMessage(content=response_text)],
     }
 
 
@@ -161,15 +246,13 @@ def build_graph(checkpointer: Optional[MemorySaver] = None) -> StateGraph:
     
     Args:
         checkpointer: Optional checkpointer for interrupt handling.
-                     If None, creates a MemorySaver for interrupt support.
+                     Pass a MemorySaver explicitly when running standalone.
+                     When running under LangGraph API, leave as None — the
+                     platform manages persistence automatically.
     
     Returns:
         Compiled graph ready for execution
     """
-    # Create checkpointer if not provided (needed for interrupts)
-    if checkpointer is None:
-        checkpointer = MemorySaver()
-    
     # Build graph
     workflow = StateGraph(ToolGeneratorState)
     
@@ -196,7 +279,7 @@ def build_graph(checkpointer: Optional[MemorySaver] = None) -> StateGraph:
     workflow.add_edge("promoter_node", "projection_node")
     workflow.add_edge("projection_node", END)
     
-    # Compile without interrupts (direct execution flow)
+    # Compile — checkpointer is None when running under LangGraph API
     graph = workflow.compile(checkpointer=checkpointer)
     
     # Generate graph visualization
@@ -243,8 +326,8 @@ def run_pipeline(user_query: str, data_path: str, thread_id: str = None) -> Dict
     if thread_id is None:
         thread_id = str(_uuid.uuid4())
 
-    # Build graph
-    graph = build_graph()
+    # Build graph — pass MemorySaver for standalone run (thread_id config support)
+    graph = build_graph(checkpointer=MemorySaver())
     
     # Initialize state
     initial_state: ToolGeneratorState = {
