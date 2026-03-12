@@ -276,3 +276,9 @@ def run_pipeline(user_query: str, data_path: str, thread_id: str = None) -> Dict
     result = graph.invoke(initial_state, config=config)
     
     return result
+
+
+# ============================================================================
+# Module-level compiled graph — required by LangGraph Studio (langgraph dev)
+# ============================================================================
+graph = build_graph()
