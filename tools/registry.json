@@ -254,6 +254,23 @@
       ],
       "return_type": "Dict[str, Any]",
       "output_file": "output/active/filter_crash_day_of_week_20260311_185335_output.json"
+    },
+    {
+      "name": "filter_crash_day_of_week_20260312_160620",
+      "description": "Filters the dataset to include only records where 'crash_day_of_week' equals 7 (Sunday) and returns the total count of such records.",
+      "user_query": "give the total no of accidents which happened on Sunday.",
+      "tool_path": "tools/active/filter_crash_day_of_week_20260312_160620.py",
+      "log_file": "logs/pipeline_20260312_160444.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output/active/filter_crash_day_of_week_20260312_160620_output.json"
     }
   ]
 }

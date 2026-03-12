@@ -14,7 +14,9 @@ mkdocs-material>=9.4.0
 # Core dependencies
 python-dotenv>=1.0.0
 fastmcp>=0.2.0
-langgraph>=0.0.40
+langgraph>=0.2.0
+langgraph-cli[inmem]>=0.1.0
+langsmith>=0.1.0
 pydantic>=2.5.0
 openai>=1.3.0
 pandas>=2.0.0
