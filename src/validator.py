@@ -119,9 +119,9 @@ class Validator:
         if "@mcp.tool()" not in code:
             errors.append("Missing @mcp.tool() decorator")
         
-        # Check that function signature exists (don't enforce type annotations)
-        function_pattern = rf"def {spec.tool_name}\(.*\):"
-        if not re.search(function_pattern, code):
+        # Check that function signature exists (multi-line signatures are allowed)
+        function_pattern = rf"def {spec.tool_name}\s*\(.*?\)\s*:"
+        if not re.search(function_pattern, code, re.DOTALL):
             errors.append(f"Function signature for '{spec.tool_name}' is malformed")
         
         # Check for required parameters
@@ -131,7 +131,7 @@ class Validator:
                 if param_name not in code:
                     errors.append(f"Missing required parameter: {param_name}")
         
-        # ⚠️ CONSISTENCY GUARDS - Prevent statistical injection
+        # CONSISTENCY GUARDS - Prevent statistical injection
         what_it_does = spec.what_it_does.lower()
         
         # Guard 1: Block chi-square injection for non-statistical operations
@@ -366,7 +366,7 @@ def route_after_validation(state: ToolGeneratorState) -> str:
     else:
         # No errors to repair, or max attempts reached — proceed to executor
         if not has_repairable_errors:
-            logger.warning("⚠️  Validation marked invalid but no error messages found — proceeding to execution")
+            logger.warning("[WARN] Validation marked invalid but no error messages found - proceeding to execution")
         else:
-            logger.warning("⚠️  Max repair attempts reached, proceeding to execution...")
+            logger.warning("[WARN] Max repair attempts reached, proceeding to execution...")
         return "executor_node"

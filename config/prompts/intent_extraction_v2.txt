@@ -62,13 +62,25 @@ Rules:
    - Include BOTH the full date column AND the integer column in required_columns, but instruct the implementation_plan to parse the full date column.
    - If only an integer month column exists (no full date column), note in the implementation_plan that results will be grouped by month-of-year (1–12) without year context.
 
+9. CAUSAL DISCOVERY / GRAPH QUERIES: If the query asks for causal graphs, DAGs, NOTEARS,
+   DyNOTEARS, Bayesian networks, causal structure, structural equation models, or PC/GES algorithms:
+   → required_columns = ALL numeric columns from AVAILABLE_COLUMNS
+   → Determine numeric columns by inspecting COLUMN_TYPES: include columns whose dtype is
+     int64, float64, int32, float32, or similar numeric dtypes.
+   → Exclude: object/string columns, datetime columns, and pure ID columns.
+   → NEVER leave required_columns empty for causal discovery queries — these algorithms
+     operate on the full numeric feature set.
+   → If the query says 'there are no python libraries', treat this as an instruction to
+     implement the algorithm manually or use the closest available alternative library.
+     It is NOT a reason to skip column selection.
+
 required_columns = matched columns from this step
 
 ====================
 STEP 2 — OPERATION DETECTION
 ====================
 
-⚠️ CRITICAL GUARDS — CHECK FIRST:
+CRITICAL GUARDS — CHECK FIRST:
 
 1. PIVOT GUARD:
    DO NOT use pivot or crosstab UNLESS query explicitly contains:
@@ -92,7 +104,7 @@ STEP 2 — OPERATION DETECTION
 
 OPERATION SELECTION PRIORITY:
 
-⚠️ SIMPLE COUNT / TOTAL GUARD — CHECK THIS FIRST BEFORE ALL OTHER STEPS:
+SIMPLE COUNT / TOTAL GUARD — CHECK THIS FIRST BEFORE ALL OTHER STEPS:
 
 This guard fires ONLY when the query asks for a plain, unfiltered total count of ALL rows.
 
@@ -109,10 +121,10 @@ Step B — Check for FILTER / CONDITION SIGNALS that BLOCK this guard:
   - Attribute filters: "with [attribute]", "caused by", "in [category]", "under [condition]"
   - Any adjective narrowing the set: "fatal", "severe", "intersection-related", etc.
   Examples of BLOCKED queries (→ use filter operation instead):
-    ✗ "total accidents on weekends"      → has filter: "on weekends"
-    ✗ "how many fatal accidents"         → has filter: "fatal"
-    ✗ "total crashes in January"         → has filter: "in January"
-    ✗ "accidents which happened at night"→ has filter: "at night"
+    NO: "total accidents on weekends"      → has filter: "on weekends"
+    NO: "how many fatal accidents"         → has filter: "fatal"
+    NO: "total crashes in January"         → has filter: "in January"
+    NO: "accidents which happened at night"→ has filter: "at night"
 
 Step C — NO grouping signals present: no "by", "per", "across", "for each",
   "group by", "grouped", "breakdown", "split by"
@@ -127,7 +139,7 @@ If Step A matches AND Step B does NOT block AND Step C is satisfied:
       Step 2: Compute total_count = len(df)
       Step 3: Return {{"total_count": total_count}}
 
-  ⛔ HARD OVERRIDE: Do NOT map this to groupby_aggregate if there is no grouping column.
+  HARD OVERRIDE: Do NOT map this to groupby_aggregate if there is no grouping column.
 
 If Step B BLOCKS (filter condition present):
   → operation = "filter"
@@ -158,6 +170,30 @@ If Step B BLOCKS (filter condition present):
        - If a severity column has samples ['FATAL', 'NO INJURY'], filter on the exact string.
   4. Include the inferred filter values in the implementation_plan step for the filter.
   5. If no column clearly matches the filter concept, add it to missing_columns.
+
+STEP 2A.0: CAUSAL DISCOVERY GUARD — CHECK THIS BEFORE ALL OTHER STEPS
+If query mentions ANY of:
+  "causal graph", "causal structure", "causal model", "causal discovery",
+  "DAG", "directed acyclic graph",
+  "DyNOTEARS", "dynotears", "NOTEARS", "notears",
+  "PC algorithm", "GES algorithm", "FCI algorithm",
+  "Bayesian network", "structural equation model", "SEM"
+Then:
+→ operation = "custom_transform"
+→ has_gap = true
+→ required_columns = ALL numeric columns from AVAILABLE_COLUMNS (see STEP 1 rule 9)
+→ gap_reason = "Causal discovery using [name algorithm from query]. Use all numeric columns
+  as variables. If the specified library is unavailable, implement from scratch or use
+  the closest available alternative (e.g. causallearn notears_linear for static NOTEARS;
+  implement DyNOTEARS manually as time-lagged NOTEARS if no library exists)."
+→ implementation_plan:
+  Step 1: Load data and select all numeric columns (from required_columns)
+  Step 2: Drop rows with NaN; standardize columns with StandardScaler
+  Step 3: Implement [algorithm] — if no library, implement adjacency matrix optimization loop
+  Step 4: Build adjacency matrix / DAG structure
+  Step 5: Identify significant edges (threshold on weights)
+  Step 6: Return {{"edges": [...], "adjacency_matrix": [...], "variables": [...]}}
+Do NOT proceed to STEP 2A/2B/2C/2D — causal discovery always maps to custom_transform.
 
 STEP 2A: Check for explicit statistical keywords
 If query contains:

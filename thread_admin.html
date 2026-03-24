@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LangGraph Thread Admin</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #0f1117; color: #e2e8f0; min-height: 100vh; }
+
+    header {
+      background: #1a1d27;
+      border-bottom: 1px solid #2d3148;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    header h1 { font-size: 18px; font-weight: 600; color: #fff; }
+    .server-row { display: flex; align-items: center; gap: 8px; }
+    .server-row input {
+      background: #252836;
+      border: 1px solid #3a3f5c;
+      color: #e2e8f0;
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 13px;
+      width: 240px;
+    }
+    .dot { width: 9px; height: 9px; border-radius: 50%; background: #4a5568; flex-shrink: 0; }
+    .dot.connected { background: #48bb78; }
+
+    .toolbar {
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid #1e2235;
+    }
+    .thread-count { font-size: 13px; color: #a0aec0; margin-left: auto; }
+
+    button {
+      border: none;
+      border-radius: 6px;
+      padding: 7px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    button:hover { opacity: 0.85; }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-primary   { background: #4f6ef7; color: #fff; }
+    .btn-danger    { background: #e53e3e; color: #fff; }
+    .btn-danger-outline { background: transparent; border: 1px solid #e53e3e; color: #e53e3e; }
+    .btn-sm { padding: 4px 10px; font-size: 12px; }
+
+    #status-bar {
+      display: none;
+      padding: 8px 24px;
+      font-size: 13px;
+      border-bottom: 1px solid #1e2235;
+    }
+    #status-bar.info    { background: #1a3356; color: #90cdf4; display: block; }
+    #status-bar.success { background: #1a3d2e; color: #9ae6b4; display: block; }
+    #status-bar.error   { background: #3d1a1a; color: #feb2b2; display: block; }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead tr { background: #1a1d27; border-bottom: 2px solid #2d3148; }
+    thead th { padding: 10px 16px; text-align: left; color: #8892b0; font-weight: 600; white-space: nowrap; }
+    tbody tr { border-bottom: 1px solid #1e2235; transition: background 0.1s; }
+    tbody tr:hover { background: #181c2a; }
+    td { padding: 10px 16px; vertical-align: middle; }
+    td.mono { font-family: monospace; font-size: 12px; color: #9f7aea; }
+    td.dim { color: #718096; }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge-idle    { background: #1a3d2e; color: #9ae6b4; }
+    .badge-busy    { background: #3d2e1a; color: #f6ad55; }
+    .badge-error   { background: #3d1a1a; color: #feb2b2; }
+    .badge-unknown { background: #2d3148; color: #8892b0; }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 24px;
+      color: #4a5568;
+    }
+    .empty-state p { margin-top: 8px; font-size: 14px; }
+
+    #select-all { cursor: pointer; accent-color: #4f6ef7; }
+
+    .spinner {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid #4f6ef7;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>LangGraph Thread Admin</h1>
+  <div class="server-row">
+    <div class="dot" id="conn-dot"></div>
+    <span style="font-size:12px;color:#8892b0">via admin_server.py proxy</span>
+    <button class="btn-primary" onclick="loadThreads()">Refresh</button>
+  </div>
+</header>
+
+<div class="toolbar">
+  <button class="btn-primary" onclick="loadThreads()">Load Threads</button>
+  <button class="btn-danger" id="btn-delete-selected" onclick="deleteSelected()" disabled>Delete Selected</button>
+  <button class="btn-danger-outline" id="btn-delete-all" onclick="deleteAll()" disabled>Delete All</button>
+  <span class="thread-count" id="thread-count"></span>
+</div>
+
+<div id="status-bar"></div>
+
+<div class="table-wrap">
+  <table id="thread-table">
+    <thead>
+      <tr>
+        <th><input type="checkbox" id="select-all" onchange="toggleAll(this)" /></th>
+        <th>Thread ID</th>
+        <th>Created</th>
+        <th>Updated</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="thread-body">
+      <tr><td colspan="6"><div class="empty-state"><p>Click "Load Threads" to fetch threads from the server.</p></div></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+  // All API calls go through the local proxy to avoid CORS issues.
+  // The proxy is served by admin_server.py on the same origin.
+  const PROXY = '/proxy';
+  let threads = [];
+
+  function setStatus(msg, type='info') {
+    const el = document.getElementById('status-bar');
+    el.className = type;
+    el.innerHTML = msg;
+  }
+
+  function clearStatus() {
+    const el = document.getElementById('status-bar');
+    el.className = '';
+    el.style.display = 'none';
+  }
+
+  function fmtDate(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return d.toLocaleString();
+  }
+
+  function badgeFor(status) {
+    const s = (status || 'unknown').toLowerCase();
+    if (s === 'idle')  return `<span class="badge badge-idle">idle</span>`;
+    if (s === 'busy')  return `<span class="badge badge-busy">busy</span>`;
+    if (s === 'error') return `<span class="badge badge-error">error</span>`;
+    return `<span class="badge badge-unknown">${s}</span>`;
+  }
+
+  async function loadThreads() {
+    setStatus('<span class="spinner"></span>Loading threads...', 'info');
+    document.getElementById('conn-dot').className = 'dot';
+    try {
+      const r = await fetch(`${PROXY}/threads/search`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({limit: 200}) });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const data = await r.json();
+      // API may return array directly or {threads: [...]}
+      threads = Array.isArray(data) ? data : (data.threads || []);
+      document.getElementById('conn-dot').className = 'dot connected';
+      renderTable();
+      clearStatus();
+    } catch(e) {
+      document.getElementById('conn-dot').className = 'dot';
+      setStatus(`Failed to connect: ${e.message}. Is admin_server.py running? (python admin_server.py)`, 'error');
+    }
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('thread-body');
+    document.getElementById('thread-count').textContent = `${threads.length} thread${threads.length !== 1 ? 's' : ''}`;
+    document.getElementById('btn-delete-all').disabled = threads.length === 0;
+    document.getElementById('select-all').checked = false;
+    document.getElementById('btn-delete-selected').disabled = true;
+
+    if (threads.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><p>No threads found.</p></div></td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = threads.map(t => {
+      const id = t.thread_id || t.id || '?';
+      return `
+        <tr>
+          <td><input type="checkbox" class="row-check" value="${id}" onchange="updateDeleteSelected()" /></td>
+          <td class="mono">${id}</td>
+          <td class="dim">${fmtDate(t.created_at)}</td>
+          <td class="dim">${fmtDate(t.updated_at)}</td>
+          <td>${badgeFor(t.status)}</td>
+          <td><button class="btn-danger btn-sm" onclick="deleteOne('${id}')">Delete</button></td>
+        </tr>`;
+    }).join('');
+  }
+
+  function toggleAll(cb) {
+    document.querySelectorAll('.row-check').forEach(c => c.checked = cb.checked);
+    updateDeleteSelected();
+  }
+
+  function updateDeleteSelected() {
+    const any = [...document.querySelectorAll('.row-check')].some(c => c.checked);
+    document.getElementById('btn-delete-selected').disabled = !any;
+  }
+
+  async function deleteOne(id) {
+    setStatus(`<span class="spinner"></span>Deleting ${id}...`, 'info');
+    try {
+      const r = await fetch(`${PROXY}/threads/${id}`, { method: 'DELETE' });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      threads = threads.filter(t => (t.thread_id || t.id) !== id);
+      renderTable();
+      setStatus(`Deleted thread ${id}`, 'success');
+    } catch(e) {
+      setStatus(`Failed to delete ${id}: ${e.message}`, 'error');
+    }
+  }
+
+  async function deleteSelected() {
+    const ids = [...document.querySelectorAll('.row-check:checked')].map(c => c.value);
+    if (!ids.length) return;
+    if (!confirm(`Delete ${ids.length} thread(s)?`)) return;
+    setStatus(`<span class="spinner"></span>Deleting ${ids.length} thread(s)...`, 'info');
+    let failed = 0;
+    for (const id of ids) {
+      try {
+        const r = await fetch(`${PROXY}/threads/${id}`, { method: 'DELETE' });
+        if (!r.ok) failed++;
+        else threads = threads.filter(t => (t.thread_id || t.id) !== id);
+      } catch { failed++; }
+    }
+    renderTable();
+    if (failed) setStatus(`Done — ${ids.length - failed} deleted, ${failed} failed.`, 'error');
+    else setStatus(`Deleted ${ids.length} thread(s).`, 'success');
+  }
+
+  async function deleteAll() {
+    if (!threads.length) return;
+    if (!confirm(`Delete ALL ${threads.length} threads? This cannot be undone.`)) return;
+    setStatus(`<span class="spinner"></span>Deleting all ${threads.length} threads...`, 'info');
+    let deleted = 0, failed = 0;
+    for (const t of [...threads]) {
+      const id = t.thread_id || t.id;
+      try {
+        const r = await fetch(`${PROXY}/threads/${id}`, { method: 'DELETE' });
+        if (r.ok) { deleted++; threads = threads.filter(x => (x.thread_id || x.id) !== id); }
+        else failed++;
+      } catch { failed++; }
+    }
+    renderTable();
+    if (failed) setStatus(`Done — ${deleted} deleted, ${failed} failed.`, 'error');
+    else setStatus(`All ${deleted} threads deleted.`, 'success');
+  }
+</script>
+</body>
+</html>

@@ -125,21 +125,22 @@ def log_subsection(logger: logging.Logger, title: str):
     logger.info("-" * 80)
 
 
-def log_step(logger: logging.Logger, step: str, emoji: str = "📍"):
+def log_step(logger: logging.Logger, step: str, emoji: str = ""):
     """Log a pipeline step."""
-    logger.info(f"{emoji} {step}")
+    prefix = f"{emoji} " if emoji else ""
+    logger.info(f"{prefix}{step}")
 
 
 def log_success(logger: logging.Logger, message: str):
     """Log a success message."""
-    logger.info(f"✅ {message}")
+    logger.info(f"[OK] {message}")
 
 
 def log_error(logger: logging.Logger, message: str):
     """Log an error message."""
-    logger.error(f"❌ {message}")
+    logger.error(f"[ERROR] {message}")
 
 
 def log_warning(logger: logging.Logger, message: str):
     """Log a warning message."""
-    logger.warning(f"⚠️  {message}")
+    logger.warning(f"[WARN] {message}")

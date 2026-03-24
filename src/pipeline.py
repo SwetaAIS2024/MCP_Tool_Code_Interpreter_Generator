@@ -163,22 +163,57 @@ def projection_node(state: ToolGeneratorState) -> ToolGeneratorState:
             val_line = ""
 
         # Code output — extract from RunArtifacts structure:
-        # execution_output = {"result": {"result": {...}, "metadata": {...}},
+        # execution_output = {"result": {"result": {...}, "metadata": {...}, "plot_base64": "..."},
         #                     "summary_markdown": ..., "execution_time_ms": ..., "error": ...}
         exec_out      = state.get("execution_output") or {}
         outer_result  = exec_out.get("result") or {}
         inner_result  = outer_result.get("result", {}) if isinstance(outer_result, dict) else {}
         inner_meta    = outer_result.get("metadata", {}) if isinstance(outer_result, dict) else {}
+        plot_b64      = outer_result.get("plot_base64", "") if isinstance(outer_result, dict) else ""
         summary_md    = exec_out.get("summary_markdown") or ""
         exec_time_ms  = exec_out.get("execution_time_ms")
         exec_error    = exec_out.get("error")
 
+        # Plot — save the PNG to disk for persistence.
+        # The image will be delivered as a proper image_url content block in AIMessage
+        # (multimodal format), which renders inline in LangGraph Studio and any
+        # OpenAI-compatible chat UI — both locally and in remote deployments.
+        plot_save_note = ""
+        if plot_b64:
+            try:
+                import base64 as _b64, os as _os
+                plots_dir = _os.path.join(_os.getcwd(), "output", "plots")
+                _os.makedirs(plots_dir, exist_ok=True)
+                plot_filename = f"{tool_name}_plot.png"
+                plot_path = _os.path.join(plots_dir, plot_filename)
+                with open(plot_path, "wb") as _pf:
+                    _pf.write(_b64.b64decode(plot_b64))
+            except Exception:
+                pass
+
         # Result table — show the actual computed values
         if exec_error:
             result_block = f"```\n{exec_error}\n```"
+        elif plot_b64 and not inner_result:
+            # Visualisation-only tool: no numeric table to show
+            result_block = ""
         elif isinstance(inner_result, dict) and inner_result:
             rows = "\n".join(f"| `{k}` | {v} |" for k, v in list(inner_result.items())[:20])
             result_block = f"| Key | Value |\n|---|---|\n{rows}"
+        elif isinstance(inner_result, list) and inner_result:
+            # List of dicts (e.g. groupby result) — render as table
+            first = inner_result[0] if inner_result else {}
+            if isinstance(first, dict):
+                headers = list(first.keys())
+                header_row = "| " + " | ".join(f"`{h}`" for h in headers) + " |"
+                sep_row   = "|" + "|".join("---" for _ in headers) + "|"
+                data_rows = "\n".join(
+                    "| " + " | ".join(str(row.get(h, "")) for h in headers) + " |"
+                    for row in inner_result[:30]
+                )
+                result_block = f"{header_row}\n{sep_row}\n{data_rows}"
+            else:
+                result_block = f"```\n{str(inner_result)[:600]}\n```"
         elif inner_result:
             result_block = f"```\n{str(inner_result)[:600]}\n```"
         else:
@@ -229,6 +264,17 @@ def projection_node(state: ToolGeneratorState) -> ToolGeneratorState:
     else:
         response_text = "Pipeline completed but no tool was promoted."
 
+    # Build message content — use multimodal list when a chart is available so
+    # the image renders inline (like ChatGPT) in LangGraph Studio and any
+    # OpenAI-compatible UI, both locally and in remote deployments.
+    if plot_b64:
+        ai_content = [
+            {"type": "text", "text": response_text},
+            {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{plot_b64}"}},
+        ]
+    else:
+        ai_content = response_text
+
     return {
         **state,
         "projected_tool_transcript": transcript or None,
@@ -237,7 +283,7 @@ def projection_node(state: ToolGeneratorState) -> ToolGeneratorState:
         "projected_errors": errors or None,
         "projected_warnings": warnings or None,
         "projected_final_artifacts": final_artifacts,
-        "messages": [AIMessage(content=response_text)],
+        "messages": [AIMessage(content=ai_content)],
     }
 
 
@@ -300,12 +346,12 @@ def build_graph(checkpointer: Optional[MemorySaver] = None) -> StateGraph:
             png_data = graph_structure.draw_mermaid_png()
             png_file = Path("pipeline_graph.png")
             png_file.write_bytes(png_data)
-            logger.info(f"📊 Graph visualization saved to: {png_file}")
+            logger.info(f"[OK] Graph visualization saved to: {png_file}")
         except Exception:
-            logger.info(f"📊 Graph Mermaid diagram saved to: {mermaid_file}")
+            logger.info(f"[OK] Graph Mermaid diagram saved to: {mermaid_file}")
             logger.info("   (Paste into https://mermaid.live for visualization)")
     except Exception as e:
-        logger.warning(f"⚠️  Could not generate graph visualization: {e}")
+        logger.warning(f"[WARN] Could not generate graph visualization: {e}")
     
     return graph
 

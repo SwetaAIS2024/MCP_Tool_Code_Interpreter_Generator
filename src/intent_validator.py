@@ -34,7 +34,13 @@ class IntentValidator:
         # ============================================================================
         
         # Check 1: Required columns must not be empty (for most operations)
-        if operation not in ["describe_summary"] and not required_columns:
+        # Exception: causal discovery tasks operate on all numeric columns and may
+        # use generic language in gap_reason rather than explicit column lists.
+        gap_reason = intent.get("gap_reason", "").lower()
+        causal_keywords = ["causal", "notears", "dynotears", "dag", "bayesian network",
+                           "structural equation", "pc algorithm", "ges algorithm"]
+        is_causal_task = any(kw in gap_reason for kw in causal_keywords)
+        if operation not in ["describe_summary"] and not required_columns and not is_causal_task:
             errors.append(f"Operation '{operation}' requires columns, but required_columns is empty")
         
         # Check 2: All required columns must exist in available_columns
@@ -47,7 +53,7 @@ class IntentValidator:
             errors.append(f"Missing columns detected: {missing_columns}. Cannot proceed without these columns.")
         
         # Check 4: Operation-specific column count requirements
-        operation_errors = self._validate_operation_columns(operation, required_columns)
+        operation_errors = self._validate_operation_columns(operation, required_columns, is_causal_task)
         errors.extend(operation_errors)
         
         # Check 5: Statistical operations must have implementation plan
@@ -103,15 +109,16 @@ class IntentValidator:
         if operation in ["groupby_aggregate", "filter"] and len(required_columns) > 5:
             warnings.append(f"Operation '{operation}' has {len(required_columns)} columns - this may be too complex")
         
-        # Warning 2: Single column for comparison operations
+        # Warning 2: Single column for aggregation that needs a metric column
+        # Only warn when there's truly no metric column, not for count-per-group queries
         if operation == "groupby_aggregate" and len(required_columns) < 2:
-            warnings.append(f"groupby_aggregate typically needs 2+ columns (grouping + metric), found {len(required_columns)}")
+            warnings.append(f"groupby_aggregate has only 1 column — will use row count as metric")
         
         # Note: Warning 3 is now integrated into Check 5 above
         
         return len(errors) == 0, errors, warnings
     
-    def _validate_operation_columns(self, operation: str, required_columns: List[str]) -> List[str]:
+    def _validate_operation_columns(self, operation: str, required_columns: List[str], is_causal_task: bool = False) -> List[str]:
         """Validate operation has appropriate number/type of columns.
         
         Args:
@@ -125,9 +132,11 @@ class IntentValidator:
         col_count = len(required_columns)
         
         if operation == "groupby_aggregate":
-            # Need at least 2 columns: grouping column + metric column
-            if col_count < 2:
-                errors.append(f"groupby_aggregate requires at least 2 columns (grouping + metric), found {col_count}")
+            # 1 column is valid for count-per-group (e.g. accidents per day).
+            # 2+ columns are needed only when aggregating a separate metric column.
+            # Downgrade to a warning so count-only queries are not blocked.
+            if col_count < 1:
+                errors.append(f"groupby_aggregate requires at least 1 grouping column, found {col_count}")
         
         elif operation == "pivot":
             # Need at least 2 columns: index + values (columns optional)
@@ -144,7 +153,8 @@ class IntentValidator:
             # ANOVA: need grouping column + metric (2+)
             # Correlation: need 2 numeric columns
             # Regression: need 2+ columns (predictors + target)
-            if col_count < 2:
+            # Exception: causal discovery tasks use all numeric columns (gap_reason check)
+            if col_count < 2 and not is_causal_task:
                 errors.append(f"custom_transform (statistical) typically requires 2+ columns, found {col_count}")
         
         elif operation == "sort_limit":
