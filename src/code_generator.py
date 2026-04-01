@@ -343,12 +343,41 @@ Generate the complete function now:
         clean_code = '\n'.join(clean_lines)
         
         # Build import section
-        import_section = '''from fastmcp import FastMCP
+        # Always force non-interactive matplotlib backend FIRST so that
+        # tools executed inside a ThreadPoolExecutor never trigger tkinter.
+        import_section = '''import matplotlib
+matplotlib.use('Agg')  # Non-interactive backend - must be set before pyplot
+from fastmcp import FastMCP
 import pandas as pd
 import time'''
-        
-        if custom_imports:
-            import_section += '\n' + '\n'.join(custom_imports)
+
+        # Remove any matplotlib/pyplot imports already present in custom_imports
+        # to avoid duplicate or out-of-order backend setting
+        filtered_custom_imports = [
+            line for line in custom_imports
+            if not (
+                line.strip() == 'import matplotlib' or
+                line.strip().startswith("matplotlib.use(") or
+                line.strip() == 'import matplotlib.pyplot as plt' or
+                line.strip().startswith('from matplotlib')
+            )
+        ]
+        # Re-add pyplot and other matplotlib imports AFTER the backend is set
+        matplotlib_imports = [
+            line for line in custom_imports
+            if line.strip() == 'import matplotlib.pyplot as plt' or
+               line.strip().startswith('from matplotlib') or
+               line.strip().startswith('import seaborn')
+        ]
+        other_custom_imports = [
+            line for line in filtered_custom_imports
+            if line not in matplotlib_imports
+        ]
+
+        if other_custom_imports:
+            import_section += '\n' + '\n'.join(other_custom_imports)
+        if matplotlib_imports:
+            import_section += '\n' + '\n'.join(matplotlib_imports)
         
         # Build complete code with proper structure
         full_code = f'''"""Generated MCP tool: {tool_name}"""

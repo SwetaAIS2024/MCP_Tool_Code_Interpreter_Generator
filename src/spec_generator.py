@@ -132,7 +132,9 @@ class SpecGenerator:
                 filters=intent.get("filters", []),
                 implementation_plan=formatted_plan,
                 edge_cases=intent.get("edge_cases", []),
-                validation_rules=intent.get("validation_rules", [])
+                validation_rules=intent.get("validation_rules", []),
+                output_format=intent.get("output_format", "table"),
+                user_query=intent.get("user_query", "")
             )
         
         # Fallback inline prompt
@@ -267,7 +269,13 @@ def spec_generator_node(state: ToolGeneratorState) -> ToolGeneratorState:
     
     # Use reasoning model for spec generation/planning
     llm_client = create_llm_client(model_type="reasoning")
-    spec = generate_spec(state["extracted_intent"], llm_client)
+    
+    # Ensure user_query is available in intent for spec generation prompt
+    intent = state["extracted_intent"]
+    if "user_query" not in intent:
+        intent["user_query"] = state.get("user_query", "")
+    
+    spec = generate_spec(intent, llm_client)
 
     logger.debug("Generated ToolSpec:\n%s", spec.model_dump_json(indent=2))
 

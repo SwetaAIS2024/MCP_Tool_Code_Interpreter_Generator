@@ -222,6 +222,14 @@ def test_code_gen(verbosity: str = "normal", query: str = None, verify: bool = F
             print(f"  Output Path: {tool.get('output_path')}")
         print(f"  Logs Path: {tool.get('logs_path')}")
         print(f"  Registry Path: {tool.get('registry_path')}")
+        
+        # Check if a plot was generated for this tool
+        from pathlib import Path as _Path
+        tool_name = tool.get('name', '')
+        if tool_name:
+            exact_plot = _Path("output/plots") / f"{tool_name}_plot.png"
+            if exact_plot.exists():
+                print(f"  📊 Plot Path: {exact_plot}")
     else:
         print("\nTool was not promoted to registry")
     

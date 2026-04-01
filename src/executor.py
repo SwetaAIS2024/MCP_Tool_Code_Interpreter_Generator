@@ -216,16 +216,32 @@ def execute_tool(code: str, data_path: str, timeout: int = 300) -> RunArtifacts:
 
 
 def _convert_numpy_types(obj):
-    """Recursively convert numpy types to Python native types for serialization.
+    """Recursively convert numpy/pandas types to Python native types for serialization.
     
     Args:
-        obj: Object that may contain numpy types
+        obj: Object that may contain numpy or pandas types
         
     Returns:
-        Object with numpy types converted to Python native types
+        Object with non-serializable types converted to Python native types
     """
     import numpy as np
-    
+    try:
+        import pandas as pd
+        _has_pandas = True
+    except ImportError:
+        _has_pandas = False
+
+    if _has_pandas:
+        # pd.Period (e.g. Period('2024-01', 'M')) -> string
+        if isinstance(obj, pd.Period):
+            return str(obj)
+        # pd.Timestamp -> ISO string
+        if isinstance(obj, pd.Timestamp):
+            return obj.isoformat()
+        # pd.NaT -> None
+        if obj is pd.NaT:
+            return None
+
     if isinstance(obj, np.bool_):
         return bool(obj)
     elif isinstance(obj, np.integer):
@@ -235,15 +251,82 @@ def _convert_numpy_types(obj):
     elif isinstance(obj, np.ndarray):
         return obj.tolist()
     elif isinstance(obj, dict):
-        # Convert both keys and values - keys might also be numpy types
+        # Convert both keys and values - keys might also be numpy/pandas types
         return {
-            _convert_numpy_types(key): _convert_numpy_types(value) 
+            _convert_numpy_types(key): _convert_numpy_types(value)
             for key, value in obj.items()
         }
     elif isinstance(obj, (list, tuple)):
         return [_convert_numpy_types(item) for item in obj]
     else:
         return obj
+
+
+def _find_and_extract_plot_base64(obj):
+    """Recursively search any nested dict/list for 'plot_base64' and return its value."""
+    if isinstance(obj, dict):
+        if "plot_base64" in obj:
+            return obj["plot_base64"]
+        for v in obj.values():
+            result = _find_and_extract_plot_base64(v)
+            if result is not None:
+                return result
+    elif isinstance(obj, list):
+        for item in obj:
+            result = _find_and_extract_plot_base64(item)
+            if result is not None:
+                return result
+    return None
+
+
+def _strip_plot_base64_recursive(obj, plot_path):
+    """Recursively strip 'plot_base64' from dicts and replace with 'plot_path'."""
+    if isinstance(obj, dict):
+        cleaned = {}
+        had_plot = "plot_base64" in obj
+        for k, v in obj.items():
+            if k == "plot_base64":
+                continue
+            cleaned[k] = _strip_plot_base64_recursive(v, plot_path)
+        if had_plot and plot_path:
+            cleaned["plot_path"] = plot_path
+        return cleaned
+    elif isinstance(obj, list):
+        return [_strip_plot_base64_recursive(item, plot_path) for item in obj]
+    return obj
+
+
+def _save_plot_from_result(result_dict: dict, tool_name: str, timestamp: str) -> str:
+    """Extract plot_base64 from execution result (at any nesting depth) and save as PNG.
+
+    Args:
+        result_dict: The execution result dictionary
+        tool_name: Tool name for the filename
+        timestamp: Timestamp string for the filename
+
+    Returns:
+        Path to saved plot PNG, or None if no plot found
+    """
+    import base64
+
+    plot_b64 = _find_and_extract_plot_base64(result_dict)
+    if not plot_b64:
+        return None
+
+    try:
+        plots_dir = Path("output/plots")
+        plots_dir.mkdir(parents=True, exist_ok=True)
+
+        plot_filename = f"{tool_name}_{timestamp}_plot.png"
+        plot_path = plots_dir / plot_filename
+
+        plot_bytes = base64.b64decode(plot_b64)
+        plot_path.write_bytes(plot_bytes)
+
+        return str(plot_path)
+    except Exception as e:
+        logger.warning(f"⚠️ Failed to save plot: {e}")
+        return None
 
 
 # ============================================================================
@@ -292,21 +375,30 @@ def executor_node(state: ToolGeneratorState) -> ToolGeneratorState:
     output_filename = f"{tool_name}_{timestamp}_output.json"
     output_path = output_draft_dir / output_filename
     
+    # Extract and save plot if present in result — BEFORE writing JSON
+    plot_path = _save_plot_from_result(result_dict, tool_name, timestamp)
+    if plot_path:
+        logger.info(f"📊 Plot saved to: {plot_path}")
+
+    # Strip plot_base64 from result_dict so it never lands in the JSON output.
+    # Replace with a lightweight plot_path reference at the same nesting level.
+    serializable_result = _strip_plot_base64_recursive(result_dict, plot_path)
+
     # Add metadata to output
     output_data = {
         "tool_name": f"{tool_name}_{timestamp}",
         "user_query": state.get('user_query', ''),
         "execution_timestamp": datetime.now().isoformat(),
         "data_path": state.get('data_path', ''),
-        **result_dict
+        **serializable_result
     }
-    
+
     output_path.write_text(json.dumps(output_data, indent=2, default=str))
     logger.info(f"💾 Execution results saved to: {output_path}")
-    
+
     return {
         **state,
-        "execution_output": result_dict,
+        "execution_output": serializable_result,
         "draft_output_path": str(output_path)
     }
 

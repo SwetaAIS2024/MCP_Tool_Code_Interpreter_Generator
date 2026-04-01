@@ -153,6 +153,31 @@ CRITICAL RULES:
             logger.info(f"  Grounded columns (LLM matched): {grounded}")
             logger.info(f"  Unresolved columns (moved to missing): {unresolved}")
         
+        # GROUPBY COLUMN FALLBACK: If groupby_aggregate has only 1 column (metric only),
+        # the user said "by group" without specifying which column.
+        # Pick the first categorical column as a default grouping column.
+        operation = intent.get('operation', '')
+        required_cols = intent.get('required_columns', [])
+        if operation == 'groupby_aggregate' and len(required_cols) < 2:
+            categorical_cols = [col for col, dtype in dtypes.items()
+                                if dtype == 'object' and col not in required_cols
+                                and col != 'crash_date']
+            if categorical_cols:
+                default_group_col = categorical_cols[0]
+                required_cols = [default_group_col] + required_cols
+                intent['required_columns'] = required_cols
+                group_by = intent.get('group_by', [])
+                if default_group_col not in group_by:
+                    group_by.insert(0, default_group_col)
+                intent['group_by'] = group_by
+                clarifications = intent.get('clarifications_needed', [])
+                clarifications.append(
+                    f"Grouping column defaulted to '{default_group_col}' because the query "
+                    f"did not specify which column to group by. Specify the grouping column for precise results."
+                )
+                intent['clarifications_needed'] = clarifications
+                logger.info(f"GROUPBY FALLBACK: added default grouping column '{default_group_col}'")
+
         # Log extracted intent
         log_section(logger, "EXTRACTED INTENT")
         logger.info(f"Required columns: {intent.get('required_columns', [])}")
@@ -394,6 +419,9 @@ class GapDetector:
         tools/registry.json stores tools as a LIST of dicts (written by ToolPromoter).
         Normalise to a name-keyed dict so the rest of the logic is uniform.
 
+        Only returns tools whose active file actually exists on disk — draft tools
+        and stale entries (file deleted after promotion) are excluded.
+
         Returns:
             Dict mapping tool name -> tool metadata
         """
@@ -405,15 +433,26 @@ class GapDetector:
                 registry = json.load(f)
             tools_raw = registry.get("tools", {})
 
-            # Handle list format (current promoter output)
+            # Normalise to list
             if isinstance(tools_raw, list):
-                return {t["name"]: t for t in tools_raw if isinstance(t, dict) and "name" in t}
+                tools_list = [t for t in tools_raw if isinstance(t, dict) and "name" in t]
+            elif isinstance(tools_raw, dict):
+                tools_list = list(tools_raw.values())
+            else:
+                return {}
 
-            # Handle legacy dict format
-            if isinstance(tools_raw, dict):
-                return tools_raw
+            # Filter: keep only tools whose active file exists and is NOT in draft/
+            valid = {}
+            for t in tools_list:
+                tool_path = t.get("tool_path") or t.get("path", "")
+                if not tool_path:
+                    continue
+                p = Path(tool_path)
+                # Must exist on disk and must be under an active directory (not draft)
+                if p.exists() and "draft" not in p.parts:
+                    valid[t["name"]] = t
 
-            return {}
+            return valid
         except Exception:
             return {}
     

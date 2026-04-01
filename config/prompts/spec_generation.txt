@@ -8,6 +8,8 @@ FILTERS: {filters}
 IMPLEMENTATION PLAN: {implementation_plan}
 EDGE CASES: {edge_cases}
 VALIDATION RULES: {validation_rules}
+OUTPUT FORMAT: {output_format}
+USER QUERY: {user_query}
 
 CRITICAL: You MUST follow the IMPLEMENTATION PLAN exactly. Do NOT create a different analysis or make assumptions.
 - If the plan says "ANOVA", you MUST create a spec for ANOVA analysis (NOT correlation, NOT t-test)
@@ -20,6 +22,11 @@ CRITICAL: You MUST follow the IMPLEMENTATION PLAN exactly. Do NOT create a diffe
 - DO NOT add chi-square unless IMPLEMENTATION PLAN explicitly requests it
 - DO NOT add p-values, significance tests unless IMPLEMENTATION PLAN requests them
 - If operation is "groupby_aggregate" or "pivot", create ONLY descriptive aggregation (NO statistical tests)
+
+VISUALIZATION REQUIREMENT:
+- Check the USER QUERY for visual keywords: "trend", "plot", "chart", "graph", "visualize", "show", "display", "distribution", "histogram", "bar chart", "line chart", "heatmap", "scatter", "boxplot", "compare visually"
+- If ANY visual keyword is present, the 'what_it_does' field MUST include a step to generate a matplotlib/seaborn visualization and return it as base64-encoded PNG in the 'plot_base64' key
+- The output_schema MUST include a "plot_base64" field of type string when visualization is required
 
 Create a ToolSpec with:
 1. tool_name: A descriptive snake_case name based on operation and columns
