@@ -290,7 +290,8 @@ def executor_node(state: ToolGeneratorState) -> ToolGeneratorState:
     result_dict = _convert_numpy_types(result_dict)
     
     # Save execution results to output/draft
-    output_draft_dir = Path("output/draft")
+    import os as _os_exec
+    output_draft_dir = Path(_os_exec.environ.get("OUTPUT_DRAFT_DIR", "output/draft"))
     output_draft_dir.mkdir(parents=True, exist_ok=True)
     
     # Extract timestamp from draft_path or generate new one

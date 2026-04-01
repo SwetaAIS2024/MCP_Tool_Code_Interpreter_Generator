@@ -183,7 +183,8 @@ def promoter_node(state: ToolGeneratorState) -> ToolGeneratorState:
     Returns:
         Updated state with promoted_tool containing deployment details
     """
-    tools_dir = Path("tools")
+    import os as _os
+    tools_dir = Path(_os.environ.get("TOOLS_DIR", "tools"))
     promoter = ToolPromoter(tools_dir)
     
     promoted = promoter.promote(
