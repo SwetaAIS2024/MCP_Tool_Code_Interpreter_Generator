@@ -1,0 +1,952 @@
+(c_venv) (base) PS C:\Users\admin\Desktop\sweta\code_generator_interpreter\MCP_Tool_Code_Interpreter_Generator> python test.py "Show monthly trend of total injuries from Jan to Mar for all the years. Generate the plots as well." --state
+
+================================================================================
+TESTING CODE GENERATION PIPELINE
+================================================================================
+
+Query: Show monthly trend of total injuries from Jan to Mar for all the years. Generate the plots as well.
+Data: C:\Users\admin\Desktop\sweta\code_generator_interpreter\MCP_Tool_Code_Interpreter_Generator\reference_files\sample_planner_output\traffic_accidents.csv
+================================================================================
+
+
+Executing pipeline...
+================================================================================
+Using dataset: C:\Users\admin\Desktop\sweta\code_generator_interpreter\MCP_Tool_Code_Interpreter_Generator\reference_files\sample_planner_output\traffic_accidents.csv
+
+================================================================================
+INTENT EXTRACTION - AVAILABLE COLUMNS
+================================================================================
+
+Columns: ['crash_date', 'traffic_control_device', 'weather_condition', 'lighting_condition', 'first_crash_type', 'trafficway_type', 'alignment', 'roadway_surface_cond', 'road_defect', 'crash_type', 'intersection_related_i', 'damage', 'prim_contributory_cause', 'num_units', 'most_severe_injury', 'injuries_total', 'injuries_fatal', 'injuries_incapacitating', 'injuries_non_incapacitating', 'injuries_reported_not_evident', 'injuries_no_indication', 'crash_hour', 'crash_day_of_week', 'crash_month']
+HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+
+================================================================================
+EXTRACTED INTENT
+================================================================================
+
+Required columns: ['crash_date', 'injuries_total']
+Missing columns: []
+Operation: time_series_aggregate
+
+================================================================================
+INTENT VALIDATION
+================================================================================
+
+[OK] ✅ Intent validation passed
+
+Event: ['intent_node']
+HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+Generated ToolSpec:
+{
+  "tool_name": "time_series_aggregate_injuries",
+  "description": "Generates a time series aggregation of total injuries over specified periods.",
+  "version": "1.0.0",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "file_path": {
+        "type": "string",
+        "description": "Path to the CSV file containing crash data."
+      }
+    },
+    "required": [
+      "file_path"
+    ]
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "result": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "period": {
+              "type": "string"
+            },
+            "total_injuries": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "period",
+            "total_injuries"
+          ]
+        }
+      },
+      "metadata": {
+        "type": "object",
+        "properties": {
+          "plot_base64": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "parameters": [
+    {
+      "name": "file_path",
+      "type": "str",
+      "description": "Path to CSV file containing crash data.",
+      "required": true
+    }
+  ],
+  "return_type": "Dict[str, Any]",
+  "when_to_use": "When you need to analyze time series data by aggregating injuries over specific periods and visualize the trend.",
+  "what_it_does": "Load the dataset and select required columns: crash_date and injuries_total. Parse the crash_date column using pd.to_datetime(). Extract year-month periods from crash_date and create a new 'period' column. Group by 'period' and calculate the sum of injuries_total for each period. Sort the results in chronological order based on the period. Generate a line plot to visualize the monthly trend of total injuries over time.",
+  "returns": "A dictionary containing aggregated injury data by period and a base64-encoded line plot visualizing the trend.",
+  "prerequisites": "crash_date, injuries_total"
+}
+
+Event: ['spec_generator_node']
+
+[OK] Using template file: config\prompts\code_generation.txt
+
+================================================================================
+CODE GENERATION PROMPT
+================================================================================
+
+Generate Python function code for this tool specification.
+
+TOOL NAME: time_series_aggregate_injuries
+DESCRIPTION: Generates a time series aggregation of total injuries over specified periods.     
+PARAMETERS: [
+  {
+    "name": "file_path",
+    "type": "str",
+    "description": "Path to CSV file containing crash data.",
+    "required": true
+  }
+]
+REQUIRED COLUMNS: crash_date, injuries_total
+IMPLEMENTATION PLAN: Load the dataset and select required columns: crash_date and injuries_total. Parse the crash_date column using pd.to_datetime(). Extract year-month periods from crash_date and create a new 'period' column. Group by 'period' and calculate the sum of injuries_total for each period. Sort the results in chronological order based on the period. Generate a line plot to visualize the monthly trend of total injuries over time.
+WHAT IT DOES: Load the dataset and select required columns: crash_date and injuries_total. Parse the crash_date column using pd.to_datetime(). Extract year-month peri...
+HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+
+================================================================================
+RAW LLM RESPONSE
+================================================================================
+
+```python
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import io
+import base64
+import pandas as pd
+
+def time_series_aggregate_injuries(file_path: str):
+    # Load the dataset
+    df = pd.read_csv(file_path)
+
+    # Validate required columns
+    required_cols = ['crash_date', 'injuries_total']
+    if not all(col in df.columns for col in required_cols):
+        raise ValueError(f"Missing required columns. Expected {required_cols}, found {df.columns.tolist()}.")
+
+    # Drop rows with NaN values in required columns
+    df = df[required_cols].dropna()
+
+    # Parse crash_date column to datetime
+    df['crash_date'] = pd.to_datetime(df['crash_date'])
+
+    # Extract year-month periods from crash_date and create a new 'period' column
+    df['period'] = df['crash_date'].dt.to_period('M')
+
+    # Group by 'period' and calculate the sum of injuries_total for each period
+    aggregated_df = df.groupby('period')['injuries_total'].sum().reset_index()
+
+    # Sort the results in chronological order based on the period
+    aggregated_df = aggregated_df.sort_values(by='period')
+
+    # Generate a line plot to visualize the monthly trend of total injuries over time
+    buf = io.BytesIO()
+    plt.figure(figsize=(10, 6))
+    plt.plot(aggregated_df['period'].dt.to_timestamp(), aggregated_df['injuries_total'], marker='o', linestyle='-')
+    plt.title('Monthly Trend of Total Injuries Over Time')
+    plt.xlabel('Month')
+    plt.ylabel('Total Injuries')
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(buf, format='png', bbox_inches='tight', dpi=120)
+    plt.close('all')
+    buf.seek(0)
+    plot_b64 = base64.b64encode(buf.read()).decode('utf-8')
+
+    # Prepare the result and metadata
+    result = aggregated_df.to_dict(orient='records')
+    metadata = {
+        "description": "Monthly aggregation of total injuries over time.",
+        "columns": ["period", "injuries_total"]
+    }
+
+    return {"result": result, "metadata": meta...
+
+================================================================================
+EXTRACTED CODE (before wrapping)
+================================================================================
+
+import matplotlib
+import matplotlib.pyplot as plt
+import io
+import base64
+
+def time_series_aggregate_injuries(file_path: str):
+    # Load the dataset
+    df = pd.read_csv(file_path)
+
+    # Validate required columns
+    required_cols = ['crash_date', 'injuries_total']
+    if not all(col in df.columns for col in required_cols):
+        raise ValueError(f"Missing required columns. Expected {required_cols}, found {df.columns.tolist()}.")
+
+    # Drop rows with NaN values in required columns
+    df = df[required_cols].dropna()
+
+    # Parse crash_date column to datetime
+    df['crash_date'] = pd.to_datetime(df['crash_date'])
+
+    # Extract year-month periods from crash_date and create a new 'period' column
+    df['period'] = df['crash_date'].dt.to_period('M')
+
+    # Group by 'period' and calculate the sum of injuries_total for each period
+    aggregated_df = df.groupby('period')['injuries_total'].sum().reset_index()
+
+    # Sort the results in chronological order based on the period
+    aggregated_df = aggregated_df.sort_values(by='period')
+
+    # Generate a line plot to visualize the monthly trend of total injuries over time
+    buf = io.BytesIO()
+    plt.figure(figsize=(10, 6))
+    plt.plot(aggregated_df['period'].dt.to_timestamp(), aggregated_df['injuries_total'], marker='o', linestyle='-')
+    plt.title('Monthly Trend of Total Injuries Over Time')
+    plt.xlabel('Month')
+    plt.ylabel('Total Injuries')
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(buf, format='png', bbox_inches='tight', dpi=120)
+    plt.close('all')
+    buf.seek(0)
+    plot_b64 = base64.b64encode(buf.read()).decode('utf-8')
+
+    # Prepare the result and metadata
+    result = aggregated_df.to_dict(orient='records')
+    metadata = {
+        "description": "Monthly aggregation of total injuries over time.",
+        "columns": ["period", "injuries_total"]
+    }
+
+    return {"result": result, "metadata": metadata, "plot_base64": plot_b64}
+
+================================================================================
+WRAPPED CODE (before black formatting)
+================================================================================
+
+"""Generated MCP tool: time_series_aggregate_injuries"""
+
+import matplotlib
+matplotlib.use('Agg')  # Non-interactive backend - must be set before pyplot
+from fastmcp import FastMCP
+import pandas as pd
+import time
+import io
+import base64
+import matplotlib.pyplot as plt
+
+mcp = FastMCP("data_analysis_tools")
+
+
+@mcp.tool()
+def time_series_aggregate_injuries(file_path: str):
+    # Load the dataset
+    df = pd.read_csv(file_path)
+
+    # Validate required columns
+    required_cols = ['crash_date', 'injuries_total']
+    if not all(col in df.columns for col in required_cols):
+        raise ValueError(f"Missing required columns. Expected {required_cols}, found {df.columns.tolist()}.")
+
+    # Drop rows with NaN values in required columns
+    df = df[required_cols].dropna()
+
+    # Parse crash_date column to datetime
+    df['crash_date'] = pd.to_datetime(df['crash_date'])
+
+    # Extract year-month periods from crash_date and create a new 'period' column
+    df['period'] = df['crash_date'].dt.to_period('M')
+
+    # Group by 'period' and calculate the sum of injuries_total for each period
+    aggregated_df = df.groupby('period')['injuries_total'].sum().reset_index()
+
+    # Sort the results in chronological order based on the period
+    aggregated_df = aggregated_df.sort_values(by='period')
+
+    # Generate a line plot to visualize the monthly trend of total injuries over time
+    buf = io.BytesIO()
+    plt.figure(figsize=(10, 6))
+    plt.plot(aggregated_df['period'].dt.to_timestamp(), aggregated_df['injuries_total'], marker='o', linestyle='-')
+    plt.title('Monthly Trend of Total Injuries Over Time')
+    plt.xlabel('Month')
+    plt.ylabel('Total Injuries')
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(buf, format='png', bbox_inches='tight', dpi=120)
+    plt.close('all')
+    buf.seek(0)
+    plot_b64 = base64.b64encode(buf.read()).decode('utf-8')
+
+    # Prepare the result and metadata
+    result = aggregated_df.to_dict(orient='records')
+   ...
+
+================================================================================
+FINAL FORMATTED CODE
+================================================================================
+
+"""Generated MCP tool: time_series_aggregate_injuries"""
+
+import matplotlib
+
+matplotlib.use("Agg")  # Non-interactive backend - must be set before pyplot
+from fastmcp import FastMCP
+import pandas as pd
+import time
+import io
+import base64
+import matplotlib.pyplot as plt
+
+mcp = FastMCP("data_analysis_tools")
+
+
+@mcp.tool()
+def time_series_aggregate_injuries(file_path: str):
+    # Load the dataset
+    df = pd.read_csv(file_path)
+
+    # Validate required columns
+    required_cols = ["crash_date", "injuries_total"]
+    if not all(col in df.columns for col in required_cols):
+        raise ValueError(
+            f"Missing required columns. Expected {required_cols}, found {df.columns.tolist()}."
+        )
+
+    # Drop rows with NaN values in required columns
+    df = df[required_cols].dropna()
+
+    # Parse crash_date column to datetime
+    df["crash_date"] = pd.to_datetime(df["crash_date"])
+
+    # Extract year-month periods from crash_date and create a new 'period' column
+    df["period"] = df["crash_date"].dt.to_period("M")
+
+    # Group by 'period' and calculate the sum of injuries_total for each period
+    aggregated_df = df.groupby("period")["injuries_total"].sum().reset_index()
+
+    # Sort the results in chronological order based on the period
+    aggregated_df = aggregated_df.sort_values(by="period")
+
+    # Generate a line plot to visualize the monthly trend of total injuries over time
+    buf = io.BytesIO()
+    plt.figure(figsize=(10, 6))
+    plt.plot(
+        aggregated_df["period"].dt.to_timestamp(),
+        aggregated_df["injuries_total"],
+        marker="o",
+        linestyle="-",
+    )
+    plt.title("Monthly Trend of Total Injuries Over Time")
+    plt.xlabel("Month")
+    plt.ylabel("Total Injuries")
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(buf, format="png", bbox_inches="tight", dpi=120)
+    plt.close("all")
+    buf.seek(0)
+    plot_b64 = base64.b64encode(buf.read()).decode("utf-8")
+
+    # Prepare the result and metadata
+    result = aggregated_df...
+[OK] Generated code saved to draft: tools\draft\time_series_aggregate_injuries_20260402_020215.py
+
+Event: ['code_generator_node']
+
+================================================================================
+VALIDATION RESULTS
+================================================================================
+
+Schema OK: True
+Tests OK: True
+Sandbox OK: True
+
+Event: ['validator_node']
+C:\Users\admin\AppData\Local\Temp\tmpwvlg4hb8.py:32: UserWarning: Could not infer format, so each element will be parsed individually, falling back to `dateutil`. To ensure parsing is consistent and as-expected, please specify a format.
+  df["crash_date"] = pd.to_datetime(df["crash_date"])
+📊 Plot saved to: output\plots\time_series_aggregate_injuries_20260402_020215_plot.png
+💾 Execution results saved to: output\draft\time_series_aggregate_injuries_20260402_020215_output.json
+
+Event: ['executor_node']
+[OK] Moved output file to: output\active\time_series_aggregate_injuries_20260402_020215_output.json
+
+================================================================================
+🎉 TOOL PROMOTED TO ACTIVE REGISTRY
+================================================================================
+
+Tool Name: time_series_aggregate_injuries_20260402_020215
+Draft Path: tools\draft\time_series_aggregate_injuries_20260402_020215.py
+Active Path: tools\active\time_series_aggregate_injuries_20260402_020215.py
+Output Path: output\active\time_series_aggregate_injuries_20260402_020215_output.json
+Registry: tools\registry.json
+[OK] Tool successfully executed and promoted to active
+
+Event: ['promoter_node']
+
+Event: ['projection_node']
+
+================================================================================
+PIPELINE COMPLETED
+================================================================================
+
+[PROMOTED TOOL]
+  Name: time_series_aggregate_injuries_20260402_020215
+  Active Path: tools\active\time_series_aggregate_injuries_20260402_020215.py
+  Output Path: output\active\time_series_aggregate_injuries_20260402_020215_output.json        
+  Logs Path: None
+  Registry Path: tools\registry.json
+  📊 Plot Path: output\plots\time_series_aggregate_injuries_20260402_020215_plot.png
+
+[EXECUTION OUTPUT]
+  Result: {
+  "result": [
+    {
+      "period": "2013-03",
+      "injuries_total": 2
+    },
+    {
+      "period": "2013-06",
+      "injuries_total": 1
+    },
+    {
+      "period": "2015-02",
+      "injuries_total": 0
+    },
+    {
+      "period": "2015-05",
+      "injuries_total": 0
+    },
+    {
+      "period": "2015-08",
+      "injuries_total": 11
+    },
+    {
+      "period": "2015-09",
+      "injuries_total": 29
+    },
+    {
+      "period": "2015-10",
+      "injuries_total": 70
+    },
+    {
+      "period": "2015-11",
+      "injuries_total": 79
+    },
+    {
+      "period": "2015-12",
+      "injuries_total": 100
+    },
+    {
+      "period": "2016-01",
+      "injuries_total": 91
+    },
+    {
+      "period": "2016-02",
+      "injuries_total": 70
+    },
+    {
+      "period": "2016-03",
+      "injuries_total": 122
+    },
+    {
+      "period": "2016-04",
+      "injuries_total": 114
+    },
+    {
+      "period": "2016-05",
+      "injuries_total": 95
+    },
+    {
+      "period": "2016-06",
+      "injuries_total": 85
+    },
+    {
+      "period": "2016-07",
+      "injuries_total": 99
+    },
+    {
+      "period": "2016-08",
+      "injuries_total": 132
+    },
+    {
+      "period": "2016-09",
+      "injuries_total": 163
+    },
+    {
+      "period": "2016-10",
+      "injuries_total": 152
+    },
+    {
+      "period": "2016-11",
+      "injuries_total": 135
+    },
+    {
+      "period": "2016-12",
+      "injuries_total": 123
+    },
+    {
+      "period": "2017-01",
+      "injuries_total": 129
+    },
+    {
+      "period": "2017-02",
+      "injuries_total": 153
+    },
+    {
+      "period": "2017-03",
+      "injuries_total": 150
+    },
+    {
+      "period": "2017-04",
+      "injuries_total": 207
+    },
+    {
+      "period": "2017-05",
+      "injuries_total": 298
+    },
+    {
+      "period": "2017-06",
+      "injuries_total": 284
+    },
+    {
+      "period": "2017-07",
+      "injuries_total": 475
+    },
+    {
+      "period": "2017-08",
+      "injuries_total": 659
+    },
+    {
+      "period": "2017-09",
+      "injuries_total": 903
+    },
+    {
+      "period": "2017-10",
+      "injuries_total": 930
+    },
+    {
+      "period": "2017-11",
+      "injuries_total": 818
+    },
+    {
+      "period": "2017-12",
+      "injuries_total": 826
+    },
+    {
+      "period": "2018-01",
+      "injuries_total": 857
+    },
+    {
+      "period": "2018-02",
+      "injuries_total": 584
+    },
+    {
+      "period": "2018-03",
+      "injuries_total": 673
+    },
+    {
+      "period": "2018-04",
+      "injuries_total": 800
+    },
+    {
+      "period": "2018-05",
+      "injuries_total": 958
+    },
+    {
+      "period": "2018-06",
+      "injuries_total": 882
+    },
+    {
+      "period": "2018-07",
+      "injuries_total": 968
+    },
+    {
+      "period": "2018-08",
+      "injuries_total": 920
+    },
+    {
+      "period": "2018-09",
+      "injuries_total": 932
+    },
+    {
+      "period": "2018-10",
+      "injuries_total": 908
+    },
+    {
+      "period": "2018-11",
+      "injuries_total": 798
+    },
+    {
+      "period": "2018-12",
+      "injuries_total": 945
+    },
+    {
+      "period": "2019-01",
+      "injuries_total": 689
+    },
+    {
+      "period": "2019-02",
+      "injuries_total": 631
+    },
+    {
+      "period": "2019-03",
+      "injuries_total": 775
+    },
+    {
+      "period": "2019-04",
+      "injuries_total": 854
+    },
+    {
+      "period": "2019-05",
+      "injuries_total": 987
+    },
+    {
+      "period": "2019-06",
+      "injuries_total": 929
+    },
+    {
+      "period": "2019-07",
+      "injuries_total": 936
+    },
+    {
+      "period": "2019-08",
+      "injuries_total": 920
+    },
+    {
+      "period": "2019-09",
+      "injuries_total": 900
+    },
+    {
+      "period": "2019-10",
+      "injuries_total": 960
+    },
+    {
+      "period": "2019-11",
+      "injuries_total": 829
+    },
+    {
+      "period": "2019-12",
+      "injuries_total": 729
+    },
+    {
+      "period": "2020-01",
+      "injuries_total": 786
+    },
+    {
+      "period": "2020-02",
+      "injuries_total": 754
+    },
+    {
+      "period": "2020-03",
+      "injuries_total": 646
+    },
+    {
+      "period": "2020-04",
+      "injuries_total": 428
+    },
+    {
+      "period": "2020-05",
+      "injuries_total": 655
+    },
+    {
+      "period": "2020-06",
+      "injuries_total": 901
+    },
+    {
+      "period": "2020-07",
+      "injuries_total": 1000
+    },
+    {
+      "period": "2020-08",
+      "injuries_total": 1006
+    },
+    {
+      "period": "2020-09",
+      "injuries_total": 886
+    },
+    {
+      "period": "2020-10",
+      "injuries_total": 845
+    },
+    {
+      "period": "2020-11",
+      "injuries_total": 753
+    },
+    {
+      "period": "2020-12",
+      "injuries_total": 645
+    },
+    {
+      "period": "2021-01",
+      "injuries_total": 619
+    },
+    {
+      "period": "2021-02",
+      "injuries_total": 438
+    },
+    {
+      "period": "2021-03",
+      "injuries_total": 666
+    },
+    {
+      "period": "2021-04",
+      "injuries_total": 814
+    },
+    {
+      "period": "2021-05",
+      "injuries_total": 966
+    },
+    {
+      "period": "2021-06",
+      "injuries_total": 1066
+    },
+    {
+      "period": "2021-07",
+      "injuries_total": 1052
+    },
+    {
+      "period": "2021-08",
+      "injuries_total": 1002
+    },
+    {
+      "period": "2021-09",
+      "injuries_total": 968
+    },
+    {
+      "period": "2021-10",
+      "injuries_total": 975
+    },
+    {
+      "period": "2021-11",
+      "injuries_total": 840
+    },
+    {
+      "period": "2021-12",
+      "injuries_total": 769
+    },
+    {
+      "period": "2022-01",
+      "injuries_total": 696
+    },
+    {
+      "period": "2022-02",
+      "injuries_total": 643
+    },
+    {
+      "period": "2022-03",
+      "injuries_total": 791
+    },
+    {
+      "period": "2022-04",
+      "injuries_total": 818
+    },
+    {
+      "period": "2022-05",
+      "injuries_total": 912
+    },
+    {
+      "period": "2022-06",
+      "injuries_total": 1052
+    },
+    {
+      "period": "2022-07",
+      "injuries_total": 991
+    },
+    {
+      "period": "2022-08",
+      "injuries_total": 881
+    },
+    {
+      "period": "2022-09",
+      "injuries_total": 904
+    },
+    {
+      "period": "2022-10",
+      "injuries_total": 918
+    },
+    {
+      "period": "2022-11",
+      "injuries_total": 819
+    },
+    {
+      "period": "2022-12",
+      "injuries_total": 801
+    },
+    {
+      "period": "2023-01",
+      "injuries_total": 736
+    },
+    {
+      "period": "2023-02",
+      "injuries_total": 659
+    },
+    {
+      "period": "2023-03",
+      "injuries_total": 817
+    },
+    {
+      "period": "2023-04",
+      "injuries_total": 849
+    },
+    {
+      "period": "2023-05",
+      "injuries_total": 923
+    },
+    {
+      "period": "2023-06",
+      "injuries_total": 917
+    },
+    {
+      "period": "2023-07",
+      "injuries_total": 943
+    },
+    {
+      "period": "2023-08",
+      "injuries_total": 931
+    },
+    {
+      "period": "2023-09",
+      "injuries_total": 962
+    },
+    {
+      "period": "2023-10",
+      "injuries_total": 1045
+    },
+    {
+      "period": "2023-11",
+      "injuries_total": 883
+    },
+    {
+      "period": "2023-12",
+      "injuries_total": 888
+    },
+    {
+      "period": "2024-01",
+      "injuries_total": 697
+    },
+    {
+      "period": "2024-02",
+      "injuries_total": 707
+    },
+    {
+      "period": "2024-03",
+      "injuries_total": 883
+    },
+    {
+      "period": "2024-04",
+      "injuries_total": 893
+    },
+    {
+      "period": "2024-05",
+      "injuries_total": 1160
+    },
+    {
+      "period": "2024-06",
+      "injuries_total": 1113
+    },
+    {
+      "period": "2024-07",
+      "injuries_total": 1121
+    },
+    {
+      "period": "2024-08",
+      "injuries_total": 1029
+    },
+    {
+      "period": "2024-09",
+      "injuries_total": 1082
+    },
+    {
+      "period": "2024-10",
+      "injuries_total": 1115
+    },
+    {
+      "period": "2024-11",
+      "injuries_total": 889
+    },
+    {
+      "period": "2024-12",
+      "injuries_total": 869
+    },
+    {
+      "period": "2025-01",
+      "injuries_total": 419
+    }
+  ],
+  "metadata": {
+    "description": "Monthly aggregation of total injuries over time.",
+    "columns": [
+      "period",
+      "injuries_total"
+    ]
+  },
+  "plot_path": "output\\plots\\time_series_aggregate_injuries_20260402_020215_plot.png"        
+}
+  Execution Time: 13460.58ms
+
+================================================================================
+
+================================================================================
+FULL STATE DUMP
+================================================================================
+
+  --- INPUT ---
+  [v] user_query                           'Show monthly trend of total injuries from Jan to Mar for all the years. Generate the plots as well.'
+  [v] data_path                            'C:\\Users\\admin\\Desktop\\sweta\\code_generator_interpreter\\MCP_Tool_Code_Interpreter_Generator\\reference_files\\sample_plann'...
+  [o] task_id                              None
+
+  --- INTENT ---
+  [v] extracted_intent                     Dict[19 keys]  keys=['has_gap', 'gap_reason', 'operation', 'required_columns', 'missing_columns', 'implementation_plan', 'filters', 'group_by']    
+  [v] has_gap                              'True'
+  [o] matched_tool                         None
+
+  --- GENERATION ---
+  [v] tool_spec                            "tool_name='time_series_aggregate_injuries' description='Generates a time series aggregation of total injuries over speci"
+  [v] generated_code                       '"""Generated MCP tool: time_series_aggregate_injuries"""\n\nimport matplotlib\n\nmatplotlib.use("Agg")  # Non-interactive ba'...
+  [v] draft_path                           'tools\\draft\\time_series_aggregate_injuries_20260402_020215.py'
+
+  --- VALIDATION ---
+  [v] validation_result                    'schema_ok=True tests_ok=True sandbox_ok=True errors=[] warnings=[]'
+  [v] repair_attempts                      '0'
+
+  --- EXECUTION ---
+  [v] execution_output                     Dict[4 keys]  keys=['result', 'summary_markdown', 'execution_time_ms', 'error']
+  [v] draft_output_path                    'output\\draft\\time_series_aggregate_injuries_20260402_020215_output.json'
+
+  --- FINAL ---
+  [v] promoted_tool                        Dict[4 keys]  keys=['name', 'path', 'registry_path', 'output_path']
+  [o] errors                               None
+
+  --- PROJECTION ---
+  [v] projected_tool_transcript            List[5 items]  [{'tool': 'intent_extractor', 'args': {'query': 'Show monthly trend of total injuries from Jan to Mar for all the years.
+  [v] projected_artifact_log               List[3 items]  ['tools\\draft\\time_series_aggregate_injuries_20260402_020215.py', 'output\\draft\\time_series_aggregate_injuries_20260
+  [o] projected_capability_gap             None
+  [o] projected_errors                     None
+  [o] projected_warnings                   None
+  [v] projected_final_artifacts            Dict[1 keys]  keys=['promoted_tool']
+
+  --- MESSAGES ---
+  [v] messages                             List[1 items]  [AIMessage(content='**Tool:** `time_series_aggregate_injuries_20260402_020215`\nSchema: pass | Tests: pass | Sandbox: pa
+
+  [v] No unexpected keys
+================================================================================
+
+(c_venv) (base) PS C:\Users\admin\Desktop\sweta\code_generator_interpreter\MCP_Tool_Code_Interpreter_Generator>

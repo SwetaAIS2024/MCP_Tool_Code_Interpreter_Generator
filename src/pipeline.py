@@ -57,12 +57,15 @@ def projection_node(state: ToolGeneratorState) -> ToolGeneratorState:
         })
 
     capability_gap: Optional[Dict[str, Any]] = None
-    if has_gap:
+    if has_gap and not state.get("promoted_tool"):
+        # Gap still exists — tool generation did not complete successfully
         capability_gap = {
             "component": "tool_generator",
             "extracted_intent": extracted_intent,
-            "reason": "capability gap detected — new tool was generated",
+            "reason": "capability gap detected - tool generation failed or was not promoted",
         }
+    # If promoted_tool is set, gap is filled — capability_gap stays None so the
+    # parent graph does not see a lingering gap after successful generation.
 
     # ---- Generation artifacts -----------------------------------------------
     draft_path = state.get("draft_path")

@@ -1,11 +1,11 @@
 {
   "tools": [
     {
-      "name": "time_series_aggregate_injuries_20260402_003143",
+      "name": "time_series_aggregate_injuries_20260402_020215",
       "description": "Generates a time series aggregation of total injuries over specified periods.",
       "user_query": "Show monthly trend of total injuries from Jan to Mar for all the years. Generate the plots as well.",
-      "tool_path": "tools\\active\\time_series_aggregate_injuries_20260402_003143.py",
-      "log_file": "logs\\pipeline_20260402_002959.log",
+      "tool_path": "tools\\active\\time_series_aggregate_injuries_20260402_020215.py",
+      "log_file": "logs\\pipeline_20260402_020033.log",
       "parameters": [
         {
           "name": "file_path",
@@ -15,7 +15,7 @@
         }
       ],
       "return_type": "Dict[str, Any]",
-      "output_file": "output\\active\\time_series_aggregate_injuries_20260402_003143_output.json"
+      "output_file": "output\\active\\time_series_aggregate_injuries_20260402_020215_output.json"
     }
   ]
 }

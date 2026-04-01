@@ -133,13 +133,69 @@ def verify_projection(state: dict) -> bool:
     return all_ok
 
 
-def test_code_gen(verbosity: str = "normal", query: str = None, verify: bool = False):
+def dump_full_state(state: dict) -> None:
+    """Print every ToolGeneratorState field grouped by category."""
+    import json
+
+    def _summarise(val):
+        if val is None:
+            return "None"
+        if isinstance(val, str):
+            return repr(val[:120]) + ("..." if len(val) > 120 else "")
+        if isinstance(val, list):
+            return f"List[{len(val)} items]  {str(val)[:120]}"
+        if isinstance(val, dict):
+            keys = list(val.keys())[:8]
+            return f"Dict[{len(val)} keys]  keys={keys}"
+        return repr(str(val)[:120])
+
+    GROUPS = [
+        ("INPUT",       ["user_query", "data_path", "task_id"]),
+        ("INTENT",      ["extracted_intent", "has_gap", "matched_tool"]),
+        ("GENERATION",  ["tool_spec", "generated_code", "draft_path"]),
+        ("VALIDATION",  ["validation_result", "repair_attempts"]),
+        ("EXECUTION",   ["execution_output", "draft_output_path"]),
+        ("FINAL",       ["promoted_tool", "errors"]),
+        ("PROJECTION",  [
+            "projected_tool_transcript", "projected_artifact_log",
+            "projected_capability_gap", "projected_errors",
+            "projected_warnings", "projected_final_artifacts",
+        ]),
+        ("MESSAGES",    ["messages"]),
+    ]
+
+    print()
+    print("=" * 80)
+    print("FULL STATE DUMP")
+    print("=" * 80)
+
+    for group_name, fields in GROUPS:
+        print(f"\n  --- {group_name} ---")
+        for field in fields:
+            val = state.get(field, "<MISSING>")
+            icon = "o" if val is None else ("x" if val == "<MISSING>" else "v")
+            print(f"  [{icon}] {field:<35}  {_summarise(val)}")
+
+    # Check for any unexpected keys
+    known = {f for _, fs in GROUPS for f in fs}
+    extra = set(state.keys()) - known
+    if extra:
+        print(f"\n  [!] Extra keys not in ToolGeneratorState definition: {extra}")
+    else:
+        print(f"\n  [v] No unexpected keys")
+
+    print("=" * 80)
+    print()
+
+
+def test_code_gen(verbosity: str = "normal", query: str = None, verify: bool = False, dump_state: bool = False):
     """Run the code generation pipeline end-to-end.
     
     Args:
         verbosity: Logging verbosity level (quiet, normal, verbose, debug)
         query: User query for tool generation (optional)
         verify: If True, run integration projection verification at the end
+        dump_state: If True, print every ToolGeneratorState field after the run
     """
     # Configure logging
     pipeline_logger = PipelineLogger()
@@ -183,6 +239,7 @@ def test_code_gen(verbosity: str = "normal", query: str = None, verify: bool = F
         "draft_output_path": None,
         "promoted_tool": None,
         "errors": None,
+        "task_id": None,
         "projected_tool_transcript": None,
         "projected_artifact_log": None,
         "projected_capability_gap": None,
@@ -254,6 +311,10 @@ def test_code_gen(verbosity: str = "normal", query: str = None, verify: bool = F
     
     print("\n" + "=" * 80)
 
+    # Full state dump (only when --state flag is passed)
+    if dump_state:
+        dump_full_state(current_state)
+
     # Verify integration projection (only when --verify flag is passed)
     if verify:
         verify_projection(current_state)
@@ -291,6 +352,7 @@ def test_auto_approve():
         "draft_output_path": None,
         "promoted_tool": None,
         "errors": None,
+        "task_id": None,
         "projected_tool_transcript": None,
         "projected_artifact_log": None,
         "projected_capability_gap": None,
@@ -350,6 +412,11 @@ if __name__ == "__main__":
         action="store_true",
         help="Run integration projection verification at the end of the pipeline"
     )
+    parser.add_argument(
+        "--state",
+        action="store_true",
+        help="Dump every ToolGeneratorState field with its value after the run"
+    )
     parser.set_defaults(verbosity="normal")
     
     args = parser.parse_args()
@@ -357,4 +424,4 @@ if __name__ == "__main__":
     if args.auto:
         test_auto_approve()
     else:
-        test_code_gen(verbosity=args.verbosity, query=args.query, verify=args.verify)
+        test_code_gen(verbosity=args.verbosity, query=args.query, verify=args.verify, dump_state=args.state)

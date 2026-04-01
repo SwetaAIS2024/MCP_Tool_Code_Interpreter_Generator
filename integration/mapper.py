@@ -108,6 +108,7 @@ def build_child_input(parent_state: Any) -> Dict[str, Any]:
         # --- Child-internal defaults (all nodes initialise from these) ---
         "extracted_intent":   None,
         "has_gap":            False,
+        "matched_tool":       None,
         "tool_spec":          None,
         "generated_code":     None,
         "draft_path":         None,
@@ -117,6 +118,7 @@ def build_child_input(parent_state: Any) -> Dict[str, Any]:
         "draft_output_path":  None,
         "promoted_tool":      None,
         "errors":             None,
+        "task_id":            None,
 
         # --- Projection output fields (populated by projection_node) ---
         "projected_tool_transcript":  None,
