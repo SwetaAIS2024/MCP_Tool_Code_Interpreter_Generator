@@ -287,7 +287,7 @@ def projection_node(state: ToolGeneratorState) -> ToolGeneratorState:
     }
 
 
-def build_graph(checkpointer: Optional[MemorySaver] = None) -> StateGraph:
+def build_graph(checkpointer: Optional[MemorySaver] = None, visualize: bool = False) -> StateGraph:
     """Build and compile the LangGraph StateGraph.
     
     Args:
@@ -295,6 +295,9 @@ def build_graph(checkpointer: Optional[MemorySaver] = None) -> StateGraph:
                      Pass a MemorySaver explicitly when running standalone.
                      When running under LangGraph API, leave as None — the
                      platform manages persistence automatically.
+        visualize: Write pipeline_graph.mmd / .png to disk. Default False
+                   so that importing this module as a package (e.g. from the
+                   A2A server) does not produce unexpected file writes.
     
     Returns:
         Compiled graph ready for execution
@@ -328,30 +331,31 @@ def build_graph(checkpointer: Optional[MemorySaver] = None) -> StateGraph:
     # Compile — checkpointer is None when running under LangGraph API
     graph = workflow.compile(checkpointer=checkpointer)
     
-    # Generate graph visualization
-    try:
-        from pathlib import Path
-        
-        # Get graph structure
-        graph_structure = graph.get_graph()
-        
-        # Save Mermaid diagram
-        mermaid = graph_structure.draw_mermaid()
-        mermaid_file = Path("pipeline_graph.mmd")
-        mermaid_file.parent.mkdir(parents=True, exist_ok=True)
-        mermaid_file.write_text(mermaid)
-        
-        # Try to generate PNG
+    # Generate graph visualization (opt-in — skipped when used as a library)
+    if visualize:
         try:
-            png_data = graph_structure.draw_mermaid_png()
-            png_file = Path("pipeline_graph.png")
-            png_file.write_bytes(png_data)
-            logger.info(f"[OK] Graph visualization saved to: {png_file}")
-        except Exception:
-            logger.info(f"[OK] Graph Mermaid diagram saved to: {mermaid_file}")
-            logger.info("   (Paste into https://mermaid.live for visualization)")
-    except Exception as e:
-        logger.warning(f"[WARN] Could not generate graph visualization: {e}")
+            from pathlib import Path
+            
+            # Get graph structure
+            graph_structure = graph.get_graph()
+            
+            # Save Mermaid diagram
+            mermaid = graph_structure.draw_mermaid()
+            mermaid_file = Path("pipeline_graph.mmd")
+            mermaid_file.parent.mkdir(parents=True, exist_ok=True)
+            mermaid_file.write_text(mermaid)
+            
+            # Try to generate PNG
+            try:
+                png_data = graph_structure.draw_mermaid_png()
+                png_file = Path("pipeline_graph.png")
+                png_file.write_bytes(png_data)
+                logger.info(f"[OK] Graph visualization saved to: {png_file}")
+            except Exception:
+                logger.info(f"[OK] Graph Mermaid diagram saved to: {mermaid_file}")
+                logger.info("   (Paste into https://mermaid.live for visualization)")
+        except Exception as e:
+            logger.warning(f"[WARN] Could not generate graph visualization: {e}")
     
     return graph
 
@@ -373,12 +377,13 @@ def run_pipeline(user_query: str, data_path: str, thread_id: str = None) -> Dict
         thread_id = str(_uuid.uuid4())
 
     # Build graph — pass MemorySaver for standalone run (thread_id config support)
-    graph = build_graph(checkpointer=MemorySaver())
+    graph = build_graph(checkpointer=MemorySaver(), visualize=True)
     
     # Initialize state
     initial_state: ToolGeneratorState = {
         "user_query": user_query,
         "data_path": data_path,
+        "task_id": None,
         "extracted_intent": None,
         "has_gap": False,
         "matched_tool": None,
@@ -409,5 +414,8 @@ def run_pipeline(user_query: str, data_path: str, thread_id: str = None) -> Dict
 
 # ============================================================================
 # Module-level compiled graph — required by LangGraph Studio (langgraph dev)
+# Visualize=True so the .mmd diagram is refreshed on each server start.
+# When imported as a library by the A2A server, use build_graph() directly
+# with visualize=False (the default).
 # ============================================================================
-graph = build_graph()
+graph = build_graph(visualize=True)

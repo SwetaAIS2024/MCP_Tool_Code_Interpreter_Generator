@@ -731,7 +731,8 @@ def code_generator_node(state: ToolGeneratorState) -> ToolGeneratorState:
     code = generate_code(state["tool_spec"], llm_client)
     
     # Save to draft folder immediately (all generated tools go here)
-    draft_dir = Path("tools/draft")
+    import os as _os
+    draft_dir = Path(_os.environ.get("DRAFT_DIR", "tools/draft"))
     draft_dir.mkdir(parents=True, exist_ok=True)
     
     # Generate unique filename with timestamp
