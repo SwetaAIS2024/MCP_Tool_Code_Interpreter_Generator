@@ -13,6 +13,17 @@ from src.logger_config import get_logger, log_section, log_success, log_error
 
 logger = get_logger(__name__)
 
+# Force the non-interactive Agg backend before any generated code can import
+# matplotlib with the default Tk backend.  Generated plotting tools run in a
+# ThreadPoolExecutor thread; if Tk is initialised in the main thread first,
+# tkinter cleanup in the worker thread causes "Tcl_AsyncDelete: async handler
+# deleted by the wrong thread" and crashes the server process.
+try:
+    import matplotlib
+    matplotlib.use("Agg")
+except Exception:
+    pass
+
 
 # ============================================================================
 # Tool Executor
@@ -42,15 +53,13 @@ class ToolExecutor:
         start = time.time()
         
         try:
-            # Write code to draft folder (where all generated tools are stored)
-            draft_dir = Path("tools/draft")
-            draft_dir.mkdir(parents=True, exist_ok=True)
-            
+            # Write code to the system temp directory (NOT the project folder)
+            # so that langgraph dev / watchfiles does not detect the file and
+            # trigger a server reload mid-execution.
             with tempfile.NamedTemporaryFile(
                 mode='w',
                 suffix='.py',
                 delete=False,
-                dir=str(draft_dir)
             ) as f:
                 code_path = Path(f.name)
                 f.write(code)
@@ -300,17 +309,23 @@ def executor_node(state: ToolGeneratorState) -> ToolGeneratorState:
     output_filename = f"{tool_name}_{timestamp}_output.json"
     output_path = output_draft_dir / output_filename
     
-    # Add metadata to output
+    # Add metadata to output; strip large binary fields (plot_base64) from the
+    # saved JSON to keep the file readable — the pipeline still has it in memory.
+    result_for_json = {k: v for k, v in result_dict.items() if k != "plot_base64"}
+    if "result" in result_for_json and isinstance(result_for_json["result"], dict):
+        result_for_json["result"] = {
+            k: v for k, v in result_for_json["result"].items() if k != "plot_base64"
+        }
     output_data = {
         "tool_name": f"{tool_name}_{timestamp}",
         "user_query": state.get('user_query', ''),
         "execution_timestamp": datetime.now().isoformat(),
         "data_path": state.get('data_path', ''),
-        **result_dict
+        **result_for_json
     }
     
     output_path.write_text(json.dumps(output_data, indent=2, default=str))
-    logger.info(f"💾 Execution results saved to: {output_path}")
+    logger.info(f"[OK] Execution results saved to: {output_path}")
     
     return {
         **state,
@@ -367,13 +382,13 @@ def route_after_execution(state: ToolGeneratorState) -> str:
 
     # There is a real error with a message — attempt repair if budget allows
     if repair_attempts < max_repair_attempts:
-        logger.warning(f"⚠️  Execution error detected (attempt {repair_attempts + 1}/{max_repair_attempts})")
+        logger.warning(f"[WARN] Execution error detected (attempt {repair_attempts + 1}/{max_repair_attempts})")
         logger.error(f"Error: {error_msg}")
-        logger.info("🔧 Attempting automatic code repair...")
+        logger.info("[REPAIR] Attempting automatic code repair...")
         return "repair_node"
 
     # Budget exhausted
-    logger.error(f"❌ Maximum repair attempts ({max_repair_attempts}) exceeded")
+    logger.error(f"[ERROR] Maximum repair attempts ({max_repair_attempts}) exceeded")
     logger.error(f"Final error: {error_msg}")
-    logger.info("⚠️  Tool generation failed - ending pipeline")
+    logger.info("[WARN] Tool generation failed - ending pipeline")
     return END

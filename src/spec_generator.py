@@ -261,7 +261,7 @@ def spec_generator_node(state: ToolGeneratorState) -> ToolGeneratorState:
     
     # Warn if proceeding with missing columns
     if len(missing_cols) > 0:
-        logger.warning("⚠️ WARNING: Generating spec with incomplete column set")
+        logger.warning("[WARN] Generating spec with incomplete column set")
         logger.warning(f"   Available: {required_cols}")
         logger.warning(f"   Missing: {missing_cols}")
     

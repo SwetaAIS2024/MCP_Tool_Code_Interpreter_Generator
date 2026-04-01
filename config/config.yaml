@@ -32,6 +32,11 @@ llm:
   # 16384 reduces KV cache to ~3-6GB and cuts latency from ~2-3 min to ~20-40 sec.
   num_ctx: 16384
 
+  # Maximum output tokens (num_predict in Ollama).
+  # Default Ollama value is 128 — far too small for generated code.
+  # 4096 covers most tools; increase to 16384 for complex algorithms (DyNOTEARS etc.).
+  num_predict: 16384
+
 # Paths
 paths:
   draft_dir: "./tools/draft"

@@ -1,0 +1,188 @@
+{
+  "tool_name": "groupby_aggregate_crash_day_of_week_injuries_20260312_160358",
+  "user_query": "Compare injury distributions across the dataset over weekends only.",
+  "execution_timestamp": "2026-03-12T16:04:03.451449",
+  "data_path": "C:\\Users\\admin\\Desktop\\sweta\\code_generator_interpreter\\MCP_Tool_Code_Interpreter_Generator\\reference_files\\sample_planner_output\\traffic_accidents.csv",
+  "result": {
+    "result": {
+      "comparison": {
+        "1": {
+          "count": {
+            "crash_day_of_week": 25246.0,
+            "injuries_total": 25246.0,
+            "injuries_fatal": 25246.0,
+            "injuries_incapacitating": 25246.0,
+            "injuries_non_incapacitating": 25246.0,
+            "injuries_reported_not_evident": 25246.0,
+            "injuries_no_indication": 25246.0
+          },
+          "mean": {
+            "crash_day_of_week": 1.0,
+            "injuries_total": 0.45143785154083815,
+            "injuries_fatal": 0.0025746652935118436,
+            "injuries_incapacitating": 0.04883942010615543,
+            "injuries_non_incapacitating": 0.2686762259367821,
+            "injuries_reported_not_evident": 0.13134754020438882,
+            "injuries_no_indication": 2.354986928622356
+          },
+          "std": {
+            "crash_day_of_week": 0.0,
+            "injuries_total": 0.8885166215269203,
+            "injuries_fatal": 0.05658557224042417,
+            "injuries_incapacitating": 0.2794032768729041,
+            "injuries_non_incapacitating": 0.6867033304355857,
+            "injuries_reported_not_evident": 0.48255162703517823,
+            "injuries_no_indication": 1.3660369423751715
+          },
+          "min": {
+            "crash_day_of_week": 1.0,
+            "injuries_total": 0.0,
+            "injuries_fatal": 0.0,
+            "injuries_incapacitating": 0.0,
+            "injuries_non_incapacitating": 0.0,
+            "injuries_reported_not_evident": 0.0,
+            "injuries_no_indication": 0.0
+          },
+          "25%": {
+            "crash_day_of_week": 1.0,
+            "injuries_total": 0.0,
+            "injuries_fatal": 0.0,
+            "injuries_incapacitating": 0.0,
+            "injuries_non_incapacitating": 0.0,
+            "injuries_reported_not_evident": 0.0,
+            "injuries_no_indication": 2.0
+          },
+          "50%": {
+            "crash_day_of_week": 1.0,
+            "injuries_total": 0.0,
+            "injuries_fatal": 0.0,
+            "injuries_incapacitating": 0.0,
+            "injuries_non_incapacitating": 0.0,
+            "injuries_reported_not_evident": 0.0,
+            "injuries_no_indication": 2.0
+          },
+          "75%": {
+            "crash_day_of_week": 1.0,
+            "injuries_total": 1.0,
+            "injuries_fatal": 0.0,
+            "injuries_incapacitating": 0.0,
+            "injuries_non_incapacitating": 0.0,
+            "injuries_reported_not_evident": 0.0,
+            "injuries_no_indication": 3.0
+          },
+          "max": {
+            "crash_day_of_week": 1.0,
+            "injuries_total": 12.0,
+            "injuries_fatal": 3.0,
+            "injuries_incapacitating": 7.0,
+            "injuries_non_incapacitating": 9.0,
+            "injuries_reported_not_evident": 11.0,
+            "injuries_no_indication": 39.0
+          }
+        },
+        "7": {
+          "count": {
+            "crash_day_of_week": 30710.0,
+            "injuries_total": 30710.0,
+            "injuries_fatal": 30710.0,
+            "injuries_incapacitating": 30710.0,
+            "injuries_non_incapacitating": 30710.0,
+            "injuries_reported_not_evident": 30710.0,
+            "injuries_no_indication": 30710.0
+          },
+          "mean": {
+            "crash_day_of_week": 7.0,
+            "injuries_total": 0.4019537609899056,
+            "injuries_fatal": 0.002116574405731032,
+            "injuries_incapacitating": 0.04125691957017258,
+            "injuries_non_incapacitating": 0.23454900683816346,
+            "injuries_reported_not_evident": 0.12403126017583849,
+            "injuries_no_indication": 2.345359817648974
+          },
+          "std": {
+            "crash_day_of_week": 0.0,
+            "injuries_total": 0.8418589681968932,
+            "injuries_fatal": 0.048710093866096094,
+            "injuries_incapacitating": 0.24201921500160048,
+            "injuries_non_incapacitating": 0.6557605750601417,
+            "injuries_reported_not_evident": 0.4588851292938969,
+            "injuries_no_indication": 1.2918952170923814
+          },
+          "min": {
+            "crash_day_of_week": 7.0,
+            "injuries_total": 0.0,
+            "injuries_fatal": 0.0,
+            "injuries_incapacitating": 0.0,
+            "injuries_non_incapacitating": 0.0,
+            "injuries_reported_not_evident": 0.0,
+            "injuries_no_indication": 0.0
+          },
+          "25%": {
+            "crash_day_of_week": 7.0,
+            "injuries_total": 0.0,
+            "injuries_fatal": 0.0,
+            "injuries_incapacitating": 0.0,
+            "injuries_non_incapacitating": 0.0,
+            "injuries_reported_not_evident": 0.0,
+            "injuries_no_indication": 2.0
+          },
+          "50%": {
+            "crash_day_of_week": 7.0,
+            "injuries_total": 0.0,
+            "injuries_fatal": 0.0,
+            "injuries_incapacitating": 0.0,
+            "injuries_non_incapacitating": 0.0,
+            "injuries_reported_not_evident": 0.0,
+            "injuries_no_indication": 2.0
+          },
+          "75%": {
+            "crash_day_of_week": 7.0,
+            "injuries_total": 1.0,
+            "injuries_fatal": 0.0,
+            "injuries_incapacitating": 0.0,
+            "injuries_non_incapacitating": 0.0,
+            "injuries_reported_not_evident": 0.0,
+            "injuries_no_indication": 3.0
+          },
+          "max": {
+            "crash_day_of_week": 7.0,
+            "injuries_total": 16.0,
+            "injuries_fatal": 2.0,
+            "injuries_incapacitating": 6.0,
+            "injuries_non_incapacitating": 16.0,
+            "injuries_reported_not_evident": 7.0,
+            "injuries_no_indication": 36.0
+          }
+        }
+      },
+      "difference": {
+        "absolute_diff": {
+          "injuries_total": 0.04948409055093256,
+          "injuries_fatal": 0.0004580908877808115,
+          "injuries_incapacitating": 0.007582500535982854,
+          "injuries_non_incapacitating": 0.03412721909861863,
+          "injuries_reported_not_evident": 0.007316280028550337,
+          "injuries_no_indication": 0.009627110973382091
+        },
+        "percent_diff": {
+          "injuries_total": 10.961440291733293,
+          "injuries_fatal": 17.792250081406717,
+          "injuries_incapacitating": 15.525369710577708,
+          "injuries_non_incapacitating": 12.701986928552644,
+          "injuries_reported_not_evident": 5.570169047068209,
+          "injuries_no_indication": 0.408796790180651
+        }
+      }
+    },
+    "metadata": {
+      "file_path": "C:\\Users\\admin\\Desktop\\sweta\\code_generator_interpreter\\MCP_Tool_Code_Interpreter_Generator\\reference_files\\sample_planner_output\\traffic_accidents.csv",
+      "groups": [
+        1,
+        7
+      ]
+    }
+  },
+  "summary_markdown": null,
+  "execution_time_ms": 2701.7409801483154,
+  "error": null
+}

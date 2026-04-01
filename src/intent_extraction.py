@@ -115,7 +115,11 @@ CRITICAL RULES:
 3. If the user asks for "Tukey HSD", your plan MUST include statsmodels.stats.multicomp.pairwise_tukeyhsd
 4. DO NOT substitute different statistical methods than what the user explicitly requested
 5. Output ONLY valid JSON - no thinking process, no explanations, no markdown
-6. The 'operation' field is REQUIRED - never return null/None for it"""
+6. The 'operation' field is REQUIRED - never return null/None for it
+7. DAY-OF-WEEK CONVENTION (crash_day_of_week): 1=Sunday, 2=Monday, 3=Tuesday, 4=Wednesday, 5=Thursday, 6=Friday, 7=Saturday
+   - Weekdays (Monday–Friday) = [2, 3, 4, 5, 6]
+   - Weekends (Saturday–Sunday) = [1, 7]
+   - Always derive the correct day numbers from this convention and include them explicitly in the implementation_plan details"""
         
         # Use Qwen LLM for detailed extraction
         intent = self.llm.generate_structured(prompt, schema, system_message=system_message)
@@ -523,20 +527,121 @@ def intent_node(state: ToolGeneratorState) -> ToolGeneratorState:
     """
     from src.llm_client import create_llm_client
     from src.intent_validator import validate_intent, log_validation_results
+    import os
+    import re
+    import base64
+    import tempfile
     import pandas as pd
-    
+    from langchain_core.messages import HumanMessage
+
+    # -------------------------------------------------------------------------
+    # Step 1: Extract text query + any uploaded file from the last human message
+    #
+    # IMPORTANT: Always read from the latest HumanMessage so that follow-up
+    # corrections and new queries in a multi-turn Studio Chat thread are picked
+    # up correctly.  state["user_query"] carries over from the *previous* run
+    # (thread state persists across turns), so relying on it first would cause
+    # every correction to be silently ignored and the stale query to be reused.
+    # -------------------------------------------------------------------------
+    raw_message: str = ""
+    uploaded_file_path: str = ""
+    user_query: str = ""
+
+    for msg in reversed(state.get("messages") or []):
+        if isinstance(msg, HumanMessage) or getattr(msg, "type", "") == "human":
+            content = msg.content
+            if isinstance(content, list):
+                text_parts = []
+                for block in content:
+                    if not isinstance(block, dict):
+                        text_parts.append(str(block))
+                        continue
+                    btype = block.get("type", "")
+                    if btype == "text":
+                        text_parts.append(block.get("text", ""))
+                    elif btype in ("file", "document") and not uploaded_file_path:
+                        # LangGraph Studio sends uploaded files as base64 blocks.
+                        # Save to a temp CSV so the pipeline can read it.
+                        fname = block.get("filename", "") or block.get("name", "")
+                        raw_data = block.get("data") or block.get("source", "")
+                        media_type = block.get("media_type", "") or block.get("mime_type", "")
+                        if raw_data and (fname.endswith(".csv") or "csv" in media_type):
+                            try:
+                                csv_bytes = base64.b64decode(raw_data)
+                                tmp = tempfile.NamedTemporaryFile(
+                                    delete=False, suffix=".csv", prefix="studio_upload_"
+                                )
+                                tmp.write(csv_bytes)
+                                tmp.close()
+                                uploaded_file_path = tmp.name
+                                logger.info(f"Saved uploaded CSV to: {uploaded_file_path}")
+                            except Exception as e:
+                                logger.warning(f"Failed to decode uploaded file: {e}")
+                content = " ".join(text_parts)
+            raw_message = content or ""
+            user_query = raw_message
+            break
+
+    # Fall back to state's user_query only if no human message is present
+    # (e.g., invocations from the Graph tab with user_query set directly)
+    if not user_query:
+        user_query = state.get("user_query") or ""
+
+    if not user_query:
+        raise ValueError("No user_query found in state and no human message present.")
+
+    # -------------------------------------------------------------------------
+    # Step 2: Resolve data_path — priority order:
+    #   1. Explicitly set in state (Graph tab input)
+    #   2. File uploaded via "+" button in Chat
+    #   3. CSV path typed inline in message (e.g. "using data/foo.csv, ...")
+    #   4. DEFAULT_DATA_PATH env var
+    #   5. Bundled sample dataset
+    # -------------------------------------------------------------------------
+    data_path: str = state.get("data_path") or ""
+
+    if not data_path and uploaded_file_path:
+        data_path = uploaded_file_path
+        logger.info(f"Using uploaded file as data_path: {data_path}")
+
+    if not data_path and raw_message:
+        # Explicit keyword prefix: data/dataset/file: <path>
+        kw_match = re.search(
+            r"(?:data(?:set)?|file)\s*[:=]\s*([^\s,|;]+\.csv)",
+            raw_message,
+            re.IGNORECASE,
+        )
+        if kw_match:
+            data_path = kw_match.group(1)
+            user_query = re.sub(re.escape(kw_match.group(0)), "", user_query, flags=re.IGNORECASE).strip(" ,|;")
+        else:
+            # Bare CSV path token (e.g. "using reference_files/foo.csv, ...")
+            bare_match = re.search(r"([^\s,|;]+\.csv)", raw_message, re.IGNORECASE)
+            if bare_match:
+                data_path = bare_match.group(1)
+                user_query = re.sub(re.escape(bare_match.group(0)), "", user_query, flags=re.IGNORECASE).strip(" ,|;")
+
+    if not data_path:
+        data_path = os.environ.get(
+            "DEFAULT_DATA_PATH",
+            "reference_files/sample_planner_output/traffic_accidents.csv",
+        )
+        logger.info(f"data_path not set — using default: {data_path}")
+    else:
+        logger.info(f"Using dataset: {data_path}")
+
     # Use reasoning model for intent extraction and planning
     llm_client = create_llm_client(model_type="reasoning")
-    intent = extract_intent(state["user_query"], state["data_path"], llm_client)
+    intent = extract_intent(user_query, data_path, llm_client)
 
     # CURRENTLY DISABLED GAP DETECTION - always proceed to generation, but store best match if any for later use
-    # gap_detected, best_match = detect_capability_gap(intent, user_query=state["user_query"]) 
+    # gap_detected, best_match = detect_capability_gap(intent, user_query=user_query)
     gap_detected, best_match = True, None  # Force generation for now while we iterate on intent extraction quality
     
     # Validate intent before proceeding
     # Load dataset to get available columns
     try:
-        df = pd.read_csv(state["data_path"])
+        df = pd.read_csv(data_path)
         available_columns = df.columns.tolist()
         
         is_valid, errors, warnings = validate_intent(intent, available_columns)
@@ -550,12 +655,12 @@ def intent_node(state: ToolGeneratorState) -> ToolGeneratorState:
         }
         
         if not is_valid:
-            logger.error("❌ Intent validation failed - cannot proceed to code generation")
+            logger.error("[ERROR] Intent validation failed - cannot proceed to code generation")
             logger.error(f"Errors: {errors}")
             # Still return the intent but mark it as invalid
             # The routing logic will handle this
     except Exception as e:
-        logger.warning(f"⚠️ Intent validation skipped: {e}")
+        logger.warning(f"[WARN] Intent validation skipped: {e}")
         intent["validation"] = {
             "is_valid": True,  # Assume valid if validation fails
             "errors": [],
@@ -564,6 +669,8 @@ def intent_node(state: ToolGeneratorState) -> ToolGeneratorState:
     
     return {
         **state,
+        "user_query": user_query,
+        "data_path": data_path,
         "extracted_intent": intent,
         "has_gap": gap_detected,
         "matched_tool": best_match
@@ -586,17 +693,23 @@ def route_after_intent(state: ToolGeneratorState) -> str:
     validation = intent.get("validation", {})
     
     if not validation.get("is_valid", True):
-        logger.error("❌ Intent validation failed - stopping pipeline")
+        from langchain_core.messages import AIMessage
+        logger.error("[ERROR] Intent validation failed - stopping pipeline")
         errors = validation.get("errors", [])
         for i, err in enumerate(errors, 1):
             logger.error(f"  {i}. {err}")
         logger.info("💡 Suggestion: Review the query and ensure it maps to available dataset columns")
+        # Write an error message so Studio Chat shows feedback instead of blank
+        err_lines = "\n".join(f"- {e}" for e in errors)
+        state["messages"] = list(state.get("messages") or []) + [
+            AIMessage(content=f"**Intent validation failed**\n\n{err_lines}\n\nPlease rephrase your query or check that the required columns exist in the dataset.")
+        ]
         return END
     
     # Log warnings if any
     warnings = validation.get("warnings", [])
     if warnings:
-        logger.warning("⚠️ Intent validation warnings:")
+        logger.warning("[WARN] Intent validation warnings:")
         for i, warn in enumerate(warnings, 1):
             logger.warning(f"  {i}. {warn}")
     
@@ -640,7 +753,7 @@ def route_after_intent(state: ToolGeneratorState) -> str:
     # has_gap=True  → a new tool is needed → generate spec → code → ...
     # has_gap=False → an existing tool already covers this request → done
     if not state["has_gap"]:
-        logger.info("✅ Existing tool covers this request — skipping generation")
+        logger.info("[OK] Existing tool covers this request - skipping generation")
         matched = state.get("matched_tool") or {}
         tool_name = matched.get("name", "unknown")
         tool_path = matched.get("tool_path", "")
@@ -649,6 +762,6 @@ def route_after_intent(state: ToolGeneratorState) -> str:
         if tool_path:
             logger.info(f"   📄 Tool path    : {tool_path}")
         if output_file:
-            logger.info(f"   📊 Last output  : {output_file}")
+            logger.info(f"   Last output  : {output_file}")
         return END
     return "spec_generator_node"

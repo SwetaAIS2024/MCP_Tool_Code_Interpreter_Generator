@@ -74,11 +74,11 @@ class SubprocessSandboxExecutor(BaseSandbox):
         # Strip MCP-specific code for sandbox testing
         code = self._strip_mcp_code(code)
         
-        # Create temporary file for code
+        # Create temporary file in the system temp directory so that
+        # langgraph dev / watchfiles does not detect it and trigger a reload.
         with tempfile.NamedTemporaryFile(
             mode='w', 
             suffix='.py', 
-            dir=self.workspace, 
             delete=False
         ) as f:
             temp_file = Path(f.name)
@@ -91,13 +91,31 @@ class SubprocessSandboxExecutor(BaseSandbox):
             # Use sys.executable to ensure same Python as current process
             import sys
             python_executable = sys.executable
+
+            # Build a clean environment to prevent Anaconda/conda base from
+            # injecting its stdlib into the subprocess and causing import
+            # conflicts (e.g. anaconda3/Lib/enum.py shadowing the venv
+            # stdlib when (base) conda env is active).
+            import os
+            clean_env = os.environ.copy()
+            # Remove all conda/Anaconda contamination variables
+            for var in ("PYTHONPATH", "PYTHONHOME", "CONDA_PREFIX",
+                        "CONDA_DEFAULT_ENV", "CONDA_EXE", "CONDA_PYTHON_EXE",
+                        "CONDA_SHLVL", "_CONDA_ROOT", "_CONDA_EXE",
+                        "CONDA_PROMPT_MODIFIER"):
+                clean_env.pop(var, None)
+            # Prevent user-site packages from mixing in
+            clean_env["PYTHONNOUSERSITE"] = "1"
             
+            # Resolve data_path to absolute so it works regardless of cwd
+            abs_data_path = str(Path(data_path).resolve())
             result = subprocess.run(
-                [python_executable, str(temp_file), data_path],  # Pass data_path as argument
+                [python_executable, str(temp_file), abs_data_path],  # Pass absolute data_path
                 capture_output=True,
                 text=True,
                 timeout=timeout,
-                cwd=self.workspace
+                cwd=str(Path(temp_file).parent),  # use the system temp dir, not the project tree
+                env=clean_env,
             )
             
             execution_time = (time.time() - start) * 1000

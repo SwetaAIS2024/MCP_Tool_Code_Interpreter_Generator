@@ -254,6 +254,593 @@
       ],
       "return_type": "Dict[str, Any]",
       "output_file": "output/active/filter_crash_day_of_week_20260311_185335_output.json"
+    },
+    {
+      "name": "describe_summary_total_count_20260312_180916",
+      "description": "Computes the total count of rows in a dataset.",
+      "user_query": "Get me the total number of accidents from the attached dataset.",
+      "tool_path": "tools\\active\\describe_summary_total_count_20260312_180916.py",
+      "log_file": "logs/pipeline_20260312_180916.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\describe_summary_total_count_20260312_180916_output.json"
+    },
+    {
+      "name": "describe_summary_total_count_20260312_181811",
+      "description": "Computes the total count of rows in a dataset.",
+      "user_query": "get the total of accidents from the attached dataset.",
+      "tool_path": "tools\\active\\describe_summary_total_count_20260312_181811.py",
+      "log_file": "logs/pipeline_20260312_181811.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\describe_summary_total_count_20260312_181811_output.json"
+    },
+    {
+      "name": "filter_crash_day_of_week_20260312_182726",
+      "description": "Filters the dataset to include only crashes occurring on weekends (Sunday or Saturday) and returns the total count of such crashes.",
+      "user_query": "give the total no of accidents which happened on Weekends.",
+      "tool_path": "tools\\active\\filter_crash_day_of_week_20260312_182726.py",
+      "log_file": "logs/pipeline_20260312_182726.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\filter_crash_day_of_week_20260312_182726_output.json"
+    },
+    {
+      "name": "filter_crash_day_of_week_20260312_190335",
+      "description": "Filters the dataset to include only crashes occurring on weekends (Sunday or Saturday) and returns the total count of such crashes.",
+      "user_query": "give the total no of accidents which happened on Weekends.",
+      "tool_path": "tools\\active\\filter_crash_day_of_week_20260312_190335.py",
+      "log_file": "logs/pipeline_20260312_190335.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\filter_crash_day_of_week_20260312_190335_output.json"
+    },
+    {
+      "name": "filter_crash_day_of_week_20260312_191209",
+      "description": "Filters the dataset to include only crashes occurring on weekends (Sunday or Saturday) and returns the total count of such crashes.",
+      "user_query": "give the total no of accidents which happened on Weekends.",
+      "tool_path": "tools\\active\\filter_crash_day_of_week_20260312_191209.py",
+      "log_file": "logs/pipeline_20260312_191209.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\filter_crash_day_of_week_20260312_191209_output.json"
+    },
+    {
+      "name": "filter_crash_day_of_week_20260312_191736",
+      "description": "Filters the dataset to include only crashes occurring on weekends (Sunday or Saturday) and returns the total count of such crashes.",
+      "user_query": "give the total no of accidents which happened on Weekends.",
+      "tool_path": "tools\\active\\filter_crash_day_of_week_20260312_191736.py",
+      "log_file": "logs/pipeline_20260312_191736.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\filter_crash_day_of_week_20260312_191736_output.json"
+    },
+    {
+      "name": "filter_crash_day_of_week_20260313_095326",
+      "description": "Filters the dataset to include only crashes occurring on weekends (Sunday or Saturday) and returns the total count of such crashes.",
+      "user_query": "give the total no of accidents which happened on Weekends.",
+      "tool_path": "tools\\active\\filter_crash_day_of_week_20260313_095326.py",
+      "log_file": "logs/pipeline_20260313_095326.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\filter_crash_day_of_week_20260313_095326_output.json"
+    },
+    {
+      "name": "filter_crash_day_of_week_20260313_095657",
+      "description": "Filters the dataset to include only crashes occurring on weekends (Sunday or Saturday) and returns the total count of such crashes.",
+      "user_query": "give the total no of accidents which happened on Weekends.",
+      "tool_path": "tools\\active\\filter_crash_day_of_week_20260313_095657.py",
+      "log_file": "logs/pipeline_20260313_095657.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\filter_crash_day_of_week_20260313_095657_output.json"
+    },
+    {
+      "name": "filter_crash_day_of_week_20260313_100021",
+      "description": "Filters the dataset to include only crashes occurring on weekends (Sunday or Saturday) and returns the total count of such crashes.",
+      "user_query": "give the total no of accidents which happened on Weekends.",
+      "tool_path": "tools\\active\\filter_crash_day_of_week_20260313_100021.py",
+      "log_file": "logs/pipeline_20260313_100021.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\filter_crash_day_of_week_20260313_100021_output.json"
+    },
+    {
+      "name": "filter_crash_day_of_week_20260313_100839",
+      "description": "Filters the dataset to include only rows where crash_day_of_week is in [2, 3, 4, 5, 6] and returns the total count of accidents that meet this condition.",
+      "user_query": "Give me the number of accidents which happened on Weekdays which means from Monday to Friday.",
+      "tool_path": "tools\\active\\filter_crash_day_of_week_20260313_100839.py",
+      "log_file": "logs/pipeline_20260313_100839.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to the CSV file containing the data.",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\filter_crash_day_of_week_20260313_100839_output.json"
+    },
+    {
+      "name": "filter_crash_day_of_week_friday_20260313_101150",
+      "description": "Filters the dataset to include only rows where 'crash_day_of_week' equals 6 (Friday) and returns the total count of such rows.",
+      "user_query": "Give me the number of accidents which happened on Friday only.",
+      "tool_path": "tools\\active\\filter_crash_day_of_week_friday_20260313_101150.py",
+      "log_file": "logs/pipeline_20260313_101150.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to the CSV file containing the data.",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\filter_crash_day_of_week_friday_20260313_101150_output.json"
+    },
+    {
+      "name": "groupby_crash_day_of_week_aggregate_20260313_102909",
+      "description": "This tool performs a group-by aggregation on the 'crash_day_of_week' column to calculate the number of accidents per day of the week. It follows a specific implementation plan to ensure accurate and consistent results.",
+      "user_query": "Generate the bar graph showing the number of accidents per day basis.",
+      "tool_path": "tools\\active\\groupby_crash_day_of_week_aggregate_20260313_102909.py",
+      "log_file": "logs/pipeline_20260313_102909.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\groupby_crash_day_of_week_aggregate_20260313_102909_output.json"
+    },
+    {
+      "name": "groupby_crash_day_of_week_aggregate_20260313_104241",
+      "description": "This tool groups the data by 'crash_day_of_week' and calculates the number of accidents for each day of the week.",
+      "user_query": "Generate the bar graph showing the number of accidents per day basis.",
+      "tool_path": "tools\\active\\groupby_crash_day_of_week_aggregate_20260313_104241.py",
+      "log_file": "logs/pipeline_20260313_104241.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\groupby_crash_day_of_week_aggregate_20260313_104241_output.json"
+    },
+    {
+      "name": "groupby_crash_day_of_week_aggregate_20260313_105311",
+      "description": "This tool groups the data by 'crash_day_of_week' and calculates the number of accidents for each day of the week.",
+      "user_query": "Generate the bar graph showing the number of accidents per day basis.",
+      "tool_path": "tools\\active\\groupby_crash_day_of_week_aggregate_20260313_105311.py",
+      "log_file": "logs/pipeline_20260313_105311.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\groupby_crash_day_of_week_aggregate_20260313_105311_output.json"
+    },
+    {
+      "name": "groupby_crash_day_of_week_aggregate_20260313_105851",
+      "description": "This tool groups the data by 'crash_day_of_week' and calculates the number of accidents for each day of the week.",
+      "user_query": "Generate the bar graph showing the number of accidents per day basis.",
+      "tool_path": "tools\\active\\groupby_crash_day_of_week_aggregate_20260313_105851.py",
+      "log_file": "logs/pipeline_20260313_105851.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\groupby_crash_day_of_week_aggregate_20260313_105851_output.json"
+    },
+    {
+      "name": "groupby_crash_day_of_week_aggregate_20260313_110631",
+      "description": "This tool groups the data by 'crash_day_of_week' and calculates the number of accidents for each day of the week.",
+      "user_query": "Generate the bar graph showing the number of accidents per day basis.",
+      "tool_path": "tools\\active\\groupby_crash_day_of_week_aggregate_20260313_110631.py",
+      "log_file": "logs/pipeline_20260313_110631.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\groupby_crash_day_of_week_aggregate_20260313_110631_output.json"
+    },
+    {
+      "name": "custom_transform_causal_structure_learning_20260313_112522",
+      "description": "Implements the DyNotears algorithm to learn causal structure from selected columns.",
+      "user_query": "Do a local causal analysis. Generate the causal graphs and calculate the scores using DyNotears methods.",
+      "tool_path": "tools\\active\\custom_transform_causal_structure_learning_20260313_112522.py",
+      "log_file": "logs/pipeline_20260313_112522.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\custom_transform_causal_structure_learning_20260313_112522_output.json"
+    },
+    {
+      "name": "custom_transform_causal_structure_learning_20260313_114045",
+      "description": "Implements the DyNotears algorithm to learn causal structure from selected columns.",
+      "user_query": "Do a local causal analysis. Generate the causal graphs and calculate the scores using DyNotears methods.",
+      "tool_path": "tools\\active\\custom_transform_causal_structure_learning_20260313_114045.py",
+      "log_file": "logs/pipeline_20260313_114045.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\custom_transform_causal_structure_learning_20260313_114045_output.json"
+    },
+    {
+      "name": "custom_transform_causal_discovery_20260313_121648",
+      "description": "Implements a custom transformation using DyNotears for causal discovery on selected columns related to crash conditions.",
+      "user_query": "Do a local causal analysis. Generate the causal graphs and calculate the scores using DyNotears methods.",
+      "tool_path": "tools\\active\\custom_transform_causal_discovery_20260313_121648.py",
+      "log_file": "logs/pipeline_20260313_121648.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\custom_transform_causal_discovery_20260313_121648_output.json"
+    },
+    {
+      "name": "crash_data_causal_analysis_20260313_144851",
+      "description": "Performs causal analysis on crash data using DyNotears algorithm to identify causal relationships over time.",
+      "user_query": "Generate the causal graphs using DyNotears method. First find out how to use the DyNotears methods. There are no python libraries for this. And then use the method to create the causal graphs.",
+      "tool_path": "tools\\active\\crash_data_causal_analysis_20260313_144851.py",
+      "log_file": "logs/pipeline_20260313_144851.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file containing crash data",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\crash_data_causal_analysis_20260313_144851_output.json"
+    },
+    {
+      "name": "crash_injury_causal_discovery_20260313_150200",
+      "description": "Implements a custom causal discovery analysis using the DyNotears algorithm to identify relationships between crash injury variables and time-related factors.",
+      "user_query": "Generate the causal graphs using DyNotears method. First find out how to use the DyNotears methods. There are no python libraries for this. And then use the method to create the causal graphs.",
+      "tool_path": "tools\\active\\crash_injury_causal_discovery_20260313_150200.py",
+      "log_file": "logs/pipeline_20260313_150200.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        },
+        {
+          "name": "standardization",
+          "type": "bool",
+          "description": "Whether to standardize numeric columns",
+          "required": false
+        },
+        {
+          "name": "drop_nan",
+          "type": "bool",
+          "description": "Whether to drop rows with NaN values",
+          "required": false
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\crash_injury_causal_discovery_20260313_150200_output.json"
+    },
+    {
+      "name": "crash_injury_causal_discovery_20260313_151013",
+      "description": "Implements a custom causal discovery analysis using the DyNotears algorithm to identify relationships between crash injury variables and time-related factors.",
+      "user_query": "Generate the causal graphs using DyNotears method. First find out how to use the DyNotears methods. There are no python libraries for this. And then use the method to create the causal graphs.",
+      "tool_path": "tools\\active\\crash_injury_causal_discovery_20260313_151013.py",
+      "log_file": "logs/pipeline_20260313_151013.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        },
+        {
+          "name": "standardization",
+          "type": "bool",
+          "description": "Whether to standardize numeric columns",
+          "required": false
+        },
+        {
+          "name": "drop_nan",
+          "type": "bool",
+          "description": "Whether to drop rows with NaN values",
+          "required": false
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\crash_injury_causal_discovery_20260313_151013_output.json"
+    },
+    {
+      "name": "crash_injury_causal_discovery_20260313_154423",
+      "description": "Implements a custom causal discovery analysis using the DyNotears algorithm to identify relationships between crash injury variables and time-related factors.",
+      "user_query": "Generate the causal graphs using DyNotears method. First find out how to use the DyNotears methods. There are no python libraries for this. And then use the method to create the causal graphs.",
+      "tool_path": "tools\\active\\crash_injury_causal_discovery_20260313_154423.py",
+      "log_file": "logs/pipeline_20260313_154423.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        },
+        {
+          "name": "standardization",
+          "type": "bool",
+          "description": "Whether to standardize numeric columns",
+          "required": false
+        },
+        {
+          "name": "drop_nan",
+          "type": "bool",
+          "description": "Whether to drop rows with NaN values",
+          "required": false
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\crash_injury_causal_discovery_20260313_154423_output.json"
+    },
+    {
+      "name": "crash_injury_causal_discovery_20260313_161038",
+      "description": "Implements a custom causal discovery analysis using the DyNotears algorithm to identify relationships between crash injury variables and time-related factors.",
+      "user_query": "Generate the causal graphs using DyNotears method. First find out how to use the DyNotears methods. There are no python libraries for this. And then use the method to create the causal graphs.",
+      "tool_path": "tools\\active\\crash_injury_causal_discovery_20260313_161038.py",
+      "log_file": "logs/pipeline_20260313_161038.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        },
+        {
+          "name": "standardization",
+          "type": "bool",
+          "description": "Whether to standardize numeric columns",
+          "required": false
+        },
+        {
+          "name": "drop_nan",
+          "type": "bool",
+          "description": "Whether to drop rows with NaN values",
+          "required": false
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\crash_injury_causal_discovery_20260313_161038_output.json"
+    },
+    {
+      "name": "crash_injury_causal_discovery_20260313_162230",
+      "description": "Implements a custom causal discovery analysis using the DyNotears algorithm to identify relationships between crash injury variables and time-related factors.",
+      "user_query": "Generate the causal graphs using DyNotears method. First find out how to use the DyNotears methods. There are no python libraries for this. And then use the method to create the causal graphs.",
+      "tool_path": "tools\\active\\crash_injury_causal_discovery_20260313_162230.py",
+      "log_file": "logs/pipeline_20260313_162230.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        },
+        {
+          "name": "standardization",
+          "type": "bool",
+          "description": "Whether to standardize numeric columns",
+          "required": false
+        },
+        {
+          "name": "drop_nan",
+          "type": "bool",
+          "description": "Whether to drop rows with NaN values",
+          "required": false
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\crash_injury_causal_discovery_20260313_162230_output.json"
+    },
+    {
+      "name": "custom_transform_injury_crash_analysis_20260313_164021",
+      "description": "Implements Bayesian network structure learning to identify causal relationships among injury and crash metrics.",
+      "user_query": "Do a local causal analysis.",
+      "tool_path": "tools\\active\\custom_transform_injury_crash_analysis_20260313_164021.py",
+      "log_file": "logs/pipeline_20260313_164021.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\custom_transform_injury_crash_analysis_20260313_164021_output.json"
+    },
+    {
+      "name": "injury_summary_statistics_20260313_170417",
+      "description": "Generates descriptive statistics for injury-related columns in a dataset.",
+      "user_query": "Compare injury distributions across the dataset.",
+      "tool_path": "tools\\active\\injury_summary_statistics_20260313_170417.py",
+      "log_file": "logs/pipeline_20260313_170417.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\injury_summary_statistics_20260313_170417_output.json"
+    },
+    {
+      "name": "groupby_crash_day_of_week_20260323_160002",
+      "description": "This tool groups the data by 'crash_day_of_week' and calculates the number of accidents for each day of the week, then generates a bar graph visualization.",
+      "user_query": "Generate the bar graph showing the number of accidents per day basis.",
+      "tool_path": "tools\\active\\groupby_crash_day_of_week_20260323_160002.py",
+      "log_file": "logs/pipeline_20260323_160002.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\groupby_crash_day_of_week_20260323_160002_output.json"
+    },
+    {
+      "name": "filter_weekend_crashes_20260323_162536",
+      "description": "Filters a dataset to include only rows where 'crash_day_of_week' is a weekend day (Saturday or Sunday).",
+      "user_query": "give the total no of accidents which happened on Weekends.",
+      "tool_path": "tools\\active\\filter_weekend_crashes_20260323_162536.py",
+      "log_file": "logs/pipeline_20260323_162536.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file containing crash data",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\filter_weekend_crashes_20260323_162536_output.json"
+    },
+    {
+      "name": "describe_summary_total_count_20260323_164032",
+      "description": "Generates a summary description of a dataset by calculating the total count of rows.",
+      "user_query": "create the mcp tool for getting the number of accidents per week with the dataset.",
+      "tool_path": "tools\\active\\describe_summary_total_count_20260323_164032.py",
+      "log_file": "logs/pipeline_20260323_164032.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\describe_summary_total_count_20260323_164032_output.json"
+    },
+    {
+      "name": "groupby_crash_day_of_week_aggregate_20260323_164916",
+      "description": "This tool performs a group-by aggregation on the 'crash_day_of_week' column to count the number of accidents for each day of the week and generates a visualization.",
+      "user_query": "get the accidents per weekday numbers and show int he graph.",
+      "tool_path": "tools\\active\\groupby_crash_day_of_week_aggregate_20260323_164916.py",
+      "log_file": "logs/pipeline_20260323_164916.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\groupby_crash_day_of_week_aggregate_20260323_164916_output.json"
     }
   ]
 }
