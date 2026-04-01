@@ -192,8 +192,9 @@ def test_code_gen(verbosity: str = "normal", query: str = None, verify: bool = F
         "messages": []
     }
     
-    # Stream execution
-    config = {"configurable": {"thread_id": "test-1"}}
+    # Stream execution — unique thread_id per run to avoid MemorySaver replaying prior state
+    import uuid
+    config = {"configurable": {"thread_id": str(uuid.uuid4())}}
     current_state = initial_state
     
     print("\nExecuting pipeline...")
@@ -291,7 +292,7 @@ def test_auto_approve():
         "messages": []
     }
     
-    config = {"configurable": {"thread_id": "auto-test"}}
+    config = {"configurable": {"thread_id": str(uuid.uuid4())}}
     
     # Stream execution
     for event in graph.stream(initial_state, config):

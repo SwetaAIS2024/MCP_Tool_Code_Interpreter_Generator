@@ -363,8 +363,10 @@ class GapDetector:
             user_query: Original natural language query (used for similarity)
             
         Returns:
-            Tuple of (has_gap: bool, best_match: Optional[Dict])
-            best_match is the highest-scoring registry entry, or None if registry is empty.
+            Tuple of (has_gap: bool, best_match: Optional[Dict]).
+            has_gap is True if a new tool is needed.
+            best_match is the registry entry with the highest overlap score
+            (or None when has_gap is True meaning no adequate match was found).
         """
         existing_tools = self._load_registry()
         
@@ -498,7 +500,9 @@ def detect_capability_gap(intent: Dict, user_query: str = "") -> tuple:
         user_query: Original natural language query (used for similarity matching)
         
     Returns:
-        Tuple of (has_gap: bool, best_match: Optional[Dict])
+        Tuple of (has_gap: bool, best_match: Optional[Dict]).
+        has_gap is True if a new tool is needed.
+        best_match is the registry entry that best covers the request (None when has_gap is True).
     """
     detector = GapDetector()
     return detector.detect(intent, user_query=user_query)
@@ -562,7 +566,7 @@ def intent_node(state: ToolGeneratorState) -> ToolGeneratorState:
         **state,
         "extracted_intent": intent,
         "has_gap": gap_detected,
-        "matched_tool": best_match,
+        "matched_tool": best_match
     }
 
 

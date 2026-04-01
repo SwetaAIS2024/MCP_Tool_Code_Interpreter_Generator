@@ -1,0 +1,361 @@
+2026-03-04 15:15:47 - DEBUG - src.logger_config - setup:82 - Logging configured: verbosity=normal, file=logs\pipeline_20260304_151547.log
+2026-03-04 15:15:47 - INFO - __main__ - log_section:117 - 
+================================================================================
+2026-03-04 15:15:47 - INFO - __main__ - log_section:118 - TESTING CODE GENERATION PIPELINE
+2026-03-04 15:15:47 - INFO - __main__ - log_section:119 - ================================================================================
+
+2026-03-04 15:15:47 - DEBUG - urllib3.connectionpool - _new_conn:1049 - Starting new HTTPS connection (1): mermaid.ink:443
+2026-03-04 15:15:47 - DEBUG - urllib3.connectionpool - _make_request:544 - https://mermaid.ink:443 "GET /img/LS0tCmNvbmZpZzoKICBmbG93Y2hhcnQ6CiAgICBjdXJ2ZTogbGluZWFyCi0tLQpncmFwaCBURDsKCV9fc3RhcnRfXyg8cD5fX3N0YXJ0X188L3A+KQoJaW50ZW50X25vZGUoaW50ZW50X25vZGUpCglzcGVjX2dlbmVyYXRvcl9ub2RlKHNwZWNfZ2VuZXJhdG9yX25vZGUpCgljb2RlX2dlbmVyYXRvcl9ub2RlKGNvZGVfZ2VuZXJhdG9yX25vZGUpCgl2YWxpZGF0b3Jfbm9kZSh2YWxpZGF0b3Jfbm9kZSkKCXJlcGFpcl9ub2RlKHJlcGFpcl9ub2RlKQoJZXhlY3V0b3Jfbm9kZShleGVjdXRvcl9ub2RlKQoJcHJvbW90ZXJfbm9kZShwcm9tb3Rlcl9ub2RlKQoJcHJvamVjdGlvbl9ub2RlKHByb2plY3Rpb25fbm9kZSkKCV9fZW5kX18oPHA+X19lbmRfXzwvcD4pCglfX3N0YXJ0X18gLS0+IGludGVudF9ub2RlOwoJaW50ZW50X25vZGUgLS0+IF9fZW5kX187CgljbGFzc0RlZiBkZWZhdWx0IGZpbGw6I2YyZjBmZixsaW5lLWhlaWdodDoxLjIKCWNsYXNzRGVmIGZpcnN0IGZpbGwtb3BhY2l0eTowCgljbGFzc0RlZiBsYXN0IGZpbGw6I2JmYjZmYwo=?type=png&bgColor=%21white HTTP/1.1" 200 21208
+2026-03-04 15:15:47 - INFO - src.pipeline - build_graph:220 - 📊 Graph visualization saved to: pipeline_graph.png
+2026-03-04 15:15:47 - DEBUG - src.llm_client - __init__:90 - LLM base_url=http://localhost:11434/v1  model_type=reasoning
+2026-03-04 15:15:47 - INFO - src.intent_extraction - log_section:117 - 
+================================================================================
+2026-03-04 15:15:47 - INFO - src.intent_extraction - log_section:118 - INTENT EXTRACTION - AVAILABLE COLUMNS
+2026-03-04 15:15:47 - INFO - src.intent_extraction - log_section:119 - ================================================================================
+
+2026-03-04 15:15:47 - DEBUG - src.intent_extraction - extract:48 - Columns: ['crash_date', 'traffic_control_device', 'weather_condition', 'lighting_condition', 'first_crash_type', 'trafficway_type', 'alignment', 'roadway_surface_cond', 'road_defect', 'crash_type', 'intersection_related_i', 'damage', 'prim_contributory_cause', 'num_units', 'most_severe_injury', 'injuries_total', 'injuries_fatal', 'injuries_incapacitating', 'injuries_non_incapacitating', 'injuries_reported_not_evident', 'injuries_no_indication', 'crash_hour', 'crash_day_of_week', 'crash_month']
+2026-03-04 15:15:48 - DEBUG - openai._base_client - _build_request:485 - Request options: {'method': 'post', 'url': '/chat/completions', 'files': None, 'idempotency_key': 'stainless-python-retry-0ac5e38a-ea06-4e72-a3f7-2e13195db76c', 'content': None, 'json_data': {'messages': [{'role': 'system', 'content': 'You are an intent extraction system. Your job is to understand the user\'s query and create an implementation plan for the EXACT analysis they requested.\n\nCRITICAL RULES:\n1. If the user asks for "ANOVA", your implementation_plan MUST describe ANOVA analysis (scipy.stats.f_oneway), NOT correlation, chi-square, or any other test\n2. If the user asks for "correlation", your implementation_plan MUST describe correlation analysis (scipy.stats.pearsonr), NOT ANOVA\n3. If the user asks for "Tukey HSD", your plan MUST include statsmodels.stats.multicomp.pairwise_tukeyhsd\n4. DO NOT substitute different statistical methods than what the user explicitly requested\n5. Output ONLY valid JSON - no thinking process, no explanations, no markdown\n6. The \'operation\' field is REQUIRED - never return null/None for it'}, {'role': 'user', 'content': 'You are the IntentExtractor module for an MCP Tool Code Interpreter Generator.\n\nYour job is to convert a natural language data analysis query into STRICT JSON intent for tool generation.\n\n====================\nOUTPUT RULES\n====================\n- Return ONLY valid JSON\n- No explanations, no markdown, no commentary\n- Response must start with { and end with }\n- Use ONLY column names from AVAILABLE_COLUMNS\n\n====================\nCORE TASK\n====================\n\nGiven:\nUSER_QUERY: Construct a composite crash severity index using: injuries_total,injuries_fatal, num_units. Normalize the index and rank by trafficway_type.\nAVAILABLE_COLUMNS: [\'crash_date\', \'traffic_control_device\', \'weather_condition\', \'lighting_condition\', \'first_crash_type\', \'trafficway_type\', \'alignment\', \'roadway_surface_cond\', \'road_defect\', \'crash_type\', \'intersection_related_i\', \'damage\', \'prim_contributory_cause\', \'num_units\', \'most_severe_injury\', \'injuries_total\', \'injuries_fatal\', \'injuries_incapacitating\', \'injuries_non_incapacitating\', \'injuries_reported_not_evident\', \'injuries_no_indication\', \'crash_hour\', \'crash_day_of_week\', \'crash_month\']\n\nYou must determine:\n- operation\n- has_gap\n- gap_reason\n- required_columns\n- missing_columns\n- implementation_plan\n\n====================\nSTEP 1 — COLUMN MATCHING (DO FIRST)\n====================\n\nFind dataset columns needed for the query using substring matching.\n\nRules:\n1. Split query into meaningful words (ignore: the, and, by, across, for, with, etc.)\n2. If a query word appears inside a column name → select that column\n3. Prefer most specific matches:\n   injuries_fatal > injuries_incapacitating > injuries_total\n4. Domain mappings:\n   fatal → injuries_fatal\n   weather → weather_condition\n   injury (generic) → injuries_total (unless fatal specified)\n5. Never select time columns unless query mentions:\n   time, hour, day, date, month, year\n6. If concept exists in query but no column matches → add to missing_columns\n7. **TIME-SERIES COLUMN PRIORITY**: If query asks for a "monthly trend", "trend over time", "time series" etc:\n   - ALWAYS prefer the full datetime column (e.g. crash_date, date, timestamp, incident_date) over an integer period column (crash_month, month, crash_year, year).\n   - Integer columns named \'crash_month\', \'month\', \'crash_year\' contain only 1-12 or year numbers — they LOSE year information and cannot form a proper time series across years.\n   - Include BOTH the full date column AND the integer column in required_columns, but instruct the implementation_plan to parse the full date column.\n   - If only an integer month column exists (no full date column), note in the implementation_plan that results will be grouped by month-of-year (1–12) without year context.\n\nrequired_columns = matched columns from this step\n\n====================\nSTEP 2 — OPERATION DETECTION\n====================\n\n⚠️ CRITICAL GUARDS — CHECK FIRST:\n\n1. PIVOT GUARD:\n   DO NOT use pivot or crosstab UNLESS query explicitly contains:\n   - "pivot"\n   - "crosstab"\n   - "matrix"\n   - "heatmap"\n\n2. STATISTICAL INJECTION GUARD:\n   DO NOT introduce statistical tests UNLESS query explicitly mentions:\n   - ANOVA, F-test, F-statistic\n   - t-test, Student\'s t\n   - chi-square, chi2, contingency, independence test\n   - correlation, Pearson, Spearman\n   - regression, linear model\n   - significance test, p-value, hypothesis test\n\n3. CHI-SQUARE HARD BLOCK:\n   NEVER use chi-square UNLESS query explicitly asks for:\n   "chi-square", "chi2", "contingency test", "independence test"\n\nOPERATION SELECTION PRIORITY:\n\nSTEP 2A: Check for explicit statistical keywords\nIf query contains:\nANOVA, t-test, chi-square, correlation, regression, Tukey, post-hoc, p-value, effect size,\nstatistical testing, significantly differ, compare distributions, hypothesis test, differ significantly\n→ operation = "custom_transform"\n→ has_gap = true\n\nDETERMINE TEST TYPE (set in gap_reason):\n\n2-GROUP COMPARISON SIGNALS (use t-test, NOT ANOVA):\n- Query compares exactly 2 groups:\n  "Y versus others", "Y vs N", "between X and Y", "compared to", "versus others"\n  "differ between", "compare between two"\n- Binary column values: Y/N, True/False, 0/1\n→ gap_reason = "Two-group statistical comparison: use independent samples t-test (scipy.stats.ttest_ind) with normality check (Shapiro-Wilk). If non-normal, use Mann-Whitney U (scipy.stats.mannwhitneyu). Do NOT use ANOVA."\n\n3-OR-MORE GROUP COMPARISON SIGNALS (use ANOVA):\n- Query mentions 3+ categories, multiple groups, or uses "across groups/categories"\n- Explicit "ANOVA", "F-test", "Tukey", "post-hoc"\n→ gap_reason = "Multi-group statistical comparison: use one-way ANOVA (scipy.stats.f_oneway)."\n\nOTHER STATISTICAL TESTS:\n- Correlation → gap_reason = "Correlation analysis: use scipy.stats.pearsonr or spearmanr."\n- Regression → gap_reason = "Regression analysis: use scipy.stats.linregress or statsmodels OLS."\n- Chi-square → gap_reason = "Independence test: use scipy.stats.chi2_contingency."\n\nSTEP 2B: Check for variation/comparison patterns\nIf query contains:\n- "variation across", "variation by", "variations across"\n- "differences across", "differences by"\n- "compare across", "compare by"\n- "distribution across", "distribution by"\n→ operation = "groupby_aggregate"\n→ has_gap = false\n\nSTEP 2C: Detect basic operations\n- "filter", "where", "only", "exclude" → filter\n- "top N", "count by", "most common" → groupby_aggregate\n- "summary", "describe", "statistics" → describe_summary\n- "pivot", "crosstab", "matrix" (EXPLICIT only) → pivot\n- "trend", "over time", "time series" → time_series_aggregate\n\nSTEP 2D: DEFAULT BEHAVIOR\nIf comparing numeric metric across categorical groups:\n→ operation = "groupby_aggregate"\n→ has_gap = false\n\nElse:\n→ operation = "custom_transform"\n\n====================\nSTEP 3 — IMPLEMENTATION PLAN\n====================\n\nCreate 5–8 clear execution steps using ONLY required_columns.\n\nIf statistical method is mentioned:\nPlan MUST describe that exact method.\nExample:\nANOVA → scipy.stats.f_oneway\nCorrelation → scipy.stats.pearsonr\nTukey → statsmodels pairwise_tukeyhsd\n\nNever substitute statistical methods.\n\nTIME-SERIES AGGREGATE PLAN (when operation = time_series_aggregate):\nStep 1: Load data and select required columns including the full date column (e.g. crash_date)\nStep 2: Parse the full date column with pd.to_datetime() — NEVER call pd.to_datetime() on an integer month column\nStep 3: Extract year-month period: df[\'period\'] = df[\'crash_date\'].dt.to_period(\'M\')\nStep 4: Group by \'period\' and aggregate the metric (sum / mean / count)\nStep 5: Sort by period ascending\nStep 6: Return list of {period, metric} records ordered chronologically\n\nTWO-GROUP COMPARISON PLAN (when gap_reason says t-test):\nStep 1: Load data and select required columns\nStep 2: Split into exactly 2 groups based on binary column (Y / not-Y)\nStep 3: Check normality of each group with Shapiro-Wilk (scipy.stats.shapiro)\nStep 4: If both groups normal → scipy.stats.ttest_ind; else → scipy.stats.mannwhitneyu\nStep 5: Compute effect size (Cohen\'s d for t-test)\nStep 6: Return statistic, p_value, significant (bool), effect_size, group means\nNEVER use f_oneway or ANOVA for a 2-group comparison.\n\n====================\nSTEP 4 — FINAL JSON STRUCTURE\n====================\n\nReturn JSON with fields:\n\n{\n  "has_gap": boolean,\n  "gap_reason": string,\n  "operation": string,\n  "required_columns": [],\n  "missing_columns": [],\n  "implementation_plan": [],\n  "filters": [],\n  "group_by": [],\n  "metrics": [],\n  "sort_by": [],\n  "sort_order": "ascending" | "descending",\n  "limit": number | null,\n  "output_format": "table" | "summary" | "json" | "chart_spec",\n  "edge_cases": [],\n  "validation_rules": [],\n  "assumptions": [],\n  "clarifications_needed": []\n}\n'}], 'model': 'deepseek-r1:70b', 'temperature': 0.0}}
+2026-03-04 15:15:48 - DEBUG - openai._base_client - request:998 - Sending HTTP Request: POST http://localhost:11434/v1/chat/completions
+2026-03-04 15:15:48 - DEBUG - httpcore.connection - trace:47 - connect_tcp.started host='localhost' port=11434 local_address=None timeout=10 socket_options=None
+2026-03-04 15:15:48 - DEBUG - httpcore.connection - trace:47 - connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001F2441CE1E0>
+2026-03-04 15:15:48 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.started request=<Request [b'POST']>
+2026-03-04 15:15:48 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.complete
+2026-03-04 15:15:48 - DEBUG - httpcore.http11 - trace:47 - send_request_body.started request=<Request [b'POST']>
+2026-03-04 15:15:48 - DEBUG - httpcore.http11 - trace:47 - send_request_body.complete
+2026-03-04 15:15:48 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.started request=<Request [b'POST']>
+2026-03-04 15:17:14 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json'), (b'Date', b'Wed, 04 Mar 2026 07:17:14 GMT'), (b'Transfer-Encoding', b'chunked')])
+2026-03-04 15:17:14 - INFO - httpx - _send_single_request:1025 - HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-04 15:17:14 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.started request=<Request [b'POST']>
+2026-03-04 15:17:14 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.complete
+2026-03-04 15:17:14 - DEBUG - httpcore.http11 - trace:47 - response_closed.started
+2026-03-04 15:17:14 - DEBUG - httpcore.http11 - trace:47 - response_closed.complete
+2026-03-04 15:17:14 - DEBUG - openai._base_client - request:1036 - HTTP Response: POST http://localhost:11434/v1/chat/completions "200 OK" Headers({'content-type': 'application/json', 'date': 'Wed, 04 Mar 2026 07:17:14 GMT', 'transfer-encoding': 'chunked'})
+2026-03-04 15:17:14 - DEBUG - openai._base_client - request:1044 - request_id: None
+2026-03-04 15:17:14 - INFO - src.intent_extraction - log_section:117 - 
+================================================================================
+2026-03-04 15:17:14 - INFO - src.intent_extraction - log_section:118 - EXTRACTED INTENT
+2026-03-04 15:17:14 - INFO - src.intent_extraction - log_section:119 - ================================================================================
+
+2026-03-04 15:17:14 - INFO - src.intent_extraction - extract:158 - Required columns: ['injuries_total', 'injuries_fatal', 'num_units']
+2026-03-04 15:17:14 - INFO - src.intent_extraction - extract:159 - Missing columns: []
+2026-03-04 15:17:14 - INFO - src.intent_extraction - extract:160 - Operation: groupby_aggregate
+2026-03-04 15:17:14 - INFO - src.intent_validator - log_section:117 - 
+================================================================================
+2026-03-04 15:17:14 - INFO - src.intent_validator - log_section:118 - INTENT VALIDATION
+2026-03-04 15:17:14 - INFO - src.intent_validator - log_section:119 - ================================================================================
+
+2026-03-04 15:17:14 - INFO - src.intent_validator - log_success:135 - ✅ ✅ Intent validation passed
+2026-03-04 15:17:14 - DEBUG - src.llm_client - __init__:90 - LLM base_url=http://localhost:11434/v1  model_type=reasoning
+2026-03-04 15:17:14 - DEBUG - openai._base_client - _build_request:485 - Request options: {'method': 'post', 'url': '/chat/completions', 'files': None, 'idempotency_key': 'stainless-python-retry-5a852353-5f5d-441a-a559-b306b904eff1', 'content': None, 'json_data': {'messages': [{'role': 'system', 'content': 'You are a JSON generation system. Return ONLY valid JSON conforming to the schema. DO NOT include any explanatory text, thinking process, commentary, or meta-text. DO NOT use <think> tags or similar reasoning markers. DO NOT add markdown code fences around the JSON. Output must be pure JSON starting with { and ending with }.'}, {'role': 'user', 'content': 'Generate a complete ToolSpec for the following data analysis operation.\n\nOPERATION: groupby_aggregate\nREQUIRED COLUMNS: [\'injuries_total\', \'injuries_fatal\', \'num_units\']\nGROUP BY: [\'trafficway_type\']\nMETRICS: [\'normalized_composite_index\']\nFILTERS: []\nIMPLEMENTATION PLAN: Step 1: Load the data and select the required columns: injuries_total, injuries_fatal, num_units.\nStep 2: Create a composite crash severity index by combining injuries_total, injuries_fatal, and num_units. For example, (injuries_total * 0.5 + injuries_fatal * 1.5 + num_units * 0.25).\nStep 3: Normalize the composite index values to ensure comparability across different trafficway_types.\nStep 4: Group the data by trafficway_type and compute the average of the normalized composite index for each group.\nStep 5: Sort the results in descending order based on the normalized composite index.\nStep 6: Return a list of trafficway_types with their corresponding normalized composite crash severity index.\nEDGE CASES: []\nVALIDATION RULES: []\n\nCRITICAL: You MUST follow the IMPLEMENTATION PLAN exactly. Do NOT create a different analysis or make assumptions.\n- If the plan says "ANOVA", you MUST create a spec for ANOVA analysis (NOT correlation, NOT t-test)\n- If the plan says "correlation", you MUST create a spec for correlation analysis (NOT ANOVA)\n- If the plan says "Tukey HSD post-hoc", the spec MUST include post-hoc testing\n- The \'what_it_does\' field MUST describe exactly what\'s in the IMPLEMENTATION PLAN\n\n⚠️ STATISTICAL INJECTION GUARD:\n- DO NOT add statistical tests (ANOVA, t-test, chi-square, correlation) if NOT in IMPLEMENTATION PLAN\n- DO NOT add chi-square unless IMPLEMENTATION PLAN explicitly requests it\n- DO NOT add p-values, significance tests unless IMPLEMENTATION PLAN requests them\n- If operation is "groupby_aggregate" or "pivot", create ONLY descriptive aggregation (NO statistical tests)\n\nCreate a ToolSpec with:\n1. tool_name: A descriptive snake_case name based on operation and columns\n2. description: Clear explanation matching the IMPLEMENTATION PLAN\n3. input_schema: JSON Schema for input parameters (file_path is required)\n4. output_schema: JSON Schema for output structure (Dict with \'result\' and \'metadata\')\n5. parameters: List of parameter definitions [{"name": "file_path", "type": "str", "description": "Path to CSV file", "required": true}]\n6. when_to_use: When this tool should be selected based on the IMPLEMENTATION PLAN\n7. what_it_does: Technical description that EXACTLY follows the IMPLEMENTATION PLAN step-by-step\n8. returns: Description of return value structure\n9. prerequisites: String listing the exact required column names from REQUIRED COLUMNS in comma-separated format\n\nReturn JSON matching ToolSpec structure.\n'}], 'model': 'deepseek-r1:70b', 'temperature': 0.0}}
+2026-03-04 15:17:14 - DEBUG - openai._base_client - request:998 - Sending HTTP Request: POST http://localhost:11434/v1/chat/completions
+2026-03-04 15:17:14 - DEBUG - httpcore.connection - trace:47 - connect_tcp.started host='localhost' port=11434 local_address=None timeout=10 socket_options=None
+2026-03-04 15:17:14 - DEBUG - httpcore.connection - trace:47 - connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001F2442A69C0>
+2026-03-04 15:17:14 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.started request=<Request [b'POST']>
+2026-03-04 15:17:14 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.complete
+2026-03-04 15:17:14 - DEBUG - httpcore.http11 - trace:47 - send_request_body.started request=<Request [b'POST']>
+2026-03-04 15:17:14 - DEBUG - httpcore.http11 - trace:47 - send_request_body.complete
+2026-03-04 15:17:14 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.started request=<Request [b'POST']>
+2026-03-04 15:18:20 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json'), (b'Date', b'Wed, 04 Mar 2026 07:18:20 GMT'), (b'Transfer-Encoding', b'chunked')])
+2026-03-04 15:18:20 - INFO - httpx - _send_single_request:1025 - HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-04 15:18:20 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.started request=<Request [b'POST']>
+2026-03-04 15:18:20 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.complete
+2026-03-04 15:18:20 - DEBUG - httpcore.http11 - trace:47 - response_closed.started
+2026-03-04 15:18:20 - DEBUG - httpcore.http11 - trace:47 - response_closed.complete
+2026-03-04 15:18:20 - DEBUG - openai._base_client - request:1036 - HTTP Response: POST http://localhost:11434/v1/chat/completions "200 OK" Headers({'content-type': 'application/json', 'date': 'Wed, 04 Mar 2026 07:18:20 GMT', 'transfer-encoding': 'chunked'})
+2026-03-04 15:18:20 - DEBUG - openai._base_client - request:1044 - request_id: None
+2026-03-04 15:18:20 - DEBUG - src.spec_generator - spec_generator_node:272 - Generated ToolSpec:
+{
+  "tool_name": "groupby_trafficway_composite_index",
+  "description": "This tool performs a group by operation on trafficway_type and calculates a normalized composite crash severity index using injuries_total, injuries_fatal, and num_units.",
+  "version": "1.0.0",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "file_path": {
+        "type": "string",
+        "description": "Path to the CSV file containing the data"
+      }
+    },
+    "required": [
+      "file_path"
+    ]
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "result": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "trafficway_type": {
+              "type": "string"
+            },
+            "normalized_composite_index": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "trafficway_type",
+            "normalized_composite_index"
+          ]
+        }
+      },
+      "metadata": {
+        "type": "object",
+        "properties": {
+          "generated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  },
+  "parameters": [
+    {
+      "name": "file_path",
+      "type": "str",
+      "description": "Path to CSV file containing the data",
+      "required": true
+    }
+  ],
+  "return_type": "Dict[str, Any]",
+  "when_to_use": "When you need to analyze crash severity across different trafficway types using a composite index based on injuries_total, injuries_fatal, and num_units.",
+  "what_it_does": "Load the data and select the required columns: injuries_total, injuries_fatal, num_units. Create a composite crash severity index by combining injuries_total, injuries_fatal, and num_units using the formula: (injuries_total * 0.5 + injuries_fatal * 1.5 + num_units * 0.25). Normalize the composite index values to ensure comparability across different trafficway_types. Group the data by trafficway_type and compute the average of the normalized composite index for each group. Sort the results in descending order based on the normalized composite index. Return a list of trafficway_types with their corresponding normalized composite crash severity index.",
+  "returns": "A list of trafficway_types with their corresponding normalized composite crash severity index, sorted in descending order by the index.",
+  "prerequisites": "injuries_total, injuries_fatal, num_units, trafficway_type"
+}
+2026-03-04 15:18:20 - DEBUG - src.llm_client - __init__:90 - LLM base_url=http://localhost:11434/v1  model_type=coding
+2026-03-04 15:18:20 - INFO - src.code_generator - log_section:117 - 
+================================================================================
+2026-03-04 15:18:20 - INFO - src.code_generator - log_section:118 - CODE GENERATION PROMPT
+2026-03-04 15:18:20 - INFO - src.code_generator - log_section:119 - ================================================================================
+
+2026-03-04 15:18:20 - DEBUG - src.code_generator - generate:43 - Generate Python function code for this tool specification.
+
+TOOL NAME: groupby_trafficway_composite_index
+DESCRIPTION: This tool performs a group by operation on trafficway_type and calculates a normalized composite crash severity index using injuries_total, injuries_fatal, and num_units.
+PARAMETERS: [
+  {
+    "name": "file_path",
+    "type": "str",
+    "description": "Path to CSV file containing the data",
+    "required": true
+  }
+]
+REQUIRED COLUMNS: injuries_total, injuries_fatal, num_units, trafficway_type
+IMPLEMENTATION PLAN: Load the data and select the required columns: injuries_total, injuries_fatal, num_units. Create a composite crash severity index by combining injuries_total, injuries_fatal, and num_units using the formula: (injuries_total * 0.5 + injuries_fatal * 1.5 + num_units * 0.25). Normalize the composite index values to ensure comparability across different trafficway_types. Group the data by trafficway_type and compute the average of the normalized composite index fo...
+2026-03-04 15:18:20 - DEBUG - openai._base_client - _build_request:485 - Request options: {'method': 'post', 'url': '/chat/completions', 'files': None, 'idempotency_key': 'stainless-python-retry-3322affe-2938-4ee0-8b75-e215b11c0387', 'content': None, 'json_data': {'messages': [{'role': 'user', 'content': 'Generate Python function code for this tool specification.\n\nTOOL NAME: groupby_trafficway_composite_index\nDESCRIPTION: This tool performs a group by operation on trafficway_type and calculates a normalized composite crash severity index using injuries_total, injuries_fatal, and num_units.\nPARAMETERS: [\n  {\n    "name": "file_path",\n    "type": "str",\n    "description": "Path to CSV file containing the data",\n    "required": true\n  }\n]\nREQUIRED COLUMNS: injuries_total, injuries_fatal, num_units, trafficway_type\nIMPLEMENTATION PLAN: Load the data and select the required columns: injuries_total, injuries_fatal, num_units. Create a composite crash severity index by combining injuries_total, injuries_fatal, and num_units using the formula: (injuries_total * 0.5 + injuries_fatal * 1.5 + num_units * 0.25). Normalize the composite index values to ensure comparability across different trafficway_types. Group the data by trafficway_type and compute the average of the normalized composite index for each group. Sort the results in descending order based on the normalized composite index. Return a list of trafficway_types with their corresponding normalized composite crash severity index.\nWHAT IT DOES: Load the data and select the required columns: injuries_total, injuries_fatal, num_units. Create a composite crash severity index by combining injuries_total, injuries_fatal, and num_units using the formula: (injuries_total * 0.5 + injuries_fatal * 1.5 + num_units * 0.25). Normalize the composite index values to ensure comparability across different trafficway_types. Group the data by trafficway_type and compute the average of the normalized composite index for each group. Sort the results in descending order based on the normalized composite index. Return a list of trafficway_types with their corresponding normalized composite crash severity index.\n\nRequirements:\n1. Use pandas for data manipulation\n2. Function signature must be: def groupby_trafficway_composite_index(file_path: str):\n3. Add comprehensive error handling\n4. Return a dictionary with \'result\' and \'metadata\' keys\n5. **CRITICAL**: Follow the IMPLEMENTATION PLAN and WHAT IT DOES exactly - implement the EXACT statistical method specified\n   - If it says "ANOVA", use scipy.stats.f_oneway or similar (NOT pearsonr, NOT correlation)\n   - If it says "correlation", use scipy.stats.pearsonr (NOT ANOVA, NOT t-test)\n   - If it says "Tukey HSD", use statsmodels.stats.multicomp.pairwise_tukeyhsd\n   - DO NOT substitute different statistical methods than specified\n   - **STATISTICAL INJECTION GUARD**: DO NOT add statistical tests if IMPLEMENTATION PLAN does not request them\n     * If operation is groupby_aggregate → Create simple aggregation (mean, sum, count) ONLY\n     * If operation is pivot → Create pivot table ONLY (NO chi-square, NO statistical tests)\n     * DO NOT add chi-square unless explicitly requested\n     * DO NOT add ANOVA unless explicitly requested\n     * DO NOT add p-values unless explicitly requested\n6. **STATISTICAL TEST RESULTS FORMATTING**:\n   - For ANOVA: Return f_statistic, p_value, effect_size (eta_squared)\n   - For independent samples t-test (2-group comparison):\n     * Use scipy.stats.ttest_ind for normal data, scipy.stats.mannwhitneyu for non-normal\n     * Return: t_statistic (or u_statistic), p_value, significant (bool), effect_size (Cohen\'s d),\n               group_means as a dict with group label keys and float values, test_used ("t-test" or "mann-whitney-u")\n     * Compute Cohen\'s d manually — DO NOT import CohenEffectSize or anything from statsmodels.stats.power:\n       cohens_d = (mean1 - mean2) / sqrt(((n1-1)*std1**2 + (n2-1)*std2**2) / (n1+n2-2))\n     * NEVER use f_oneway for a 2-group comparison — that is ANOVA and is WRONG\n   - For Tukey HSD post-hoc: DO NOT use dict(zip(tukey.pvalues, tukey.groupsunique)) - this is WRONG\n     * Extract pairwise comparisons properly:\n       ```python\n       tukey_table = pd.DataFrame(tukey.summary().data[1:], columns=tukey.summary().data[0])\n       tukey_pairs = tukey_table[["group1", "group2", "meandiff", "p-adj", "lower", "upper", "reject"]].to_dict("records")\n       ```\n     * Return as list of comparison dicts with keys: group1, group2, meandiff, p_adj, lower, upper, reject\n   - For correlation: Return correlation_coefficient, p_value\n   - Always handle NaN values: df = df[required_columns].dropna()\n   - Guard for minimum samples: Filter groups with <2 samples, ensure >=2 groups remain\n7. **MATPLOTLIB CONFIGURATION**: If using matplotlib/seaborn for plotting:\n   - Import matplotlib FIRST before any other plotting libraries\n   - Set non-interactive backend: import matplotlib; matplotlib.use(\'Agg\')\n   - Then import pyplot: import matplotlib.pyplot as plt\n   - This prevents tkinter cleanup errors in non-GUI environments\n8. Handle edge cases gracefully\n9. Add docstring with examples\n10. CRITICAL: Use ONLY the columns listed in REQUIRED COLUMNS above - do NOT invent or assume other column names\n11. **PANDAS FREQUENCY ALIASES** — the correct alias depends on the API:\n    - `df.resample(...)`, `pd.Grouper(freq=...)`, `pd.date_range(freq=...)` — use NEW aliases:\n        Month-end → \'ME\',  Quarter-end → \'QE\',  Year-end → \'YE\',  Business month-end → \'BME\'\n    - `dt.to_period(...)`, `pd.Period(...)`, `pd.PeriodIndex(freq=...)` — use OLD aliases (they NEVER changed):\n        Monthly period → \'M\',  Quarterly period → \'Q\',  Yearly period → \'Y\'\n    NEVER mix them: do NOT use \'YE\' with to_period() — that raises ValueError.\n    CORRECT examples:\n        df[\'period\'] = pd.to_datetime(df[\'crash_date\']).dt.to_period(\'Y\')   # yearly period groupby\n        df.resample(\'YE\', on=\'crash_date\').sum()                              # yearly resample\n12. **TIME-SERIES / MONTHLY TREND COLUMNS**:\n    - Columns named \'crash_month\', \'month\', \'crash_year\', etc. are often INTEGERS (e.g. 1–12), NOT datetime strings.\n    - Calling pd.to_datetime() on an integer month number (e.g. 7) produces a Unix-epoch nanosecond offset → all rows collapse to 1970-01. NEVER do this.\n    - To build a proper monthly time series:\n      * If a full date column exists (e.g. \'crash_date\', \'date\', \'timestamp\'), ALWAYS parse that column:\n          df[\'period\'] = pd.to_datetime(df[\'crash_date\']).dt.to_period(\'M\')\n          Then group by \'period\'.\n      * Only use the integer month column for simple groupby aggregation (not resample):\n          df.groupby(\'crash_month\')[\'injuries_total\'].sum()\n    - NEVER call resample() or pd.to_datetime() on an integer 1-12 month column.\n\nInclude:\n- pandas DataFrame input handling\n- Error handling for missing columns, invalid data types\n- Clear variable names\n- Comments for complex operations\n- Return structure: {"result": {}, "metadata": {}}\n\nIMPORTANT: Use {} or dict() to create dictionaries. Do NOT use typing classes like Dict() to instantiate objects.\n\nDO NOT INCLUDE:\n- DO NOT create placeholder decorator functions like "def mcp_tool()" or "def decorator()"\n- DO NOT create mock FastMCP classes or instances\n- DO NOT define TOOL_SPEC dictionaries or constants\n- DO NOT write explanatory text before or after the code\n- DO NOT create any wrapper functions or decorators\n- DO NOT include comments like "# Placeholder for @mcp.tool()"\n- DO NOT add import statements for \'mcp\' module\n- DO NOT write "Here\'s the code:" or any conversational text\n- DO NOT create example usage code or test functions\n- DO NOT define helper decorator functions\n\nONLY OUTPUT:\n- The single function implementation named groupby_trafficway_composite_index\n- Standard library imports (pandas, numpy, scipy, etc.)\n- **CRITICAL IMPORT ORDER**: If using matplotlib, follow this exact pattern:\n  ```python\n  import matplotlib\n  matplotlib.use(\'Agg\')  # Set non-interactive backend BEFORE importing pyplot\n  import matplotlib.pyplot as plt\n  ```\n- The function must start with: def groupby_trafficway_composite_index(file_path: str):\n- No decorators, no extra functions, no explanations\n\nGenerate ONLY the function implementation. Nothing else.\n'}], 'model': 'qwen2.5-coder:32b', 'temperature': 0.2}}
+2026-03-04 15:18:20 - DEBUG - openai._base_client - request:998 - Sending HTTP Request: POST http://localhost:11434/v1/chat/completions
+2026-03-04 15:18:20 - DEBUG - httpcore.connection - trace:47 - connect_tcp.started host='localhost' port=11434 local_address=None timeout=10 socket_options=None
+2026-03-04 15:18:20 - DEBUG - httpcore.connection - trace:47 - connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001F244AA0D70>
+2026-03-04 15:18:20 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.started request=<Request [b'POST']>
+2026-03-04 15:18:20 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.complete
+2026-03-04 15:18:20 - DEBUG - httpcore.http11 - trace:47 - send_request_body.started request=<Request [b'POST']>
+2026-03-04 15:18:20 - DEBUG - httpcore.http11 - trace:47 - send_request_body.complete
+2026-03-04 15:18:20 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.started request=<Request [b'POST']>
+2026-03-04 15:18:49 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json'), (b'Date', b'Wed, 04 Mar 2026 07:18:49 GMT'), (b'Transfer-Encoding', b'chunked')])
+2026-03-04 15:18:49 - INFO - httpx - _send_single_request:1025 - HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-04 15:18:49 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.started request=<Request [b'POST']>
+2026-03-04 15:18:49 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.complete
+2026-03-04 15:18:49 - DEBUG - httpcore.http11 - trace:47 - response_closed.started
+2026-03-04 15:18:49 - DEBUG - httpcore.http11 - trace:47 - response_closed.complete
+2026-03-04 15:18:49 - DEBUG - openai._base_client - request:1036 - HTTP Response: POST http://localhost:11434/v1/chat/completions "200 OK" Headers({'content-type': 'application/json', 'date': 'Wed, 04 Mar 2026 07:18:49 GMT', 'transfer-encoding': 'chunked'})
+2026-03-04 15:18:49 - DEBUG - openai._base_client - request:1044 - request_id: None
+2026-03-04 15:18:49 - INFO - src.code_generator - log_section:117 - 
+================================================================================
+2026-03-04 15:18:49 - INFO - src.code_generator - log_section:118 - RAW LLM RESPONSE
+2026-03-04 15:18:49 - INFO - src.code_generator - log_section:119 - ================================================================================
+
+2026-03-04 15:18:49 - DEBUG - src.code_generator - generate:50 - ```python
+import pandas as pd
+import numpy as np
+
+def groupby_trafficway_composite_index(file_path: str):
+    try:
+        # Load the data from CSV file
+        df = pd.read_csv(file_path)
+        
+        # Check for required columns
+        required_columns = ['injuries_total', 'injuries_fatal', 'num_units', 'trafficway_type']
+        missing_columns = [col for col in required_columns if col not in df.columns]
+        if missing_columns:
+            raise ValueError(f"Missing required columns: {missing_columns}")
+        
+        # Drop rows with NaN values in the required columns
+        df = df[required_columns].dropna()
+        
+        # Calculate the composite index
+        df['composite_index'] = (df['injuries_total'] + 
+                                 2 * df['injuries_fatal'] + 
+                                 df['num_units'])
+        
+        # Group by trafficway_type and calculate the mean of the composite index
+        grouped_df = df.groupby('trafficway_type')['composit...
+2026-03-04 15:18:49 - INFO - src.code_generator - log_section:117 - 
+================================================================================
+2026-03-04 15:18:49 - INFO - src.code_generator - log_section:118 - EXTRACTED CODE (before wrapping)
+2026-03-04 15:18:49 - INFO - src.code_generator - log_section:119 - ================================================================================
+
+2026-03-04 15:18:49 - DEBUG - src.code_generator - generate:57 - import numpy as np
+
+def groupby_trafficway_composite_index(file_path: str):
+    try:
+        # Load the data from CSV file
+        df = pd.read_csv(file_path)
+        
+        # Check for required columns
+        required_columns = ['injuries_total', 'injuries_fatal', 'num_units', 'trafficway_type']
+        missing_columns = [col for col in required_columns if col not in df.columns]
+        if missing_columns:
+            raise ValueError(f"Missing required columns: {missing_columns}")
+        
+        # Drop rows with NaN values in the required columns
+        df = df[required_columns].dropna()
+        
+        # Calculate the composite index
+        df['composite_index'] = (df['injuries_total'] + 
+                                 2 * df['injuries_fatal'] + 
+                                 df['num_units'])
+        
+        # Group by trafficway_type and calculate the mean of the composite index
+        grouped_df = df.groupby('trafficway_type')['composite_index'].mean().reset_index()...
+2026-03-04 15:18:49 - INFO - src.code_generator - log_section:117 - 
+================================================================================
+2026-03-04 15:18:49 - INFO - src.code_generator - log_section:118 - WRAPPED CODE (before black formatting)
+2026-03-04 15:18:49 - INFO - src.code_generator - log_section:119 - ================================================================================
+
+2026-03-04 15:18:49 - DEBUG - src.code_generator - generate:64 - """Generated MCP tool: groupby_trafficway_composite_index"""
+
+from fastmcp import FastMCP
+import pandas as pd
+import time
+import numpy as np
+
+mcp = FastMCP("data_analysis_tools")
+
+
+@mcp.tool()
+def groupby_trafficway_composite_index(file_path: str):
+    try:
+        # Load the data from CSV file
+        df = pd.read_csv(file_path)
+        
+        # Check for required columns
+        required_columns = ['injuries_total', 'injuries_fatal', 'num_units', 'trafficway_type']
+        missing_columns = [col for col in required_columns if col not in df.columns]
+        if missing_columns:
+            raise ValueError(f"Missing required columns: {missing_columns}")
+        
+        # Drop rows with NaN values in the required columns
+        df = df[required_columns].dropna()
+        
+        # Calculate the composite index
+        df['composite_index'] = (df['injuries_total'] + 
+                                 2 * df['injuries_fatal'] + 
+                                 df['num_units'])
+       ...
+2026-03-04 15:18:49 - INFO - src.code_generator - log_section:117 - 
+================================================================================
+2026-03-04 15:18:49 - INFO - src.code_generator - log_section:118 - FINAL FORMATTED CODE
+2026-03-04 15:18:49 - INFO - src.code_generator - log_section:119 - ================================================================================
+
+2026-03-04 15:18:49 - DEBUG - src.code_generator - generate:72 - """Generated MCP tool: groupby_trafficway_composite_index"""
+
+from fastmcp import FastMCP
+import pandas as pd
+import time
+import numpy as np
+
+mcp = FastMCP("data_analysis_tools")
+
+
+@mcp.tool()
+def groupby_trafficway_composite_index(file_path: str):
+    try:
+        # Load the data from CSV file
+        df = pd.read_csv(file_path)
+
+        # Check for required columns
+        required_columns = [
+            "injuries_total",
+            "injuries_fatal",
+            "num_units",
+            "trafficway_type",
+        ]
+        missing_columns = [col for col in required_columns if col not in df.columns]
+        if missing_columns:
+            raise ValueError(f"Missing required columns: {missing_columns}")
+
+        # Drop rows with NaN values in the required columns
+        df = df[required_columns].dropna()
+
+        # Calculate the composite index
+        df["composite_index"] = (
+            df["injuries_total"] + 2 * df["injuries_fatal"] + df["num_units"]
+        )
+
+        # Group by trafficway_type and calculate the mean of the composite index
+        grouped_df = (
+            df.groupby("trafficway_type")["composite_index"].mean().reset_index()
+        )
+
+        # Filter out groups with less than 2 samples
+        grouped_df = grouped_df[
+            grouped_df["trafficway_type"].map(df["trafficway_type"].value_counts()) >= 2
+        ]
+
+        # Check if there are at least 2 groups remaining
+        if len(grouped_df) < 2:
+            raise ValueError(
+                "Not enough data to perform grouping with at least 2 samples per group."
+            )
+
+        # Prepare the result and metadata
+        result = grouped_df.to_dict(orient="records")
+        metadata = {
+            "columns": required_columns,
+            "num_samples": len(df),
+            "num_groups": len(grouped_df),
+        }
+
+        return {"result": result, "metadata": metadata}
+
+    except Exception as e:
+        return {"result": {}, "metadata": {"error": str(e)}}
+
+2026-03-04 15:18:49 - INFO - src.code_generator - code_generator_node:620 - 📝 Generated code saved to draft: tools\draft\groupby_trafficway_composite_index_20260304_151849.py
+2026-03-04 15:18:50 - INFO - src.validator - log_section:117 - 
+================================================================================
+2026-03-04 15:18:50 - INFO - src.validator - log_section:118 - VALIDATION RESULTS
+2026-03-04 15:18:50 - INFO - src.validator - log_section:119 - ================================================================================
+
+2026-03-04 15:18:50 - INFO - src.validator - validator_node:321 - Schema OK: True
+2026-03-04 15:18:50 - INFO - src.validator - validator_node:322 - Tests OK: True
+2026-03-04 15:18:50 - INFO - src.validator - validator_node:323 - Sandbox OK: True
+2026-03-04 15:18:52 - DEBUG - mcp.server.lowlevel.server - __init__:162 - Initializing server 'data_analysis_tools'
+2026-03-04 15:18:52 - DEBUG - mcp.server.lowlevel.server - decorator:439 - Registering handler for ListToolsRequest
+2026-03-04 15:18:52 - DEBUG - mcp.server.lowlevel.server - decorator:301 - Registering handler for ListResourcesRequest
+2026-03-04 15:18:52 - DEBUG - mcp.server.lowlevel.server - decorator:321 - Registering handler for ListResourceTemplatesRequest
+2026-03-04 15:18:52 - DEBUG - mcp.server.lowlevel.server - decorator:263 - Registering handler for PromptListRequest
+2026-03-04 15:18:52 - DEBUG - mcp.server.lowlevel.server - decorator:519 - Registering handler for CallToolRequest
+2026-03-04 15:18:52 - DEBUG - src.executor - _load_function:136 - Module contents: ['FastMCP', 'groupby_trafficway_composite_index', 'mcp', 'np', 'pd', 'time']
+2026-03-04 15:18:52 - DEBUG - src.executor - _load_function:143 - Checking 'groupby_trafficway_composite_index': type=<class 'fastmcp.tools.tool.FunctionTool'>, callable=False, is_function=False
+2026-03-04 15:18:52 - DEBUG - src.executor - _load_function:147 - Found FunctionTool, extracting underlying function...
+2026-03-04 15:18:52 - DEBUG - src.executor - _load_function:154 - Successfully extracted function from FunctionTool via 'fn'
+2026-03-04 15:18:53 - DEBUG - src.executor - execute:68 - Result type: <class 'dict'>
+2026-03-04 15:18:53 - DEBUG - src.executor - execute:69 - Result value: {'result': [{'trafficway_type': 'ALLEY', 'composite_index': 2.1916329284750335}, {'trafficway_type': 'CENTER TURN LANE', 'composite_index': 2.5356394129979036}, {'trafficway_type': 'DIVIDED - W/MEDIAN (NOT RAISED)', 'composite_index': 2.432132316413898}, {'trafficway_type': 'DIVIDED - W/MEDIAN BARRIER', 'composite_index': 2.4374067164179105}, {'trafficway_type': 'DRIVEWAY', 'composite_index': 2.2867132867132867}, {'trafficway_type': 'FIVE POINT, OR MORE', 'composite_index': 2.526362823949955}, {'trafficway_type': 'FOUR WAY', 'composite_index': 2.5741280551195547}, {'trafficway_type': 'L-INTERSECTION', 'composite_index': 2.4330708661417324}, {'trafficway_type': 'NOT DIVIDED', 'composite_index': 2.399663035509884}, {'trafficway_type': 'NOT REPORTED', 'composite_index': 2.6557659208261617}, {'trafficway_type': 'ONE-WAY', 'composite_index': 2.3166680171785106}, {'trafficway_type': 'OTHER', 'composite_index': 2.395627496321211}, {'trafficway_type': 'PARKING LOT', 'composite_index': 2.158482142857143}, {'trafficway_type': 'RAMP', 'composite_index': 2.1786666666666665}, {'trafficway_type': 'ROUNDABOUT', 'composite_index': 2.1140939597315436}, {'trafficway_type': 'T-INTERSECTION', 'composite_index': 2.4950720242608035}, {'trafficway_type': 'TRAFFIC ROUTE', 'composite_index': 2.609536082474227}, {'trafficway_type': 'UNKNOWN', 'composite_index': 2.2132075471698114}, {'trafficway_type': 'UNKNOWN INTERSECTION TYPE', 'composite_index': 2.5310344827586206}, {'trafficway_type': 'Y-INTERSECTION', 'composite_index': 2.478079331941545}], 'metadata': {'columns': ['injuries_total', 'injuries_fatal', 'num_units', 'trafficway_type'], 'num_samples': 209306, 'num_groups': 20}}
+2026-03-04 15:18:53 - INFO - src.executor - executor_node:305 - 💾 Execution results saved to: output\draft\groupby_trafficway_composite_index_20260304_151849_output.json
+2026-03-04 15:18:53 - INFO - src.promoter - promote:85 - 💾 Moved output file to: output\active\groupby_trafficway_composite_index_20260304_151849_output.json
+2026-03-04 15:18:53 - INFO - src.promoter - log_section:117 - 
+================================================================================
+2026-03-04 15:18:53 - INFO - src.promoter - log_section:118 - 🎉 TOOL PROMOTED TO ACTIVE REGISTRY
+2026-03-04 15:18:53 - INFO - src.promoter - log_section:119 - ================================================================================
+
+2026-03-04 15:18:53 - INFO - src.promoter - promoter_node:196 - Tool Name: groupby_trafficway_composite_index_20260304_151849
+2026-03-04 15:18:53 - INFO - src.promoter - promoter_node:198 - Draft Path: tools\draft\groupby_trafficway_composite_index_20260304_151849.py
+2026-03-04 15:18:53 - INFO - src.promoter - promoter_node:199 - Active Path: tools\active\groupby_trafficway_composite_index_20260304_151849.py
+2026-03-04 15:18:53 - INFO - src.promoter - promoter_node:201 - Output Path: output\active\groupby_trafficway_composite_index_20260304_151849_output.json
+2026-03-04 15:18:53 - INFO - src.promoter - promoter_node:202 - Registry: tools\registry.json
+2026-03-04 15:18:53 - INFO - src.promoter - promoter_node:203 - ✅ Tool successfully executed and promoted to active
