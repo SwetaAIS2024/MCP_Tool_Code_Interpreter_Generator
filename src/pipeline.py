@@ -68,9 +68,8 @@ def projection_node(state: ToolGeneratorState) -> ToolGeneratorState:
     # parent graph does not see a lingering gap after successful generation.
 
     # ---- Generation artifacts -----------------------------------------------
-    draft_path = state.get("draft_path")
-    if draft_path:
-        artifact_log.append(draft_path)
+    # draft_path is intentionally excluded — it is a child-internal intermediate
+    # artifact. Only final, stable paths are projected to the parent graph.
 
     tool_spec = state.get("tool_spec")
     if tool_spec:
@@ -115,10 +114,6 @@ def projection_node(state: ToolGeneratorState) -> ToolGeneratorState:
             errors.append(e)
 
     # ---- Execution ----------------------------------------------------------
-    draft_output_path = state.get("draft_output_path")
-    if draft_output_path:
-        artifact_log.append(draft_output_path)
-
     execution_output = state.get("execution_output")
     if execution_output:
         # Keep transcript entry bounded — strip heavy result payload
@@ -132,6 +127,13 @@ def projection_node(state: ToolGeneratorState) -> ToolGeneratorState:
             "output": safe_output,
         })
 
+        # Extract plot path from execution result (saved by executor_node)
+        plot_path = None
+        if isinstance(result_preview, dict):
+            plot_path = result_preview.get("plot_path")
+        if plot_path:
+            artifact_log.append(plot_path)
+
     # ---- Promotion ----------------------------------------------------------
     promoted_tool = state.get("promoted_tool")
     final_artifacts: Optional[Dict[str, Any]] = None
@@ -139,6 +141,8 @@ def projection_node(state: ToolGeneratorState) -> ToolGeneratorState:
         final_artifacts = {"promoted_tool": promoted_tool}
         if promoted_tool.get("path"):
             artifact_log.append(promoted_tool["path"])
+        if promoted_tool.get("output_path"):
+            artifact_log.append(promoted_tool["output_path"])
         transcript.append({
             "tool": "promoter",
             "args": {},

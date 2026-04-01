@@ -306,7 +306,7 @@ all results into these fields on the returned child state:
 | Child field | Parent channel | Type |
 |---|---|---|
 | `projected_tool_transcript` | `tool_transcript` | `List[Dict[str, Any]]` |
-| `projected_artifact_log` | `artifact_log` | `List[str]` |
+| `projected_artifact_log` | `artifact_log` | `List[str]` (active tool py, active output JSON, plot PNG if generated) |
 | `projected_capability_gap` | `capability_gap` | `Optional[Dict[str, Any]]` |
 | `projected_errors` | `errors` | `List[str]` |
 | `projected_warnings` | `warnings` | `List[str]` |
