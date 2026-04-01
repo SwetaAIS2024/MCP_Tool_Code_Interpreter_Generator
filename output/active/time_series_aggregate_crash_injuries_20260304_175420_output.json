@@ -1,0 +1,65 @@
+{
+  "tool_name": "time_series_aggregate_crash_injuries_20260304_175420",
+  "user_query": "Show the yearly trend of total injuries.",
+  "execution_timestamp": "2026-03-04T17:54:31.921183",
+  "data_path": "/Users/swetapattnaik/Desktop/ST_ENGG_work/code_gen_run_client/MCP_Tool_Code_Interpreter_Generator/reference_files/sample_planner_output/traffic_accidents.csv",
+  "result": {
+    "result": [
+      {
+        "year": 2013,
+        "total_injuries": 3
+      },
+      {
+        "year": 2015,
+        "total_injuries": 289
+      },
+      {
+        "year": 2016,
+        "total_injuries": 1381
+      },
+      {
+        "year": 2017,
+        "total_injuries": 5832
+      },
+      {
+        "year": 2018,
+        "total_injuries": 10225
+      },
+      {
+        "year": 2019,
+        "total_injuries": 10139
+      },
+      {
+        "year": 2020,
+        "total_injuries": 9305
+      },
+      {
+        "year": 2021,
+        "total_injuries": 10175
+      },
+      {
+        "year": 2022,
+        "total_injuries": 10226
+      },
+      {
+        "year": 2023,
+        "total_injuries": 10553
+      },
+      {
+        "year": 2024,
+        "total_injuries": 11558
+      },
+      {
+        "year": 2025,
+        "total_injuries": 419
+      }
+    ],
+    "metadata": {
+      "status": "success",
+      "message": "Data aggregated successfully"
+    }
+  },
+  "summary_markdown": null,
+  "execution_time_ms": 5512.405872344971,
+  "error": null
+}

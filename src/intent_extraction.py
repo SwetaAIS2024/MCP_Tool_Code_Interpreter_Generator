@@ -45,7 +45,7 @@ class IntentExtractor:
         
         # Log available columns
         log_section(logger, "INTENT EXTRACTION - AVAILABLE COLUMNS")
-        logger.debug(f"Columns: {columns}")
+        logger.info(f"Columns: {columns}")
         
         # Build comprehensive analysis prompt
         prompt = self._build_prompt(query, data_path, columns, dtypes, sample_values)
@@ -421,9 +421,9 @@ class GapDetector:
         """Calculate overlap score between intent and existing tool.
 
         Scoring:
-          - user_query semantic similarity (simple word-overlap): 0.5 weight
-          - required_columns Jaccard similarity:                  0.3 weight
-          - operation match:                                      0.2 weight
+          - user_query word overlap:             0.5 weight
+          - required_columns Jaccard similarity: 0.3 weight
+          - operation match:                     0.2 weight
 
         Args:
             intent: Extracted intent
@@ -438,11 +438,10 @@ class GapDetector:
         # --- 1. Operation match (0.2) ---
         intent_op = intent.get("operation", "")
         tool_op = tool.get("operation", "")
-        # registry entries may not store 'operation' — fall back gracefully
         if intent_op and tool_op and intent_op == tool_op:
             score += 0.2
         elif not tool_op:
-            # Old registry entries don't record operation — don't penalise
+            # Registry entries don't store operation — don't penalise
             score += 0.1
 
         # --- 2. Required columns Jaccard (0.3) ---
@@ -529,7 +528,10 @@ def intent_node(state: ToolGeneratorState) -> ToolGeneratorState:
     # Use reasoning model for intent extraction and planning
     llm_client = create_llm_client(model_type="reasoning")
     intent = extract_intent(state["user_query"], state["data_path"], llm_client)
-    gap_detected, best_match = detect_capability_gap(intent, user_query=state["user_query"])
+
+    # CURRENTLY DISABLED GAP DETECTION - always proceed to generation, but store best match if any for later use
+    # gap_detected, best_match = detect_capability_gap(intent, user_query=state["user_query"]) 
+    gap_detected, best_match = True, None  # Force generation for now while we iterate on intent extraction quality
     
     # Validate intent before proceeding
     # Load dataset to get available columns

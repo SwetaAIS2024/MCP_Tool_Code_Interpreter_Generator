@@ -1,0 +1,34 @@
+{
+  "tool_name": "custom_transform_intersection_injuries_20260305_150229",
+  "user_query": "Compare injury distributions between Y and not-Y intersection cases.",
+  "execution_timestamp": "2026-03-05T15:02:33.276555",
+  "data_path": "/Users/swetapattnaik/Desktop/ST_ENGG_work/code_gen_run_client/MCP_Tool_Code_Interpreter_Generator/reference_files/sample_planner_output/traffic_accidents.csv",
+  "result": {
+    "result": {
+      "statistic": 1061458326.0,
+      "p_value": 3.849758468061667e-49,
+      "significant": true,
+      "effect_size": null,
+      "group_means": {
+        "Y": 0.38813188577391583,
+        "not-Y": 0.27459426968543377
+      },
+      "test_used": "mann-whitney-u"
+    },
+    "metadata": {
+      "normality": {
+        "Y": {
+          "statistic": 0.5352877731430399,
+          "p_value": 4.061189463028734e-176
+        },
+        "not-Y": {
+          "statistic": 0.4751884670979092,
+          "p_value": 9.514898207336245e-99
+        }
+      }
+    }
+  },
+  "summary_markdown": null,
+  "execution_time_ms": 1653.7420749664307,
+  "error": null
+}

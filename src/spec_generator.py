@@ -269,7 +269,7 @@ def spec_generator_node(state: ToolGeneratorState) -> ToolGeneratorState:
     llm_client = create_llm_client(model_type="reasoning")
     spec = generate_spec(state["extracted_intent"], llm_client)
 
-    logger.debug("Generated ToolSpec:\n%s", spec.model_dump_json(indent=2))
+    logger.info("Generated ToolSpec:\n%s", spec.model_dump_json(indent=2))
 
     return {
         **state,

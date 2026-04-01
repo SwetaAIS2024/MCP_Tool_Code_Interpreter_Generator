@@ -1,0 +1,26 @@
+{
+  "tool_name": "custom_transform_lighting_condition_injuries_total_20260305_133122",
+  "user_query": "Compare injuries_total between lighting_condition = \u2018DAYLIGHT\u2019 and not DAYLIGHT.",
+  "execution_timestamp": "2026-03-05T13:31:25.766332",
+  "data_path": "/Users/swetapattnaik/Desktop/ST_ENGG_work/code_gen_run_client/MCP_Tool_Code_Interpreter_Generator/reference_files/sample_planner_output/traffic_accidents.csv",
+  "result": {
+    "result": {
+      "test_statistic": 4883278395.0,
+      "p_value": 5.354883131063786e-55,
+      "significant": true,
+      "effect_size": -0.08128927550615993,
+      "group_means": {
+        "DAYLIGHT": 0.3593793108590773,
+        "NON-DAYLIGHT": 0.4243387369176962
+      },
+      "test_used": "mann-whitney-u"
+    },
+    "metadata": {
+      "daylight_normal": false,
+      "non_daylight_normal": false
+    }
+  },
+  "summary_markdown": null,
+  "execution_time_ms": 1501.9571781158447,
+  "error": null
+}

@@ -104,7 +104,7 @@ class ToolGeneratorState(TypedDict):
     # Intent
     extracted_intent: Optional[Dict]
     has_gap: bool
-    matched_tool: Optional[Dict]
+    matched_tool: Optional[Dict]  # Best-matching registry entry when has_gap=False
     
     # Generation
     tool_spec: Optional[ToolSpec]

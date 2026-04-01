@@ -1,0 +1,370 @@
+2026-03-05 11:07:13 - DEBUG - src.logger_config - setup:82 - Logging configured: verbosity=normal, file=logs/pipeline_20260305_110713.log
+2026-03-05 11:07:13 - INFO - __main__ - log_section:117 - 
+================================================================================
+2026-03-05 11:07:13 - INFO - __main__ - log_section:118 - TESTING CODE GENERATION PIPELINE
+2026-03-05 11:07:13 - INFO - __main__ - log_section:119 - ================================================================================
+
+2026-03-05 11:07:13 - DEBUG - urllib3.connectionpool - _new_conn:1049 - Starting new HTTPS connection (1): mermaid.ink:443
+2026-03-05 11:07:13 - DEBUG - urllib3.connectionpool - _make_request:544 - https://mermaid.ink:443 "GET /img/LS0tCmNvbmZpZzoKICBmbG93Y2hhcnQ6CiAgICBjdXJ2ZTogbGluZWFyCi0tLQpncmFwaCBURDsKCV9fc3RhcnRfXyg8cD5fX3N0YXJ0X188L3A+KQoJaW50ZW50X25vZGUoaW50ZW50X25vZGUpCglzcGVjX2dlbmVyYXRvcl9ub2RlKHNwZWNfZ2VuZXJhdG9yX25vZGUpCgljb2RlX2dlbmVyYXRvcl9ub2RlKGNvZGVfZ2VuZXJhdG9yX25vZGUpCgl2YWxpZGF0b3Jfbm9kZSh2YWxpZGF0b3Jfbm9kZSkKCXJlcGFpcl9ub2RlKHJlcGFpcl9ub2RlKQoJZXhlY3V0b3Jfbm9kZShleGVjdXRvcl9ub2RlKQoJcHJvbW90ZXJfbm9kZShwcm9tb3Rlcl9ub2RlKQoJcHJvamVjdGlvbl9ub2RlKHByb2plY3Rpb25fbm9kZSkKCV9fZW5kX18oPHA+X19lbmRfXzwvcD4pCglfX3N0YXJ0X18gLS0+IGludGVudF9ub2RlOwoJaW50ZW50X25vZGUgLS0+IF9fZW5kX187CgljbGFzc0RlZiBkZWZhdWx0IGZpbGw6I2YyZjBmZixsaW5lLWhlaWdodDoxLjIKCWNsYXNzRGVmIGZpcnN0IGZpbGwtb3BhY2l0eTowCgljbGFzc0RlZiBsYXN0IGZpbGw6I2JmYjZmYwo=?type=png&bgColor=%21white HTTP/1.1" 200 21208
+2026-03-05 11:07:13 - INFO - src.pipeline - build_graph:220 - 📊 Graph visualization saved to: pipeline_graph.png
+2026-03-05 11:07:13 - DEBUG - src.llm_client - __init__:95 - LLM base_url=http://10.50.128.61:11434/v1  model_type=reasoning
+2026-03-05 11:07:14 - INFO - src.intent_extraction - log_section:117 - 
+================================================================================
+2026-03-05 11:07:14 - INFO - src.intent_extraction - log_section:118 - INTENT EXTRACTION - AVAILABLE COLUMNS
+2026-03-05 11:07:14 - INFO - src.intent_extraction - log_section:119 - ================================================================================
+
+2026-03-05 11:07:14 - DEBUG - src.intent_extraction - extract:48 - Columns: ['crash_date', 'traffic_control_device', 'weather_condition', 'lighting_condition', 'first_crash_type', 'trafficway_type', 'alignment', 'roadway_surface_cond', 'road_defect', 'crash_type', 'intersection_related_i', 'damage', 'prim_contributory_cause', 'num_units', 'most_severe_injury', 'injuries_total', 'injuries_fatal', 'injuries_incapacitating', 'injuries_non_incapacitating', 'injuries_reported_not_evident', 'injuries_no_indication', 'crash_hour', 'crash_day_of_week', 'crash_month']
+2026-03-05 11:07:14 - DEBUG - openai._base_client - _build_request:486 - Request options: {'method': 'post', 'url': '/chat/completions', 'files': None, 'idempotency_key': 'stainless-python-retry-31c7f64e-e466-4ae7-a904-fb77432a3525', 'content': None, 'json_data': {'messages': [{'role': 'system', 'content': 'You are an intent extraction system. Your job is to understand the user\'s query and create an implementation plan for the EXACT analysis they requested.\n\nCRITICAL RULES:\n1. If the user asks for "ANOVA", your implementation_plan MUST describe ANOVA analysis (scipy.stats.f_oneway), NOT correlation, chi-square, or any other test\n2. If the user asks for "correlation", your implementation_plan MUST describe correlation analysis (scipy.stats.pearsonr), NOT ANOVA\n3. If the user asks for "Tukey HSD", your plan MUST include statsmodels.stats.multicomp.pairwise_tukeyhsd\n4. DO NOT substitute different statistical methods than what the user explicitly requested\n5. Output ONLY valid JSON - no thinking process, no explanations, no markdown\n6. The \'operation\' field is REQUIRED - never return null/None for it'}, {'role': 'user', 'content': 'You are the IntentExtractor module for an MCP Tool Code Interpreter Generator.\n\nYour job is to convert a natural language data analysis query into STRICT JSON intent for tool generation.\n\n====================\nOUTPUT RULES\n====================\n- Return ONLY valid JSON\n- No explanations, no markdown, no commentary\n- Response must start with { and end with }\n- Use ONLY column names from AVAILABLE_COLUMNS\n\n====================\nCORE TASK\n====================\n\nGiven:\nUSER_QUERY: Correlate total number of injuries with the weather condition.\nAVAILABLE_COLUMNS: [\'crash_date\', \'traffic_control_device\', \'weather_condition\', \'lighting_condition\', \'first_crash_type\', \'trafficway_type\', \'alignment\', \'roadway_surface_cond\', \'road_defect\', \'crash_type\', \'intersection_related_i\', \'damage\', \'prim_contributory_cause\', \'num_units\', \'most_severe_injury\', \'injuries_total\', \'injuries_fatal\', \'injuries_incapacitating\', \'injuries_non_incapacitating\', \'injuries_reported_not_evident\', \'injuries_no_indication\', \'crash_hour\', \'crash_day_of_week\', \'crash_month\']\n\nYou must determine:\n- operation\n- has_gap\n- gap_reason\n- required_columns\n- missing_columns\n- implementation_plan\n\n====================\nSTEP 1 — COLUMN MATCHING (DO FIRST)\n====================\n\nFind dataset columns needed for the query using substring matching.\n\nRules:\n1. Split query into meaningful words (ignore: the, and, by, across, for, with, etc.)\n2. If a query word appears inside a column name → select that column\n3. Prefer most specific matches:\n   injuries_fatal > injuries_incapacitating > injuries_total\n4. Domain mappings:\n   fatal → injuries_fatal\n   weather → weather_condition\n   injury (generic) → injuries_total (unless fatal specified)\n5. Never select time columns unless query mentions:\n   time, hour, day, date, month, year\n6. If concept exists in query but no column matches → add to missing_columns\n7. **TIME-SERIES COLUMN PRIORITY**: If query asks for a "monthly trend", "trend over time", "time series" etc:\n   - ALWAYS prefer the full datetime column (e.g. crash_date, date, timestamp, incident_date) over an integer period column (crash_month, month, crash_year, year).\n   - Integer columns named \'crash_month\', \'month\', \'crash_year\' contain only 1-12 or year numbers — they LOSE year information and cannot form a proper time series across years.\n   - Include BOTH the full date column AND the integer column in required_columns, but instruct the implementation_plan to parse the full date column.\n   - If only an integer month column exists (no full date column), note in the implementation_plan that results will be grouped by month-of-year (1–12) without year context.\n\nrequired_columns = matched columns from this step\n\n====================\nSTEP 2 — OPERATION DETECTION\n====================\n\n⚠️ CRITICAL GUARDS — CHECK FIRST:\n\n1. PIVOT GUARD:\n   DO NOT use pivot or crosstab UNLESS query explicitly contains:\n   - "pivot"\n   - "crosstab"\n   - "matrix"\n   - "heatmap"\n\n2. STATISTICAL INJECTION GUARD:\n   DO NOT introduce statistical tests UNLESS query explicitly mentions:\n   - ANOVA, F-test, F-statistic\n   - t-test, Student\'s t\n   - chi-square, chi2, contingency, independence test\n   - correlation, Pearson, Spearman\n   - regression, linear model\n   - significance test, p-value, hypothesis test\n\n3. CHI-SQUARE HARD BLOCK:\n   NEVER use chi-square UNLESS query explicitly asks for:\n   "chi-square", "chi2", "contingency test", "independence test"\n\nOPERATION SELECTION PRIORITY:\n\nSTEP 2A: Check for explicit statistical keywords\nIf query contains:\nANOVA, t-test, chi-square, correlation, regression, Tukey, post-hoc, p-value, effect size,\nstatistical testing, significantly differ, compare distributions, hypothesis test, differ significantly\n→ operation = "custom_transform"\n→ has_gap = true\n\nDETERMINE TEST TYPE (set in gap_reason):\n\n2-GROUP COMPARISON SIGNALS (use t-test, NOT ANOVA):\n- Query compares exactly 2 groups:\n  "Y versus others", "Y vs N", "between X and Y", "compared to", "versus others"\n  "differ between", "compare between two"\n- Binary column values: Y/N, True/False, 0/1\n→ gap_reason = "Two-group statistical comparison: use independent samples t-test (scipy.stats.ttest_ind) with normality check (Shapiro-Wilk). If non-normal, use Mann-Whitney U (scipy.stats.mannwhitneyu). Do NOT use ANOVA."\n\n3-OR-MORE GROUP COMPARISON SIGNALS (use ANOVA):\n- Query mentions 3+ categories, multiple groups, or uses "across groups/categories"\n- Explicit "ANOVA", "F-test", "Tukey", "post-hoc"\n→ gap_reason = "Multi-group statistical comparison: use one-way ANOVA (scipy.stats.f_oneway)."\n\nOTHER STATISTICAL TESTS:\n- Correlation → gap_reason = "Correlation analysis: use scipy.stats.pearsonr or spearmanr."\n- Regression → gap_reason = "Regression analysis: use scipy.stats.linregress or statsmodels OLS."\n- Chi-square → gap_reason = "Independence test: use scipy.stats.chi2_contingency."\n\nSTEP 2B: Check for variation/comparison patterns\nIf query contains:\n- "variation across", "variation by", "variations across"\n- "differences across", "differences by"\n- "compare across", "compare by"\n- "distribution across", "distribution by"\n→ operation = "groupby_aggregate"\n→ has_gap = false\n\nSTEP 2C: Detect basic operations\n- "filter", "where", "only", "exclude" → filter\n- "top N", "count by", "most common" → groupby_aggregate\n- "summary", "describe", "statistics" → describe_summary\n- "pivot", "crosstab", "matrix" (EXPLICIT only) → pivot\n- "trend", "over time", "time series" → time_series_aggregate\n\nSTEP 2D: DEFAULT BEHAVIOR\nIf comparing numeric metric across categorical groups:\n→ operation = "groupby_aggregate"\n→ has_gap = false\n\nElse:\n→ operation = "custom_transform"\n\n====================\nSTEP 3 — IMPLEMENTATION PLAN\n====================\n\nCreate 5–8 clear execution steps using ONLY required_columns.\n\nIf statistical method is mentioned:\nPlan MUST describe that exact method.\nExample:\nANOVA → scipy.stats.f_oneway\nCorrelation → scipy.stats.pearsonr\nTukey → statsmodels pairwise_tukeyhsd\n\nNever substitute statistical methods.\n\nTIME-SERIES AGGREGATE PLAN (when operation = time_series_aggregate):\nStep 1: Load data and select required columns including the full date column (e.g. crash_date)\nStep 2: Parse the full date column with pd.to_datetime() — NEVER call pd.to_datetime() on an integer month column\nStep 3: Extract year-month period: df[\'period\'] = df[\'crash_date\'].dt.to_period(\'M\')\nStep 4: Group by \'period\' and aggregate the metric (sum / mean / count)\nStep 5: Sort by period ascending\nStep 6: Return list of {period, metric} records ordered chronologically\n\nTWO-GROUP COMPARISON PLAN (when gap_reason says t-test):\nStep 1: Load data and select required columns\nStep 2: Split into exactly 2 groups based on binary column (Y / not-Y)\nStep 3: Check normality of each group with Shapiro-Wilk (scipy.stats.shapiro)\nStep 4: If both groups normal → scipy.stats.ttest_ind; else → scipy.stats.mannwhitneyu\nStep 5: Compute effect size (Cohen\'s d for t-test)\nStep 6: Return statistic, p_value, significant (bool), effect_size, group means\nNEVER use f_oneway or ANOVA for a 2-group comparison.\n\n====================\nSTEP 4 — FINAL JSON STRUCTURE\n====================\n\nReturn JSON with fields:\n\n{\n  "has_gap": boolean,\n  "gap_reason": string,\n  "operation": string,\n  "required_columns": [],\n  "missing_columns": [],\n  "implementation_plan": [],\n  "filters": [],\n  "group_by": [],\n  "metrics": [],\n  "sort_by": [],\n  "sort_order": "ascending" | "descending",\n  "limit": number | null,\n  "output_format": "table" | "summary" | "json" | "chart_spec",\n  "edge_cases": [],\n  "validation_rules": [],\n  "assumptions": [],\n  "clarifications_needed": []\n}\n'}], 'model': 'deepseek-r1:70b', 'temperature': 0.0}}
+2026-03-05 11:07:14 - DEBUG - openai._base_client - request:1001 - Sending HTTP Request: POST http://10.50.128.61:11434/v1/chat/completions
+2026-03-05 11:07:14 - DEBUG - httpcore.connection - trace:47 - connect_tcp.started host='10.50.128.61' port=11434 local_address=None timeout=10 socket_options=None
+2026-03-05 11:07:14 - DEBUG - httpcore.connection - trace:47 - connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x10c910d70>
+2026-03-05 11:07:14 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.started request=<Request [b'POST']>
+2026-03-05 11:07:14 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.complete
+2026-03-05 11:07:14 - DEBUG - httpcore.http11 - trace:47 - send_request_body.started request=<Request [b'POST']>
+2026-03-05 11:07:14 - DEBUG - httpcore.http11 - trace:47 - send_request_body.complete
+2026-03-05 11:07:14 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.started request=<Request [b'POST']>
+2026-03-05 11:10:49 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json'), (b'Date', b'Thu, 05 Mar 2026 03:10:49 GMT'), (b'Transfer-Encoding', b'chunked')])
+2026-03-05 11:10:49 - INFO - httpx - _send_single_request:1025 - HTTP Request: POST http://10.50.128.61:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-05 11:10:49 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.started request=<Request [b'POST']>
+2026-03-05 11:10:49 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.complete
+2026-03-05 11:10:49 - DEBUG - httpcore.http11 - trace:47 - response_closed.started
+2026-03-05 11:10:49 - DEBUG - httpcore.http11 - trace:47 - response_closed.complete
+2026-03-05 11:10:49 - DEBUG - openai._base_client - request:1039 - HTTP Response: POST http://10.50.128.61:11434/v1/chat/completions "200 OK" Headers({'content-type': 'application/json', 'date': 'Thu, 05 Mar 2026 03:10:49 GMT', 'transfer-encoding': 'chunked'})
+2026-03-05 11:10:49 - DEBUG - openai._base_client - request:1047 - request_id: None
+2026-03-05 11:10:49 - INFO - src.intent_extraction - log_section:117 - 
+================================================================================
+2026-03-05 11:10:49 - INFO - src.intent_extraction - log_section:118 - EXTRACTED INTENT
+2026-03-05 11:10:49 - INFO - src.intent_extraction - log_section:119 - ================================================================================
+
+2026-03-05 11:10:49 - INFO - src.intent_extraction - extract:158 - Required columns: ['weather_condition', 'injuries_total']
+2026-03-05 11:10:49 - INFO - src.intent_extraction - extract:159 - Missing columns: []
+2026-03-05 11:10:49 - INFO - src.intent_extraction - extract:160 - Operation: custom_transform
+2026-03-05 11:10:49 - INFO - src.intent_validator - log_section:117 - 
+================================================================================
+2026-03-05 11:10:49 - INFO - src.intent_validator - log_section:118 - INTENT VALIDATION
+2026-03-05 11:10:49 - INFO - src.intent_validator - log_section:119 - ================================================================================
+
+2026-03-05 11:10:49 - INFO - src.intent_validator - log_success:135 - ✅ ✅ Intent validation passed
+2026-03-05 11:10:49 - DEBUG - src.llm_client - __init__:95 - LLM base_url=http://10.50.128.61:11434/v1  model_type=reasoning
+2026-03-05 11:10:49 - DEBUG - openai._base_client - _build_request:486 - Request options: {'method': 'post', 'url': '/chat/completions', 'files': None, 'idempotency_key': 'stainless-python-retry-97be5a35-90c6-4ef8-8bd0-b964273160df', 'content': None, 'json_data': {'messages': [{'role': 'system', 'content': 'You are a JSON generation system. Return ONLY valid JSON conforming to the schema. DO NOT include any explanatory text, thinking process, commentary, or meta-text. DO NOT use <think> tags or similar reasoning markers. DO NOT add markdown code fences around the JSON. Output must be pure JSON starting with { and ending with }.'}, {'role': 'user', 'content': 'Generate a complete ToolSpec for the following data analysis operation.\n\nOPERATION: custom_transform\nREQUIRED COLUMNS: [\'weather_condition\', \'injuries_total\']\nGROUP BY: []\nMETRICS: []\nFILTERS: []\nIMPLEMENTATION PLAN: Step 1: Load the data and select the required columns: \'weather_condition\' and \'injuries_total\'.\nStep 2: Convert \'weather_condition\' to a categorical variable if necessary.\nStep 3: Use scipy.stats.pearsonr to compute the correlation coefficient and p-value between \'injuries_total\' and \'weather_condition\'.\nStep 4: Return the correlation coefficient, p-value, and interpretation of the results.\nEDGE CASES: []\nVALIDATION RULES: []\n\nCRITICAL: You MUST follow the IMPLEMENTATION PLAN exactly. Do NOT create a different analysis or make assumptions.\n- If the plan says "ANOVA", you MUST create a spec for ANOVA analysis (NOT correlation, NOT t-test)\n- If the plan says "correlation", you MUST create a spec for correlation analysis (NOT ANOVA)\n- If the plan says "Tukey HSD post-hoc", the spec MUST include post-hoc testing\n- The \'what_it_does\' field MUST describe exactly what\'s in the IMPLEMENTATION PLAN\n\n⚠️ STATISTICAL INJECTION GUARD:\n- DO NOT add statistical tests (ANOVA, t-test, chi-square, correlation) if NOT in IMPLEMENTATION PLAN\n- DO NOT add chi-square unless IMPLEMENTATION PLAN explicitly requests it\n- DO NOT add p-values, significance tests unless IMPLEMENTATION PLAN requests them\n- If operation is "groupby_aggregate" or "pivot", create ONLY descriptive aggregation (NO statistical tests)\n\nCreate a ToolSpec with:\n1. tool_name: A descriptive snake_case name based on operation and columns\n2. description: Clear explanation matching the IMPLEMENTATION PLAN\n3. input_schema: JSON Schema for input parameters (file_path is required)\n4. output_schema: JSON Schema for output structure (Dict with \'result\' and \'metadata\')\n5. parameters: List of parameter definitions [{"name": "file_path", "type": "str", "description": "Path to CSV file", "required": true}]\n6. when_to_use: When this tool should be selected based on the IMPLEMENTATION PLAN\n7. what_it_does: Technical description that EXACTLY follows the IMPLEMENTATION PLAN step-by-step\n8. returns: Description of return value structure\n9. prerequisites: String listing the exact required column names from REQUIRED COLUMNS in comma-separated format\n\nReturn JSON matching ToolSpec structure.\n'}], 'model': 'deepseek-r1:70b', 'temperature': 0.0}}
+2026-03-05 11:10:49 - DEBUG - openai._base_client - request:1001 - Sending HTTP Request: POST http://10.50.128.61:11434/v1/chat/completions
+2026-03-05 11:10:49 - DEBUG - httpcore.connection - trace:47 - connect_tcp.started host='10.50.128.61' port=11434 local_address=None timeout=10 socket_options=None
+2026-03-05 11:10:49 - DEBUG - httpcore.connection - trace:47 - connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x10c9d4690>
+2026-03-05 11:10:49 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.started request=<Request [b'POST']>
+2026-03-05 11:10:49 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.complete
+2026-03-05 11:10:49 - DEBUG - httpcore.http11 - trace:47 - send_request_body.started request=<Request [b'POST']>
+2026-03-05 11:10:49 - DEBUG - httpcore.http11 - trace:47 - send_request_body.complete
+2026-03-05 11:10:49 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.started request=<Request [b'POST']>
+2026-03-05 11:15:10 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json'), (b'Date', b'Thu, 05 Mar 2026 03:15:10 GMT'), (b'Transfer-Encoding', b'chunked')])
+2026-03-05 11:15:10 - INFO - httpx - _send_single_request:1025 - HTTP Request: POST http://10.50.128.61:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-05 11:15:10 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.started request=<Request [b'POST']>
+2026-03-05 11:15:10 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.complete
+2026-03-05 11:15:10 - DEBUG - httpcore.http11 - trace:47 - response_closed.started
+2026-03-05 11:15:10 - DEBUG - httpcore.http11 - trace:47 - response_closed.complete
+2026-03-05 11:15:10 - DEBUG - openai._base_client - request:1039 - HTTP Response: POST http://10.50.128.61:11434/v1/chat/completions "200 OK" Headers({'content-type': 'application/json', 'date': 'Thu, 05 Mar 2026 03:15:10 GMT', 'transfer-encoding': 'chunked'})
+2026-03-05 11:15:10 - DEBUG - openai._base_client - request:1047 - request_id: None
+2026-03-05 11:15:10 - DEBUG - src.spec_generator - spec_generator_node:272 - Generated ToolSpec:
+{
+  "tool_name": "weather_injuries_correlation",
+  "description": "Calculates the Pearson correlation coefficient and p-value between weather_condition and injuries_total.",
+  "version": "1.0.0",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "file_path": {
+        "type": "string",
+        "description": "Path to CSV file containing the data."
+      }
+    },
+    "required": [
+      "file_path"
+    ]
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "result": {
+        "type": "object",
+        "properties": {
+          "correlation_coefficient": {
+            "type": "number",
+            "description": "Pearson correlation coefficient between weather_condition and injuries_total."
+          },
+          "p_value": {
+            "type": "number",
+            "description": "p-value for the Pearson correlation test."
+          },
+          "interpretation": {
+            "type": "string",
+            "description": "Interpretation of the correlation results."
+          }
+        }
+      },
+      "metadata": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Status of the operation (e.g., 'success', 'error')."
+          },
+          "timestamp": {
+            "type": "string",
+            "description": "Timestamp when the operation was performed."
+          }
+        }
+      }
+    }
+  },
+  "parameters": [
+    {
+      "name": "file_path",
+      "type": "str",
+      "description": "Path to CSV file containing the data.",
+      "required": true
+    }
+  ],
+  "return_type": "Dict[str, Any]",
+  "when_to_use": "When analyzing the correlation between weather conditions and total injuries.",
+  "what_it_does": "Step 1: Load the data and select the required columns: 'weather_condition' and 'injuries_total'. Step 2: Convert 'weather_condition' to a categorical variable if necessary. Step 3: Use scipy.stats.pearsonr to compute the correlation coefficient and p-value between 'injuries_total' and 'weather_condition'. Step 4: Return the correlation coefficient, p-value, and interpretation of the results.",
+  "returns": "A dictionary containing the correlation coefficient, p-value, interpretation, and metadata.",
+  "prerequisites": "weather_condition, injuries_total"
+}
+2026-03-05 11:15:10 - DEBUG - src.llm_client - __init__:95 - LLM base_url=http://10.50.128.61:11434/v1  model_type=coding
+2026-03-05 11:15:10 - INFO - src.code_generator - log_section:117 - 
+================================================================================
+2026-03-05 11:15:10 - INFO - src.code_generator - log_section:118 - CODE GENERATION PROMPT
+2026-03-05 11:15:10 - INFO - src.code_generator - log_section:119 - ================================================================================
+
+2026-03-05 11:15:10 - DEBUG - src.code_generator - generate:43 - Generate Python function code for this tool specification.
+
+TOOL NAME: weather_injuries_correlation
+DESCRIPTION: Calculates the Pearson correlation coefficient and p-value between weather_condition and injuries_total.
+PARAMETERS: [
+  {
+    "name": "file_path",
+    "type": "str",
+    "description": "Path to CSV file containing the data.",
+    "required": true
+  }
+]
+REQUIRED COLUMNS: weather_condition, injuries_total
+IMPLEMENTATION PLAN: Step 1: Load the data and select the required columns: 'weather_condition' and 'injuries_total'. Step 2: Convert 'weather_condition' to a categorical variable if necessary. Step 3: Use scipy.stats.pearsonr to compute the correlation coefficient and p-value between 'injuries_total' and 'weather_condition'. Step 4: Return the correlation coefficient, p-value, and interpretation of the results.
+WHAT IT DOES: Step 1: Load the data and select the required columns: 'weather_condition' and 'injuries_total'. Step 2: Convert 'weather_condition' to a categorical v...
+2026-03-05 11:15:10 - DEBUG - openai._base_client - _build_request:486 - Request options: {'method': 'post', 'url': '/chat/completions', 'files': None, 'idempotency_key': 'stainless-python-retry-3e8ae6f5-c554-4d20-824d-f716c771e3fa', 'content': None, 'json_data': {'messages': [{'role': 'user', 'content': 'Generate Python function code for this tool specification.\n\nTOOL NAME: weather_injuries_correlation\nDESCRIPTION: Calculates the Pearson correlation coefficient and p-value between weather_condition and injuries_total.\nPARAMETERS: [\n  {\n    "name": "file_path",\n    "type": "str",\n    "description": "Path to CSV file containing the data.",\n    "required": true\n  }\n]\nREQUIRED COLUMNS: weather_condition, injuries_total\nIMPLEMENTATION PLAN: Step 1: Load the data and select the required columns: \'weather_condition\' and \'injuries_total\'. Step 2: Convert \'weather_condition\' to a categorical variable if necessary. Step 3: Use scipy.stats.pearsonr to compute the correlation coefficient and p-value between \'injuries_total\' and \'weather_condition\'. Step 4: Return the correlation coefficient, p-value, and interpretation of the results.\nWHAT IT DOES: Step 1: Load the data and select the required columns: \'weather_condition\' and \'injuries_total\'. Step 2: Convert \'weather_condition\' to a categorical variable if necessary. Step 3: Use scipy.stats.pearsonr to compute the correlation coefficient and p-value between \'injuries_total\' and \'weather_condition\'. Step 4: Return the correlation coefficient, p-value, and interpretation of the results.\n\nRequirements:\n1. Use pandas for data manipulation\n2. Function signature must be: def weather_injuries_correlation(file_path: str):\n3. Add comprehensive error handling\n4. Return a dictionary with \'result\' and \'metadata\' keys\n5. **CRITICAL**: Follow the IMPLEMENTATION PLAN and WHAT IT DOES exactly - implement the EXACT statistical method specified\n   - If it says "ANOVA", use scipy.stats.f_oneway or similar (NOT pearsonr, NOT correlation)\n   - If it says "correlation", use scipy.stats.pearsonr (NOT ANOVA, NOT t-test)\n   - If it says "Tukey HSD", use statsmodels.stats.multicomp.pairwise_tukeyhsd\n   - DO NOT substitute different statistical methods than specified\n   - **STATISTICAL INJECTION GUARD**: DO NOT add statistical tests if IMPLEMENTATION PLAN does not request them\n     * If operation is groupby_aggregate → Create simple aggregation (mean, sum, count) ONLY\n     * If operation is pivot → Create pivot table ONLY (NO chi-square, NO statistical tests)\n     * DO NOT add chi-square unless explicitly requested\n     * DO NOT add ANOVA unless explicitly requested\n     * DO NOT add p-values unless explicitly requested\n6. **STATISTICAL TEST RESULTS FORMATTING**:\n   - For ANOVA: Return f_statistic, p_value, effect_size (eta_squared)\n   - For independent samples t-test (2-group comparison):\n     * Use scipy.stats.ttest_ind for normal data, scipy.stats.mannwhitneyu for non-normal\n     * Return: t_statistic (or u_statistic), p_value, significant (bool), effect_size (Cohen\'s d),\n               group_means as a dict with group label keys and float values, test_used ("t-test" or "mann-whitney-u")\n     * Compute Cohen\'s d manually — DO NOT import CohenEffectSize or anything from statsmodels.stats.power:\n       cohens_d = (mean1 - mean2) / sqrt(((n1-1)*std1**2 + (n2-1)*std2**2) / (n1+n2-2))\n     * NEVER use f_oneway for a 2-group comparison — that is ANOVA and is WRONG\n   - For Tukey HSD post-hoc: DO NOT use dict(zip(tukey.pvalues, tukey.groupsunique)) - this is WRONG\n     * Extract pairwise comparisons properly:\n       ```python\n       tukey_table = pd.DataFrame(tukey.summary().data[1:], columns=tukey.summary().data[0])\n       tukey_pairs = tukey_table[["group1", "group2", "meandiff", "p-adj", "lower", "upper", "reject"]].to_dict("records")\n       ```\n     * Return as list of comparison dicts with keys: group1, group2, meandiff, p_adj, lower, upper, reject\n   - For correlation: Return correlation_coefficient, p_value\n   - Always handle NaN values: df = df[required_columns].dropna()\n   - Guard for minimum samples: Filter groups with <2 samples, ensure >=2 groups remain\n7. **MATPLOTLIB CONFIGURATION**: If using matplotlib/seaborn for plotting:\n   - Import matplotlib FIRST before any other plotting libraries\n   - Set non-interactive backend: import matplotlib; matplotlib.use(\'Agg\')\n   - Then import pyplot: import matplotlib.pyplot as plt\n   - This prevents tkinter cleanup errors in non-GUI environments\n8. Handle edge cases gracefully\n9. Add docstring with examples\n10. CRITICAL: Use ONLY the columns listed in REQUIRED COLUMNS above - do NOT invent or assume other column names\n11. **PANDAS FREQUENCY ALIASES** — the correct alias depends on the API:\n    - `df.resample(...)`, `pd.Grouper(freq=...)`, `pd.date_range(freq=...)` — use NEW aliases:\n        Month-end → \'ME\',  Quarter-end → \'QE\',  Year-end → \'YE\',  Business month-end → \'BME\'\n    - `dt.to_period(...)`, `pd.Period(...)`, `pd.PeriodIndex(freq=...)` — use OLD aliases (they NEVER changed):\n        Monthly period → \'M\',  Quarterly period → \'Q\',  Yearly period → \'Y\'\n    NEVER mix them: do NOT use \'YE\' with to_period() — that raises ValueError.\n    CORRECT examples:\n        df[\'period\'] = pd.to_datetime(df[\'crash_date\']).dt.to_period(\'Y\')   # yearly period groupby\n        df.resample(\'YE\', on=\'crash_date\').sum()                              # yearly resample\n12. **TIME-SERIES / MONTHLY TREND COLUMNS**:\n    - Columns named \'crash_month\', \'month\', \'crash_year\', etc. are often INTEGERS (e.g. 1–12), NOT datetime strings.\n    - Calling pd.to_datetime() on an integer month number (e.g. 7) produces a Unix-epoch nanosecond offset → all rows collapse to 1970-01. NEVER do this.\n    - To build a proper monthly time series:\n      * If a full date column exists (e.g. \'crash_date\', \'date\', \'timestamp\'), ALWAYS parse that column:\n          df[\'period\'] = pd.to_datetime(df[\'crash_date\']).dt.to_period(\'M\')\n          Then group by \'period\'.\n      * Only use the integer month column for simple groupby aggregation (not resample):\n          df.groupby(\'crash_month\')[\'injuries_total\'].sum()\n    - NEVER call resample() or pd.to_datetime() on an integer 1-12 month column.\n\nInclude:\n- pandas DataFrame input handling\n- Error handling for missing columns, invalid data types\n- Clear variable names\n- Comments for complex operations\n- Return structure: {"result": {}, "metadata": {}}\n\nIMPORTANT: Use {} or dict() to create dictionaries. Do NOT use typing classes like Dict() to instantiate objects.\n\nDO NOT INCLUDE:\n- DO NOT create placeholder decorator functions like "def mcp_tool()" or "def decorator()"\n- DO NOT create mock FastMCP classes or instances\n- DO NOT define TOOL_SPEC dictionaries or constants\n- DO NOT write explanatory text before or after the code\n- DO NOT create any wrapper functions or decorators\n- DO NOT include comments like "# Placeholder for @mcp.tool()"\n- DO NOT add import statements for \'mcp\' module\n- DO NOT write "Here\'s the code:" or any conversational text\n- DO NOT create example usage code or test functions\n- DO NOT define helper decorator functions\n\nONLY OUTPUT:\n- The single function implementation named weather_injuries_correlation\n- Standard library imports (pandas, numpy, scipy, etc.)\n- **CRITICAL IMPORT ORDER**: If using matplotlib, follow this exact pattern:\n  ```python\n  import matplotlib\n  matplotlib.use(\'Agg\')  # Set non-interactive backend BEFORE importing pyplot\n  import matplotlib.pyplot as plt\n  ```\n- The function must start with: def weather_injuries_correlation(file_path: str):\n- No decorators, no extra functions, no explanations\n\nGenerate ONLY the function implementation. Nothing else.\n'}], 'model': 'qwen2.5-coder:32b', 'temperature': 0.2}}
+2026-03-05 11:15:10 - DEBUG - openai._base_client - request:1001 - Sending HTTP Request: POST http://10.50.128.61:11434/v1/chat/completions
+2026-03-05 11:15:10 - DEBUG - httpcore.connection - trace:47 - connect_tcp.started host='10.50.128.61' port=11434 local_address=None timeout=10 socket_options=None
+2026-03-05 11:15:10 - DEBUG - httpcore.connection - trace:47 - connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x10c9d4690>
+2026-03-05 11:15:10 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.started request=<Request [b'POST']>
+2026-03-05 11:15:10 - DEBUG - httpcore.http11 - trace:47 - send_request_headers.complete
+2026-03-05 11:15:10 - DEBUG - httpcore.http11 - trace:47 - send_request_body.started request=<Request [b'POST']>
+2026-03-05 11:15:10 - DEBUG - httpcore.http11 - trace:47 - send_request_body.complete
+2026-03-05 11:15:10 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.started request=<Request [b'POST']>
+2026-03-05 11:15:42 - DEBUG - httpcore.http11 - trace:47 - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json'), (b'Date', b'Thu, 05 Mar 2026 03:15:42 GMT'), (b'Transfer-Encoding', b'chunked')])
+2026-03-05 11:15:42 - INFO - httpx - _send_single_request:1025 - HTTP Request: POST http://10.50.128.61:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-03-05 11:15:42 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.started request=<Request [b'POST']>
+2026-03-05 11:15:42 - DEBUG - httpcore.http11 - trace:47 - receive_response_body.complete
+2026-03-05 11:15:42 - DEBUG - httpcore.http11 - trace:47 - response_closed.started
+2026-03-05 11:15:42 - DEBUG - httpcore.http11 - trace:47 - response_closed.complete
+2026-03-05 11:15:42 - DEBUG - openai._base_client - request:1039 - HTTP Response: POST http://10.50.128.61:11434/v1/chat/completions "200 OK" Headers({'content-type': 'application/json', 'date': 'Thu, 05 Mar 2026 03:15:42 GMT', 'transfer-encoding': 'chunked'})
+2026-03-05 11:15:42 - DEBUG - openai._base_client - request:1047 - request_id: None
+2026-03-05 11:15:42 - INFO - src.code_generator - log_section:117 - 
+================================================================================
+2026-03-05 11:15:42 - INFO - src.code_generator - log_section:118 - RAW LLM RESPONSE
+2026-03-05 11:15:42 - INFO - src.code_generator - log_section:119 - ================================================================================
+
+2026-03-05 11:15:42 - DEBUG - src.code_generator - generate:50 - ```python
+import pandas as pd
+import numpy as np
+from scipy.stats import pearsonr
+
+def weather_injuries_correlation(file_path: str):
+    try:
+        # Load the data
+        df = pd.read_csv(file_path)
+        
+        # Check for required columns
+        required_columns = ['weather_condition', 'injuries_total']
+        if not all(column in df.columns for column in required_columns):
+            raise ValueError(f"CSV file must contain the following columns: {', '.join(required_columns)}")
+        
+        # Select required columns and drop NaN values
+        df = df[required_columns].dropna()
+        
+        # Convert 'weather_condition' to a categorical variable if necessary
+        if not pd.api.types.is_categorical_dtype(df['weather_condition']):
+            df['weather_condition'] = df['weather_condition'].astype('category')
+        
+        # Encode 'weather_condition' to numerical values
+        df['weather_condition_encoded'] = df['weather_condition'].cat.codes
+        
+     ...
+2026-03-05 11:15:42 - INFO - src.code_generator - log_section:117 - 
+================================================================================
+2026-03-05 11:15:42 - INFO - src.code_generator - log_section:118 - EXTRACTED CODE (before wrapping)
+2026-03-05 11:15:42 - INFO - src.code_generator - log_section:119 - ================================================================================
+
+2026-03-05 11:15:42 - DEBUG - src.code_generator - generate:57 - import numpy as np
+from scipy.stats import pearsonr
+
+def weather_injuries_correlation(file_path: str):
+    try:
+        # Load the data
+        df = pd.read_csv(file_path)
+        
+        # Check for required columns
+        required_columns = ['weather_condition', 'injuries_total']
+        if not all(column in df.columns for column in required_columns):
+            raise ValueError(f"CSV file must contain the following columns: {', '.join(required_columns)}")
+        
+        # Select required columns and drop NaN values
+        df = df[required_columns].dropna()
+        
+        # Convert 'weather_condition' to a categorical variable if necessary
+        if not pd.api.types.is_categorical_dtype(df['weather_condition']):
+            df['weather_condition'] = df['weather_condition'].astype('category')
+        
+        # Encode 'weather_condition' to numerical values
+        df['weather_condition_encoded'] = df['weather_condition'].cat.codes
+        
+        # Check if there are at lea...
+2026-03-05 11:15:42 - INFO - src.code_generator - log_section:117 - 
+================================================================================
+2026-03-05 11:15:42 - INFO - src.code_generator - log_section:118 - WRAPPED CODE (before black formatting)
+2026-03-05 11:15:42 - INFO - src.code_generator - log_section:119 - ================================================================================
+
+2026-03-05 11:15:42 - DEBUG - src.code_generator - generate:64 - """Generated MCP tool: weather_injuries_correlation"""
+
+from fastmcp import FastMCP
+import pandas as pd
+import time
+import numpy as np
+from scipy.stats import pearsonr
+
+mcp = FastMCP("data_analysis_tools")
+
+
+@mcp.tool()
+def weather_injuries_correlation(file_path: str):
+    try:
+        # Load the data
+        df = pd.read_csv(file_path)
+        
+        # Check for required columns
+        required_columns = ['weather_condition', 'injuries_total']
+        if not all(column in df.columns for column in required_columns):
+            raise ValueError(f"CSV file must contain the following columns: {', '.join(required_columns)}")
+        
+        # Select required columns and drop NaN values
+        df = df[required_columns].dropna()
+        
+        # Convert 'weather_condition' to a categorical variable if necessary
+        if not pd.api.types.is_categorical_dtype(df['weather_condition']):
+            df['weather_condition'] = df['weather_condition'].astype('category')
+        
+        # ...
+2026-03-05 11:15:42 - INFO - src.code_generator - log_section:117 - 
+================================================================================
+2026-03-05 11:15:42 - INFO - src.code_generator - log_section:118 - FINAL FORMATTED CODE
+2026-03-05 11:15:42 - INFO - src.code_generator - log_section:119 - ================================================================================
+
+2026-03-05 11:15:42 - DEBUG - src.code_generator - generate:72 - """Generated MCP tool: weather_injuries_correlation"""
+
+from fastmcp import FastMCP
+import pandas as pd
+import time
+import numpy as np
+from scipy.stats import pearsonr
+
+mcp = FastMCP("data_analysis_tools")
+
+
+@mcp.tool()
+def weather_injuries_correlation(file_path: str):
+    try:
+        # Load the data
+        df = pd.read_csv(file_path)
+
+        # Check for required columns
+        required_columns = ["weather_condition", "injuries_total"]
+        if not all(column in df.columns for column in required_columns):
+            raise ValueError(
+                f"CSV file must contain the following columns: {', '.join(required_columns)}"
+            )
+
+        # Select required columns and drop NaN values
+        df = df[required_columns].dropna()
+
+        # Convert 'weather_condition' to a categorical variable if necessary
+        if not pd.api.types.is_categorical_dtype(df["weather_condition"]):
+            df["weather_condition"] = df["weather_condition"].astype("category")
+
+        # Encode 'weather_condition' to numerical values
+        df["weather_condition_encoded"] = df["weather_condition"].cat.codes
+
+        # Check if there are at least 2 unique weather conditions
+        if df["weather_condition_encoded"].nunique() < 2:
+            raise ValueError(
+                "There must be at least 2 unique weather conditions to calculate correlation."
+            )
+
+        # Calculate Pearson correlation coefficient and p-value
+        correlation_coefficient, p_value = pearsonr(
+            df["weather_condition_encoded"], df["injuries_total"]
+        )
+
+        # Interpretation of the results
+        interpretation = (
+            "No correlation"
+            if correlation_coefficient == 0
+            else (
+                "Positive correlation"
+                if correlation_coefficient > 0
+                else "Negative correlation"
+            )
+        )
+
+        # Return the result and metadata
+        return {
+            "result": {
+                "correlation_coefficient": correlation_coefficient,
+                "p_value": p_value,
+                "interpretation": interpretation,
+            },
+            "metadata": {"file_path": file_path, "num_samples": len(df)},
+        }
+
+    except Exception as e:
+        return {"result": None, "metadata": {"error": str(e)}}
+
+2026-03-05 11:15:42 - INFO - src.code_generator - code_generator_node:620 - 📝 Generated code saved to draft: tools/draft/weather_injuries_correlation_20260305_111542.py
+2026-03-05 11:15:45 - INFO - src.validator - log_section:117 - 
+================================================================================
+2026-03-05 11:15:45 - INFO - src.validator - log_section:118 - VALIDATION RESULTS
+2026-03-05 11:15:45 - INFO - src.validator - log_section:119 - ================================================================================
+
+2026-03-05 11:15:45 - INFO - src.validator - validator_node:321 - Schema OK: True
+2026-03-05 11:15:45 - INFO - src.validator - validator_node:322 - Tests OK: True
+2026-03-05 11:15:45 - INFO - src.validator - validator_node:323 - Sandbox OK: True
+2026-03-05 11:15:46 - DEBUG - mcp.server.lowlevel.server - __init__:162 - Initializing server 'data_analysis_tools'
+2026-03-05 11:15:46 - DEBUG - mcp.server.lowlevel.server - decorator:439 - Registering handler for ListToolsRequest
+2026-03-05 11:15:46 - DEBUG - mcp.server.lowlevel.server - decorator:301 - Registering handler for ListResourcesRequest
+2026-03-05 11:15:46 - DEBUG - mcp.server.lowlevel.server - decorator:263 - Registering handler for PromptListRequest
+2026-03-05 11:15:46 - DEBUG - mcp.server.lowlevel.server - decorator:519 - Registering handler for CallToolRequest
+2026-03-05 11:15:46 - DEBUG - src.executor - _load_function:136 - Module contents: ['FastMCP', 'mcp', 'np', 'pd', 'pearsonr', 'time', 'weather_injuries_correlation']
+2026-03-05 11:15:46 - DEBUG - src.executor - _load_function:171 - Checking 'weather_injuries_correlation': type=<class 'function'>, callable=True, is_function=True
+2026-03-05 11:15:46 - DEBUG - src.executor - _load_function:173 - Found regular function: weather_injuries_correlation
+2026-03-05 11:15:46 - DEBUG - src.executor - execute:68 - Result type: <class 'dict'>
+2026-03-05 11:15:46 - DEBUG - src.executor - execute:69 - Result value: {'result': {'correlation_coefficient': np.float64(-0.03190660647091645), 'p_value': np.float64(2.771877213702016e-48), 'interpretation': 'Negative correlation'}, 'metadata': {'file_path': '/Users/swetapattnaik/Desktop/ST_ENGG_work/code_gen_run_client/MCP_Tool_Code_Interpreter_Generator/reference_files/sample_planner_output/traffic_accidents.csv', 'num_samples': 209306}}
+2026-03-05 11:15:46 - INFO - src.executor - executor_node:313 - 💾 Execution results saved to: output/draft/weather_injuries_correlation_20260305_111542_output.json
+2026-03-05 11:15:46 - INFO - src.promoter - promote:85 - 💾 Moved output file to: output/active/weather_injuries_correlation_20260305_111542_output.json
+2026-03-05 11:15:46 - INFO - src.promoter - log_section:117 - 
+================================================================================
+2026-03-05 11:15:46 - INFO - src.promoter - log_section:118 - 🎉 TOOL PROMOTED TO ACTIVE REGISTRY
+2026-03-05 11:15:46 - INFO - src.promoter - log_section:119 - ================================================================================
+
+2026-03-05 11:15:46 - INFO - src.promoter - promoter_node:196 - Tool Name: weather_injuries_correlation_20260305_111542
+2026-03-05 11:15:46 - INFO - src.promoter - promoter_node:198 - Draft Path: tools/draft/weather_injuries_correlation_20260305_111542.py
+2026-03-05 11:15:46 - INFO - src.promoter - promoter_node:199 - Active Path: tools/active/weather_injuries_correlation_20260305_111542.py
+2026-03-05 11:15:46 - INFO - src.promoter - promoter_node:201 - Output Path: output/active/weather_injuries_correlation_20260305_111542_output.json
+2026-03-05 11:15:46 - INFO - src.promoter - promoter_node:202 - Registry: tools/registry.json
+2026-03-05 11:15:46 - INFO - src.promoter - promoter_node:203 - ✅ Tool successfully executed and promoted to active

@@ -1,0 +1,90 @@
+{
+  "tool_name": "injury_summary_statistics_20260305_183155",
+  "user_query": "Compare injury distributions across the dataset.",
+  "execution_timestamp": "2026-03-05T18:31:59.351337",
+  "data_path": "/Users/swetapattnaik/Desktop/ST_ENGG_work/code_gen_run_client/MCP_Tool_Code_Interpreter_Generator/reference_files/sample_planner_output/traffic_accidents.csv",
+  "result": {
+    "result": {
+      "summary_statistics": {
+        "count": {
+          "injuries_total": 209306.0,
+          "injuries_fatal": 209306.0,
+          "injuries_incapacitating": 209306.0,
+          "injuries_non_incapacitating": 209306.0,
+          "injuries_reported_not_evident": 209306.0,
+          "injuries_no_indication": 209306.0
+        },
+        "mean": {
+          "injuries_total": 0.38271717007634753,
+          "injuries_fatal": 0.001858522928153039,
+          "injuries_incapacitating": 0.03810210887408866,
+          "injuries_non_incapacitating": 0.22124067155265498,
+          "injuries_reported_not_evident": 0.12151586672145089,
+          "injuries_no_indication": 2.2440016053051512
+        },
+        "std": {
+          "injuries_total": 0.7997199800505953,
+          "injuries_fatal": 0.04750164090768463,
+          "injuries_incapacitating": 0.2339635630072055,
+          "injuries_non_incapacitating": 0.6149596972692436,
+          "injuries_reported_not_evident": 0.45086501269532775,
+          "injuries_no_indication": 1.2411750428697175
+        },
+        "min": {
+          "injuries_total": 0.0,
+          "injuries_fatal": 0.0,
+          "injuries_incapacitating": 0.0,
+          "injuries_non_incapacitating": 0.0,
+          "injuries_reported_not_evident": 0.0,
+          "injuries_no_indication": 0.0
+        },
+        "25%": {
+          "injuries_total": 0.0,
+          "injuries_fatal": 0.0,
+          "injuries_incapacitating": 0.0,
+          "injuries_non_incapacitating": 0.0,
+          "injuries_reported_not_evident": 0.0,
+          "injuries_no_indication": 2.0
+        },
+        "50%": {
+          "injuries_total": 0.0,
+          "injuries_fatal": 0.0,
+          "injuries_incapacitating": 0.0,
+          "injuries_non_incapacitating": 0.0,
+          "injuries_reported_not_evident": 0.0,
+          "injuries_no_indication": 2.0
+        },
+        "75%": {
+          "injuries_total": 1.0,
+          "injuries_fatal": 0.0,
+          "injuries_incapacitating": 0.0,
+          "injuries_non_incapacitating": 0.0,
+          "injuries_reported_not_evident": 0.0,
+          "injuries_no_indication": 3.0
+        },
+        "max": {
+          "injuries_total": 21.0,
+          "injuries_fatal": 3.0,
+          "injuries_incapacitating": 7.0,
+          "injuries_non_incapacitating": 21.0,
+          "injuries_reported_not_evident": 15.0,
+          "injuries_no_indication": 49.0
+        }
+      }
+    },
+    "metadata": {
+      "file_path": "/Users/swetapattnaik/Desktop/ST_ENGG_work/code_gen_run_client/MCP_Tool_Code_Interpreter_Generator/reference_files/sample_planner_output/traffic_accidents.csv",
+      "columns_used": [
+        "injuries_total",
+        "injuries_fatal",
+        "injuries_incapacitating",
+        "injuries_non_incapacitating",
+        "injuries_reported_not_evident",
+        "injuries_no_indication"
+      ]
+    }
+  },
+  "summary_markdown": null,
+  "execution_time_ms": 1664.1128063201904,
+  "error": null
+}
