@@ -82,7 +82,7 @@ class ToolPromoter:
                 output_active_dir.mkdir(parents=True, exist_ok=True)
                 output_active_path = output_active_dir / draft_output_path.name
                 shutil.copy2(draft_output_path, output_active_path)
-                logger.info(f"💾 Moved output file to: {output_active_path}")
+                logger.info(f"[OK] Moved output file to: {output_active_path}")
         
         # Update registry with tool path and user query
         self._update_registry(final_name, spec, timestamp, str(active_path), str(output_active_path) if output_active_path else None, state)
@@ -183,7 +183,8 @@ def promoter_node(state: ToolGeneratorState) -> ToolGeneratorState:
     Returns:
         Updated state with promoted_tool containing deployment details
     """
-    tools_dir = Path("tools")
+    import os as _os
+    tools_dir = Path(_os.environ.get("TOOLS_DIR", "tools"))
     promoter = ToolPromoter(tools_dir)
     
     promoted = promoter.promote(
@@ -200,7 +201,7 @@ def promoter_node(state: ToolGeneratorState) -> ToolGeneratorState:
     if promoted.get('output_path'):
         logger.info(f"Output Path: {promoted['output_path']}")
     logger.info(f"Registry: {promoted['registry_path']}")
-    logger.info("✅ Tool successfully executed and promoted to active")
+    logger.info("[OK] Tool successfully executed and promoted to active")
     
     return {
         **state,

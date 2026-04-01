@@ -1,4 +1,4 @@
-Generate Python function code for this tool specification.
+﻿Generate Python function code for this tool specification.
 
 TOOL NAME: {tool_name}
 DESCRIPTION: {description}
@@ -7,69 +7,10 @@ REQUIRED COLUMNS: {required_columns}
 IMPLEMENTATION PLAN: {implementation_plan}
 WHAT IT DOES: {what_it_does}
 
-Requirements:
-1. Use pandas for data manipulation
-2. Function signature must be: def {tool_name}(file_path: str):
-3. Add comprehensive error handling
-4. Return a dictionary with 'result' and 'metadata' keys
-5. **CRITICAL**: Follow the IMPLEMENTATION PLAN and WHAT IT DOES exactly - implement the EXACT statistical method specified
-   - If it says "ANOVA", use scipy.stats.f_oneway or similar (NOT pearsonr, NOT correlation)
-   - If it says "correlation", use scipy.stats.pearsonr (NOT ANOVA, NOT t-test)
-   - If it says "Tukey HSD", use statsmodels.stats.multicomp.pairwise_tukeyhsd
-   - DO NOT substitute different statistical methods than specified
-   - **STATISTICAL INJECTION GUARD**: DO NOT add statistical tests if IMPLEMENTATION PLAN does not request them
-     * If operation is groupby_aggregate → Create simple aggregation (mean, sum, count) ONLY
-     * If operation is pivot → Create pivot table ONLY (NO chi-square, NO statistical tests)
-     * DO NOT add chi-square unless explicitly requested
-     * DO NOT add ANOVA unless explicitly requested
-     * DO NOT add p-values unless explicitly requested
-6. **STATISTICAL TEST RESULTS FORMATTING**:
-   - For ANOVA: Return f_statistic, p_value, effect_size (eta_squared)
-   - For independent samples t-test (2-group comparison):
-     * Use scipy.stats.ttest_ind for normal data, scipy.stats.mannwhitneyu for non-normal
-     * Return: t_statistic (or u_statistic), p_value, significant (bool), effect_size (Cohen's d),
-               group_means as a dict with group label keys and float values, test_used ("t-test" or "mann-whitney-u")
-     * Compute Cohen's d manually — DO NOT import CohenEffectSize or anything from statsmodels.stats.power:
-       cohens_d = (mean1 - mean2) / sqrt(((n1-1)*std1**2 + (n2-1)*std2**2) / (n1+n2-2))
-     * NEVER use f_oneway for a 2-group comparison — that is ANOVA and is WRONG
-   - For Tukey HSD post-hoc: DO NOT use dict(zip(tukey.pvalues, tukey.groupsunique)) - this is WRONG
-     * Extract pairwise comparisons properly:
-       ```python
-       tukey_table = pd.DataFrame(tukey.summary().data[1:], columns=tukey.summary().data[0])
-       tukey_pairs = tukey_table[["group1", "group2", "meandiff", "p-adj", "lower", "upper", "reject"]].to_dict("records")
-       ```
-     * Return as list of comparison dicts with keys: group1, group2, meandiff, p_adj, lower, upper, reject
-   - For correlation: Return correlation_coefficient, p_value
-   - Always handle NaN values: df = df[required_columns].dropna()
-   - Guard for minimum samples: Filter groups with <2 samples, ensure >=2 groups remain
-7. **MATPLOTLIB CONFIGURATION**: If using matplotlib/seaborn for plotting:
-   - Import matplotlib FIRST before any other plotting libraries
-   - Set non-interactive backend: import matplotlib; matplotlib.use('Agg')
-   - Then import pyplot: import matplotlib.pyplot as plt
-   - This prevents tkinter cleanup errors in non-GUI environments
-8. Handle edge cases gracefully
-9. Add docstring with examples
-10. CRITICAL: Use ONLY the columns listed in REQUIRED COLUMNS above - do NOT invent or assume other column names
-11. **PANDAS FREQUENCY ALIASES** — the correct alias depends on the API:
-    - `df.resample(...)`, `pd.Grouper(freq=...)`, `pd.date_range(freq=...)` — use NEW aliases:
-        Month-end → 'ME',  Quarter-end → 'QE',  Year-end → 'YE',  Business month-end → 'BME'
-    - `dt.to_period(...)`, `pd.Period(...)`, `pd.PeriodIndex(freq=...)` — use OLD aliases (they NEVER changed):
-        Monthly period → 'M',  Quarterly period → 'Q',  Yearly period → 'Y'
-    NEVER mix them: do NOT use 'YE' with to_period() — that raises ValueError.
-    CORRECT examples:
-        df['period'] = pd.to_datetime(df['crash_date']).dt.to_period('Y')   # yearly period groupby
-        df.resample('YE', on='crash_date').sum()                              # yearly resample
-12. **TIME-SERIES / MONTHLY TREND COLUMNS**:
-    - Columns named 'crash_month', 'month', 'crash_year', etc. are often INTEGERS (e.g. 1–12), NOT datetime strings.
-    - Calling pd.to_datetime() on an integer month number (e.g. 7) produces a Unix-epoch nanosecond offset → all rows collapse to 1970-01. NEVER do this.
-    - To build a proper monthly time series:
-      * If a full date column exists (e.g. 'crash_date', 'date', 'timestamp'), ALWAYS parse that column:
-          df['period'] = pd.to_datetime(df['crash_date']).dt.to_period('M')
-          Then group by 'period'.
-      * Only use the integer month column for simple groupby aggregation (not resample):
-          df.groupby('crash_month')['injuries_total'].sum()
-    - NEVER call resample() or pd.to_datetime() on an integer 1-12 month column.
+FUNCTION SIGNATURE (exact -- do not rename):
+  def {tool_name}(file_path: str):
 
+<<<<<<< HEAD
 13. **VISUALIZATION / PLOT GENERATION**:
     - If the user query contains visual keywords such as:
       "trend", "plot", "chart", "graph", "visualize", "show", "display", "distribution",
@@ -100,31 +41,36 @@ Include:
 - Clear variable names
 - Comments for complex operations
 - Return structure: {{"result": {{}}, "metadata": {{}}}}
+=======
+TASK RULES:
+>>>>>>> a3e6f2ada792d873af7b1371f811ee1618e7e610
 
-IMPORTANT: Use {{}} or dict() to create dictionaries. Do NOT use typing classes like Dict() to instantiate objects.
+1. FOLLOW IMPLEMENTATION PLAN EXACTLY -- implement the stated method, never a substitute.
+   - ANOVA              -> scipy.stats.f_oneway
+   - Correlation        -> scipy.stats.pearsonr or spearmanr
+   - Tukey HSD          -> statsmodels.stats.multicomp.pairwise_tukeyhsd
+   - t-test (2-group)   -> ttest_ind / mannwhitneyu  (NEVER f_oneway for 2-group)
+   - Causal discovery   -> see Algorithm Fidelity rules in system prompt
 
-DO NOT INCLUDE:
-- DO NOT create placeholder decorator functions like "def mcp_tool()" or "def decorator()"
-- DO NOT create mock FastMCP classes or instances
-- DO NOT define TOOL_SPEC dictionaries or constants
-- DO NOT write explanatory text before or after the code
-- DO NOT create any wrapper functions or decorators
-- DO NOT include comments like "# Placeholder for @mcp.tool()"
-- DO NOT add import statements for 'mcp' module
-- DO NOT write "Here's the code:" or any conversational text
-- DO NOT create example usage code or test functions
-- DO NOT define helper decorator functions
+2. STATISTICAL INJECTION GUARD:
+   DO NOT add statistical tests if IMPLEMENTATION PLAN does not request them.
+   - groupby_aggregate / pivot  ->  descriptive aggregation ONLY (no chi-square, no ANOVA, no p-values)
+   - Chi-square ONLY if IMPLEMENTATION PLAN explicitly says chi-square / independence test.
 
-ONLY OUTPUT:
-- The single function implementation named {tool_name}
-- Standard library imports (pandas, numpy, scipy, etc.)
-- **CRITICAL IMPORT ORDER**: If using matplotlib, follow this exact pattern:
-  ```python
-  import matplotlib
-  matplotlib.use('Agg')  # Set non-interactive backend BEFORE importing pyplot
-  import matplotlib.pyplot as plt
-  ```
-- The function must start with: def {tool_name}(file_path: str):
-- No decorators, no extra functions, no explanations
+3. COMPARE GUARD:
+   If IMPLEMENTATION PLAN says "compare between groups" or "descriptive comparison" WITHOUT a named test:
+   - Output descriptive stats per group: count, mean, median, std, min, max, p25, p75
+   - Also compute absolute diff and % diff between group means
+   - DO NOT add any statistical test.
 
-Generate ONLY the function implementation. Nothing else.
+4. Use ONLY columns listed in REQUIRED COLUMNS above.
+   All shared rules (statistical schemas, matplotlib, pandas aliases, algorithm fidelity,
+   column discipline, return structure) are in the system prompt -- follow them.
+
+DO NOT OUTPUT:
+- Placeholder decorators (def mcp_tool(), @mcp.tool())
+- Mock FastMCP classes or instances
+- TOOL_SPEC dicts or constants
+- Explanatory text, "Here is the code:", markdown fences
+- Example usage or test functions
+- Import statements for the 'mcp' module

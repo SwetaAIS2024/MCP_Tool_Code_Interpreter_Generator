@@ -13,6 +13,17 @@ from src.logger_config import get_logger, log_section, log_success, log_error
 
 logger = get_logger(__name__)
 
+# Force the non-interactive Agg backend before any generated code can import
+# matplotlib with the default Tk backend.  Generated plotting tools run in a
+# ThreadPoolExecutor thread; if Tk is initialised in the main thread first,
+# tkinter cleanup in the worker thread causes "Tcl_AsyncDelete: async handler
+# deleted by the wrong thread" and crashes the server process.
+try:
+    import matplotlib
+    matplotlib.use("Agg")
+except Exception:
+    pass
+
 
 # ============================================================================
 # Tool Executor
@@ -42,15 +53,13 @@ class ToolExecutor:
         start = time.time()
         
         try:
-            # Write code to draft folder (where all generated tools are stored)
-            draft_dir = Path("tools/draft")
-            draft_dir.mkdir(parents=True, exist_ok=True)
-            
+            # Write code to the system temp directory (NOT the project folder)
+            # so that langgraph dev / watchfiles does not detect the file and
+            # trigger a server reload mid-execution.
             with tempfile.NamedTemporaryFile(
                 mode='w',
                 suffix='.py',
                 delete=False,
-                dir=str(draft_dir)
             ) as f:
                 code_path = Path(f.name)
                 f.write(code)
@@ -134,40 +143,48 @@ class ToolExecutor:
         # DEBUG: Print what's in the module
         all_attrs = [name for name in dir(module) if not name.startswith('_')]
         logger.debug(f"Module contents: {all_attrs}")
-        
-        # Find the actual function - look for user-defined functions
+
         import types
-        for attr_name in dir(module):
-            if not attr_name.startswith('_') and attr_name not in ['mcp', 'FastMCP', 'pd', 'pandas', 'time', 'sns', 'plt', 'seaborn', 'matplotlib', 'chi2_contingency']:
-                attr = getattr(module, attr_name)
-                logger.debug(f"Checking '{attr_name}': type={type(attr)}, callable={callable(attr)}, is_function={isinstance(attr, types.FunctionType)}")
-                
-                # Check if it's a FunctionTool from FastMCP (decorated function)
-                if type(attr).__name__ == 'FunctionTool':
-                    logger.debug("Found FunctionTool, extracting underlying function...")
-                    # The FunctionTool has the original function stored
-                    # Try common attribute names for the wrapped function
-                    for key in ['func', 'fn', '_func', 'function', '_fn', '__wrapped__']:
-                        if hasattr(attr, key):
-                            func = getattr(attr, key)
-                            if callable(func):
-                                logger.debug(f"Successfully extracted function from FunctionTool via '{key}'")
-                                return func
-                    # If we can't extract, try calling the FunctionTool directly
-                    # but this might not work as expected
-                    logger.warning("Could not extract function from FunctionTool, trying direct call")
-                    return attr
-                
-                # Check if it's a regular function
-                if isinstance(attr, types.FunctionType):
-                    logger.debug(f"Found regular function: {attr_name}")
-                    return attr
-                
-                # Check if it's any other callable (but not a class)
-                if callable(attr) and not isinstance(attr, type):
-                    logger.debug(f"Found callable: {attr_name}")
-                    return attr
-        
+
+        EXCLUDED = frozenset([
+            'mcp', 'FastMCP', 'pd', 'pandas', 'np', 'numpy',
+            'time', 'sns', 'plt', 'seaborn', 'matplotlib',
+            'chi2_contingency', 'pearsonr', 'spearmanr', 'kendalltau',
+            'json', 'os', 'sys', 'Path', 'datetime', 'defaultdict',
+            'Counter', 'itertools', 'functools', 'collections',
+        ])
+
+        candidate_attrs = [
+            name for name in dir(module)
+            if not name.startswith('_') and name not in EXCLUDED
+        ]
+
+        # Pass 1: prefer @mcp.tool()-decorated functions (FunctionTool objects)
+        # These are always the actual generated tool, regardless of alphabetical order.
+        for attr_name in candidate_attrs:
+            attr = getattr(module, attr_name)
+            if type(attr).__name__ == 'FunctionTool':
+                logger.debug(f"Found FunctionTool '{attr_name}', extracting underlying function...")
+                for key in ['func', 'fn', '_func', 'function', '_fn', '__wrapped__']:
+                    if hasattr(attr, key):
+                        func = getattr(attr, key)
+                        if callable(func):
+                            logger.debug(f"Extracted function from FunctionTool via '{key}'")
+                            return func
+                logger.warning("Could not extract function from FunctionTool, trying direct call")
+                return attr
+
+        # Pass 2: fall back to the first plain user-defined function found
+        for attr_name in candidate_attrs:
+            attr = getattr(module, attr_name)
+            logger.debug(f"Checking '{attr_name}': type={type(attr)}, callable={callable(attr)}, is_function={isinstance(attr, types.FunctionType)}")
+            if isinstance(attr, types.FunctionType):
+                logger.debug(f"Found regular function: {attr_name}")
+                return attr
+            if callable(attr) and not isinstance(attr, type):
+                logger.debug(f"Found callable: {attr_name}")
+                return attr
+
         raise ValueError("No executable function found in module")
     
     def _execute_with_timeout(self, func: Callable, kwargs: Dict[str, Any], 
@@ -356,7 +373,8 @@ def executor_node(state: ToolGeneratorState) -> ToolGeneratorState:
     result_dict = _convert_numpy_types(result_dict)
     
     # Save execution results to output/draft
-    output_draft_dir = Path("output/draft")
+    import os as _os_exec
+    output_draft_dir = Path(_os_exec.environ.get("OUTPUT_DRAFT_DIR", "output/draft"))
     output_draft_dir.mkdir(parents=True, exist_ok=True)
     
     # Extract timestamp from draft_path or generate new one
@@ -374,7 +392,7 @@ def executor_node(state: ToolGeneratorState) -> ToolGeneratorState:
     # Save as JSON with timestamp
     output_filename = f"{tool_name}_{timestamp}_output.json"
     output_path = output_draft_dir / output_filename
-    
+
     # Extract and save plot if present in result — BEFORE writing JSON
     plot_path = _save_plot_from_result(result_dict, tool_name, timestamp)
     if plot_path:
@@ -451,13 +469,13 @@ def route_after_execution(state: ToolGeneratorState) -> str:
 
     # There is a real error with a message — attempt repair if budget allows
     if repair_attempts < max_repair_attempts:
-        logger.warning(f"⚠️  Execution error detected (attempt {repair_attempts + 1}/{max_repair_attempts})")
+        logger.warning(f"[WARN] Execution error detected (attempt {repair_attempts + 1}/{max_repair_attempts})")
         logger.error(f"Error: {error_msg}")
-        logger.info("🔧 Attempting automatic code repair...")
+        logger.info("[REPAIR] Attempting automatic code repair...")
         return "repair_node"
 
     # Budget exhausted
-    logger.error(f"❌ Maximum repair attempts ({max_repair_attempts}) exceeded")
+    logger.error(f"[ERROR] Maximum repair attempts ({max_repair_attempts}) exceeded")
     logger.error(f"Final error: {error_msg}")
-    logger.info("⚠️  Tool generation failed - ending pipeline")
+    logger.info("[WARN] Tool generation failed - ending pipeline")
     return END

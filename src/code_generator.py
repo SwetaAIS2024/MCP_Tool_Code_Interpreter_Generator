@@ -10,6 +10,27 @@ from src.logger_config import get_logger, log_section
 logger = get_logger(__name__)
 
 
+def _find_return_excluding_nested_defs(func_node) -> bool:
+    """Return True if func_node contains a Return statement outside nested defs."""
+    import ast as _ast
+
+    def _search(stmts):
+        for stmt in stmts:
+            # Don't descend into nested functions or classes
+            if isinstance(stmt, (_ast.FunctionDef, _ast.AsyncFunctionDef, _ast.ClassDef)):
+                continue
+            if isinstance(stmt, _ast.Return) and stmt.value is not None:
+                return True
+            # Recurse into compound statements (if/for/while/try/with)
+            for child_attr in ("body", "orelse", "handlers", "finalbody"):
+                child = getattr(stmt, child_attr, [])
+                if child and _search(child):
+                    return True
+        return False
+
+    return _search(func_node.body)
+
+
 # ============================================================================
 # Code Generator
 # ============================================================================
@@ -25,6 +46,7 @@ class CodeGenerator:
         """
         self.llm = llm_client
         self.prompt_template_path = Path("config/prompts/code_generation.txt")
+        self.shared_rules_path = Path("config/prompts/shared_rules.txt")
     
     def generate(self, spec: ToolSpec) -> str:
         """Generate complete Python function code.
@@ -38,38 +60,73 @@ class CodeGenerator:
         # Build prompt for code generation
         prompt = self._build_prompt(spec)
         
-        # Debug: Log prompt
+        # Log prompt
         log_section(logger, "CODE GENERATION PROMPT")
-        logger.debug(prompt[:1000] + "..." if len(prompt) > 1000 else prompt)
+        logger.info(prompt[:1000] + "..." if len(prompt) > 1000 else prompt)
         
         # Generate code with low temperature for consistency
-        raw_code = self.llm.generate(prompt, temperature=0.2)
+        _sys_msg = None
+        if self.shared_rules_path.exists():
+            with open(self.shared_rules_path, encoding='utf-8') as _f:
+                _sys_msg = _f.read()
+        raw_code = self.llm.generate(prompt, temperature=0.2, system_message=_sys_msg)
         
-        # Debug: Log raw response
+        # Log raw response
         log_section(logger, "RAW LLM RESPONSE")
-        logger.debug(raw_code[:1000] + "..." if len(raw_code) > 1000 else raw_code)
+        logger.info(raw_code[:2000] + "..." if len(raw_code) > 2000 else raw_code)
         
         # Extract code from markdown blocks or conversational text
         code = self._extract_code(raw_code)
+
+        # Truncation check — two signals, either is enough to flag:
+        # 1. The last top-level statement is a nested `def` (LLM stopped mid-function)
+        # 2. No return statement exists anywhere outside nested defs
+        import ast as _ast
+        _truncated = False
+        try:
+            _tree = _ast.parse(code)
+            for _node in _ast.walk(_tree):
+                if isinstance(_node, _ast.FunctionDef) and _node.name == spec.tool_name:
+                    # Signal 1: last statement is a nested def
+                    if _node.body and isinstance(
+                        _node.body[-1], (_ast.FunctionDef, _ast.AsyncFunctionDef)
+                    ):
+                        _truncated = True
+                    # Signal 2: no return (outside nested defs) at all
+                    elif not _find_return_excluding_nested_defs(_node):
+                        _truncated = True
+                    break
+        except SyntaxError as _syn:
+            _last_line = code.strip().splitlines()[-1] if code.strip() else ""
+            if _syn.lineno and _syn.lineno >= len(code.strip().splitlines()) - 2:
+                _truncated = True
+        if _truncated:
+            logger.warning("[WARN] Generated code appears TRUNCATED (no return statement). "
+                           "Increase num_predict in config.yaml (currently %d). "
+                           "Will attempt repair.", self.llm.num_predict)
+            # Append a raise statement INSIDE the function body (4-space indent) so
+            # the sandbox execution fails with a clear error message → triggers repair.
+            # A plain comment is silently ignored; only a runtime exception forces repair.
+            code = code + '\n    raise RuntimeError("TRUNCATED_OUTPUT: function was not fully generated - missing algorithm body and return statement")'
         
-        # Debug: Log extracted code
+        # Log extracted code
         log_section(logger, "EXTRACTED CODE (before wrapping)")
-        logger.debug(code[:1000] + "..." if len(code) > 1000 else code)
+        logger.info(code[:2000] + "..." if len(code) > 2000 else code)
         
         # Wrap with MCP decorator and imports
         full_code = self._wrap_with_mcp(code, spec.tool_name, spec.parameters)
         
-        # Debug: Log wrapped code
+        # Log wrapped code
         log_section(logger, "WRAPPED CODE (before black formatting)")
-        logger.debug(full_code[:1000] + "..." if len(full_code) > 1000 else full_code)
+        logger.info(full_code[:2000] + "..." if len(full_code) > 2000 else full_code)
         
         # Format with black
         try:
             formatted_code = black.format_str(full_code, mode=black.FileMode())
             
-            # Debug: Log final formatted code
+            # Log final formatted code
             log_section(logger, "FINAL FORMATTED CODE")
-            logger.debug(formatted_code)
+            logger.info(formatted_code[:2000] + "..." if len(formatted_code) > 2000 else formatted_code)
             
             return formatted_code
         except Exception as e:
@@ -162,7 +219,44 @@ class CodeGenerator:
             if custom_imports:
                 result.extend(custom_imports)
                 result.append('')  # Blank line after imports
-            result.extend(function_lines)
+
+            # Normalise the def line: collapse multi-line signatures and strip
+            # any extra kwargs the LLM added beyond `file_path: str`.
+            # Expected: def tool_name(file_path: str):
+            fn_block = '\n'.join(function_lines)
+            import re as _re
+            # Join continuation lines of the signature (lines inside the parens)
+            fn_block = _re.sub(
+                r'(def \w+\s*\()([^)]*)\)',
+                lambda m: m.group(1) + _re.sub(r'\s+', ' ', m.group(2).replace('\n', ' ')).strip() + ')',
+                fn_block,
+                count=1,
+                flags=_re.DOTALL
+            )
+            # Capture extra param defaults BEFORE stripping so we can inline them
+            # in the body (prevents NameError on stripped params like drop_nan=True)
+            extra_params = {}
+            _sig_match = _re.search(
+                r'def \w+\s*\(\s*file_path\s*(?::\s*str)?\s*,\s*([^)]+)\)', fn_block
+            )
+            if _sig_match:
+                for _pm in _re.finditer(
+                    r'(\w+)\s*(?::[^,=]+)?\s*=\s*([^\s,)]+)', _sig_match.group(1)
+                ):
+                    extra_params[_pm.group(1)] = _pm.group(2)
+            # Strip extra kwargs — keep only file_path parameter
+            fn_block = _re.sub(
+                r'(def \w+\s*\(\s*file_path\s*(?::\s*str)?)\s*,\s*[^)]+(\)\s*:)',
+                r'\1\2',
+                fn_block,
+                count=1
+            )
+            # Inline the stripped param defaults everywhere in the body so the
+            # function body never references an undefined name.
+            # e.g. `if drop_nan:` → `if True:`  / `if standardization:` → `if True:`
+            for _pname, _pdefault in extra_params.items():
+                fn_block = _re.sub(r'\b' + _re.escape(_pname) + r'\b', _pdefault, fn_block)
+            result.extend(fn_block.split('\n'))
             return '\n'.join(result)
         
         # Fallback
@@ -409,6 +503,7 @@ class CodeRepairer:
         """
         self.llm = llm_client
         self.prompt_template_path = Path("config/prompts/code_repair.txt")
+        self.shared_rules_path = Path("config/prompts/shared_rules.txt")
     
     def repair(self, code: str, errors: List[str], spec: ToolSpec,
               available_columns: List[str] = None) -> str:
@@ -427,11 +522,41 @@ class CodeRepairer:
         prompt = self._build_repair_prompt(code, errors, spec, available_columns)
         
         # Generate repaired code
-        raw_repaired = self.llm.generate(prompt, temperature=0.1)
+        _sys_msg = None
+        if self.shared_rules_path.exists():
+            with open(self.shared_rules_path, encoding='utf-8') as _f:
+                _sys_msg = _f.read()
+        raw_repaired = self.llm.generate(prompt, temperature=0.1, system_message=_sys_msg)
         
         # Extract code (repair responses also have conversational text)
         repaired = self._extract_repair_code(raw_repaired)
-        
+
+        # Truncation check — same two signals as CodeGenerator.generate()
+        import ast as _ast
+        _rep_truncated = False
+        try:
+            _rep_tree = _ast.parse(repaired)
+            for _rep_node in _ast.walk(_rep_tree):
+                if isinstance(_rep_node, _ast.FunctionDef) and _rep_node.name == spec.tool_name:
+                    if _rep_node.body and isinstance(
+                        _rep_node.body[-1], (_ast.FunctionDef, _ast.AsyncFunctionDef)
+                    ):
+                        _rep_truncated = True
+                    elif not _find_return_excluding_nested_defs(_rep_node):
+                        _rep_truncated = True
+                    break
+        except SyntaxError as _rep_syn:
+            _rep_lines = repaired.strip().splitlines()
+            if _rep_syn.lineno and _rep_syn.lineno >= len(_rep_lines) - 2:
+                _rep_truncated = True
+        if _rep_truncated:
+            logger.warning(
+                "[WARN] REPAIRED code also appears TRUNCATED (still incomplete). "
+                "Increase num_predict in config.yaml (currently %d). "
+                "Will attempt another repair.", self.llm.num_predict
+            )
+            repaired = repaired + '\n    raise RuntimeError("TRUNCATED_OUTPUT: repaired function is also incomplete - missing algorithm body and return statement")'
+
         # If the repaired code doesn't have the decorator, re-wrap it
         if "@mcp.tool()" not in repaired:
             # Extract just the function
@@ -635,7 +760,8 @@ def code_generator_node(state: ToolGeneratorState) -> ToolGeneratorState:
     code = generate_code(state["tool_spec"], llm_client)
     
     # Save to draft folder immediately (all generated tools go here)
-    draft_dir = Path("tools/draft")
+    import os as _os
+    draft_dir = Path(_os.environ.get("DRAFT_DIR", "tools/draft"))
     draft_dir.mkdir(parents=True, exist_ok=True)
     
     # Generate unique filename with timestamp
@@ -646,7 +772,7 @@ def code_generator_node(state: ToolGeneratorState) -> ToolGeneratorState:
     
     from src.logger_config import get_logger
     logger = get_logger(__name__)
-    logger.info(f"📝 Generated code saved to draft: {draft_path}")
+    logger.info(f"[OK] Generated code saved to draft: {draft_path}")
     
     return {
         **state,
@@ -703,7 +829,28 @@ def repair_node(state: ToolGeneratorState) -> ToolGeneratorState:
             **state,
             "repair_attempts": state.get("repair_attempts", 0) + 1
         }
-    
+
+    # Detect missing modules and inject explicit BANNED MODULE notices.
+    # This overrides the generic error text so the LLM cannot miss it.
+    import re as _re
+    banned_modules = []
+    for err in list(errors):
+        match = _re.search(r"No module named '([^']+)'", err)
+        if match:
+            mod = match.group(1)
+            if mod not in banned_modules:
+                banned_modules.append(mod)
+    for mod in banned_modules:
+        ban_msg = (
+            f"BANNED MODULE '{mod}': This module is NOT installed. "
+            f"You MUST remove every `import {mod}` / `from {mod} import ...` line "
+            f"and completely rewrite the logic using only pandas, numpy, scipy, "
+            f"statsmodels, sklearn, or the Python standard library. "
+            f"Do NOT keep any reference to '{mod}'."
+        )
+        errors.append(ban_msg)
+        print(f"[REPAIR] Injected ban notice for missing module: {mod}")
+
     # DEBUG: Print repair info
     print("\n" + "="*80)
     print(f"REPAIR ATTEMPT #{state.get('repair_attempts', 0) + 1}")
@@ -712,7 +859,7 @@ def repair_node(state: ToolGeneratorState) -> ToolGeneratorState:
     for i, err in enumerate(errors, 1):
         print(f"  {i}. {err}")
     print("="*80 + "\n")
-    
+
     # Use coding model for code repair
     llm_client = create_llm_client(model_type="coding")
     

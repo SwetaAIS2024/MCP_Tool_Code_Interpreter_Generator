@@ -23,6 +23,15 @@ class ToolStatus(str, Enum):
     PROMOTED = "PROMOTED"
 
 
+class A2ATaskStatus(str, Enum):
+    """A2A protocol task lifecycle states."""
+    SUBMITTED = "submitted"
+    WORKING = "working"
+    INPUT_REQUIRED = "input-required"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
 # ============================================================================
 # Core Models
 # ============================================================================
@@ -90,6 +99,20 @@ class RegistryMetadata(BaseModel):
     last_updated: str = Field(default_factory=lambda: datetime.now().isoformat())
 
 
+class A2ATask(BaseModel):
+    """A2A protocol Task object — one per client request."""
+    task_id: str
+    status: A2ATaskStatus = A2ATaskStatus.SUBMITTED
+    query: str
+    data_path: str
+    thread_id: Optional[str] = None        # LangGraph thread_id for interrupt/resume
+    result: Optional[Dict[str, Any]] = None
+    error: Optional[str] = None
+    input_request: Optional[str] = None   # message sent to client when status=input-required
+    created_at: str = Field(default_factory=lambda: datetime.now().isoformat())
+    updated_at: str = Field(default_factory=lambda: datetime.now().isoformat())
+
+
 # ============================================================================
 # LangGraph State
 # ============================================================================
@@ -104,7 +127,7 @@ class ToolGeneratorState(TypedDict):
     # Intent
     extracted_intent: Optional[Dict]
     has_gap: bool
-    matched_tool: Optional[Dict]
+    matched_tool: Optional[Dict]  # Best-matching registry entry when has_gap=False
     
     # Generation
     tool_spec: Optional[ToolSpec]
@@ -125,6 +148,10 @@ class ToolGeneratorState(TypedDict):
     # Errors accumulated during the run (e.g. from spec_generator_node)
     errors: Optional[List[str]]
 
+    # A2A correlation — set by the A2A server before invoking the graph so
+    # that nodes can tag their log output with the originating task ID.
+    task_id: Optional[str]
+
     # Projection outputs — pre-packaged for parent AnalysisPipelineState.
     # Populated by projection_node (terminal node). The parent owner copies
     # these directly into the corresponding parent channels without any
@@ -139,3 +166,20 @@ class ToolGeneratorState(TypedDict):
     # messages uses add_messages to match parent AnalysisPipelineState exactly.
     # No existing node writes to this field — migration is zero-risk.
     messages: Annotated[List[BaseMessage], add_messages]
+
+
+# ---------------------------------------------------------------------------
+# Public re-exports consumed by the A2A server
+# ---------------------------------------------------------------------------
+__all__ = [
+    "ToolStatus",
+    "A2ATaskStatus",
+    "A2ATask",
+    "ToolSpec",
+    "ValidationReport",
+    "RunArtifacts",
+    "UserFeedback",
+    "ToolCandidate",
+    "RegistryMetadata",
+    "ToolGeneratorState",
+]

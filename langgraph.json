@@ -1,0 +1,7 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "tool_generator": "src.pipeline:graph"
+  },
+  "env": ".env"
+}

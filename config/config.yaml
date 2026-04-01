@@ -1,12 +1,41 @@
 # LLM Configuration
 llm:
-  base_url: "http://localhost:11434/v1"  # Ollama default port
-  
-  # Model selection by task
+  # URL of the Ollama instance on the GPU machine.
+  # For local dev:   http://localhost:11434/v1
+  # For remote GPU:  http://<GPU_MACHINE_IP>:11434/v1
+  #
+  # Override at runtime with the LLM_BASE_URL environment variable —
+  # clients never need to edit this file, just set LLM_BASE_URL in .env.
+  base_url: "http://localhost:11434/v1"
+
+  # API key — "not-needed" for plain Ollama on LAN.
+  # Set a real bearer token if behind a reverse proxy with auth.
+  # Override via env var: LLM_API_KEY
+  api_key: "not-needed"
+
+  # HTTP timeouts (seconds)
+  connect_timeout: 10
+  # read_timeout: allow up to 10 minutes for large models (deepseek-r1:70b)
+  # to respond on the first request after Ollama restarts (model load into VRAM
+  # can take several minutes before inference even begins).
+  read_timeout: 600
+
+  # Model aliases — for Ollama use ollama names, for llama-server use --alias values
   models:
-    reasoning: "deepseek-r1:70b"  # For intent extraction and planning
-    coding: "qwen2.5-coder:32b"   # For code generation and repair
+    reasoning: "deepseek-r1:70b"   # For intent extraction and planning
+    coding: "qwen2.5-coder:32b"    # For code generation and repair
   temperature: 0.4
+
+  # Context window size (tokens).
+  # Default Ollama value is 262144, which allocates ~40GB KV cache — far more
+  # than needed for this pipeline (each stage uses <2000 tokens).
+  # 16384 reduces KV cache to ~3-6GB and cuts latency from ~2-3 min to ~20-40 sec.
+  num_ctx: 16384
+
+  # Maximum output tokens (num_predict in Ollama).
+  # Default Ollama value is 128 — far too small for generated code.
+  # 4096 covers most tools; increase to 16384 for complex algorithms (DyNOTEARS etc.).
+  num_predict: 16384
 
 # Paths
 paths:
@@ -23,9 +52,10 @@ validation:
 
 # Sandbox
 sandbox:
-  # mode: "subprocess"  # or "docker"
-  mode: "docker"
-  timeout_seconds: 300  # Increased for Docker container startup
+  # "subprocess" works on all platforms (Mac, Windows, Linux) without Docker.
+  # Switch to "docker" only on Linux servers where you want stronger isolation.
+  mode: "subprocess"
+  timeout_seconds: 300
   memory_limit_mb: 512
 
 # Logging
@@ -37,6 +67,6 @@ logging:
 server:
   host: "0.0.0.0"           # bind on all interfaces so other machines can reach it
   port: 8000
-  max_concurrent_pipelines: 2   # how many pipeline runs share the GPU at once
+  max_concurrent_pipelines: 1   # how many pipeline runs share the GPU at once
                                  # raise only if VRAM allows parallel inference
   job_ttl_seconds: 3600         # how long to keep finished job records in memory

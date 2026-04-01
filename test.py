@@ -106,7 +106,7 @@ def verify_projection(state: dict) -> bool:
 
     # ---- 5. Stale top-level keys guard (should never appear in parent) -------
     CHILD_ONLY_KEYS = {
-        "user_query", "data_path", "extracted_intent", "has_gap",
+        "user_query", "data_path", "extracted_intent", "has_gap", "matched_tool",
         "tool_spec", "generated_code", "draft_path",
         "validation_result", "repair_attempts",
         "execution_output", "draft_output_path",
