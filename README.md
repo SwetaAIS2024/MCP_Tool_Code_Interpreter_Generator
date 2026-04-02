@@ -287,35 +287,61 @@ python test.py -d "query here"
 
 The child graph (`ToolGeneratorState`) is designed to be called as a **black-box node**
 from a parent graph (`AnalysisPipelineState`). Because the parent uses `extra='forbid'`,
-the child schema was adapted so **no parent schema changes are required**.
+the child schema was adapted so **no parent schema changes are required** beyond a single
+guard field and the new node.
+
+#### Trigger: when does the child graph run?
+
+The child graph is triggered from the parent's `reflect` node via the **`missing_info`** path:
+
+1. `interpret_results` produces `coverage.missing_info` — the list of analysis gaps the existing tools could not satisfy.
+2. `reflect` reads `missing_info` and filters it against the available tools. When **no existing tool can satisfy the remaining missing items**, `reflect` calls `_diagnose_tool_gap()` and sets `capability_gap`.
+3. Instead of routing to `synthesis` (current behaviour), the two branches that set `capability_gap` route to `tool_generator_node`.
+4. `tool_generator_node` invokes the child graph using **`missing_info` as the query** (not the full `instruction`). The child generates, validates, and executes a new tool that directly answers what the existing tools could not.
+5. `apply_child_output` merges the child's results into the parent state, then the node routes to `interpret_results` — which reads the new `tool_transcript` entries and extracts insights from the promoted tool's output, folding them into the final report.
+
+```
+interpret_results
+    ↓ (coverage.missing_info set)
+reflect
+    ├─ existing tools can answer → replan / synthesize (unchanged)
+    └─ no tool can satisfy missing_info → capability_gap set
+            ↓
+    tool_generator_node   ← child graph runs here
+    (user_query = missing_info items; data_path = state.dataset_path)
+            ↓
+    interpret_results     ← reads new tool_transcript entries from promoted tool
+            ↓
+    reflect → synthesis → persist_cleanup → END
+```
 
 #### State compatibility
 
 | Concern | How it is resolved |
 |---|---|
 | Parent `extra='forbid'` | Child outputs are projected into existing parent channels only |
-| `messages` type mismatch | Child `messages` migrated to `List[BaseMessage]` + `add_messages`, matching parent exactly |
+| `messages` type mismatch | Child `messages` is `List[BaseMessage]` + `add_messages`, matching parent exactly |
 | Child-internal fields (`tool_spec`, `generated_code`, etc.) | Never written to parent; stay inside child state |
 | All child results | Packaged by `projection_node` (terminal child node) into 6 `projected_*` fields |
 
 #### Output projection map
 
-After `child_graph.invoke()` completes, `projection_node` has pre-packaged
-all results into these fields on the returned child state:
+After `child_graph.invoke()` completes, `projection_node` has pre-packaged all results
+into these fields on the returned child state:
 
-| Child field | Parent channel | Type |
+| Child field | Parent channel | Merge strategy |
 |---|---|---|
-| `projected_tool_transcript` | `tool_transcript` | `List[Dict[str, Any]]` |
-| `projected_artifact_log` | `artifact_log` | `List[str]` (active tool py, active output JSON, plot PNG if generated) |
-| `projected_capability_gap` | `capability_gap` | `Optional[Dict[str, Any]]` |
-| `projected_errors` | `errors` | `List[str]` |
-| `projected_warnings` | `warnings` | `List[str]` |
-| `projected_final_artifacts` | `final_artifacts` | `Dict[str, Any]` |
+| `projected_tool_transcript` | `tool_transcript` | list extend (5 events: intent, spec, validator, executor, promoter) |
+| `projected_artifact_log` | `artifact_log` | list extend, deduped (active tool py, active output JSON, plot PNG if generated) |
+| `projected_capability_gap` | `capability_gap` | replace — `None` when tool promoted successfully, non-`None` if generation failed |
+| `projected_errors` | `errors` | list extend |
+| `projected_warnings` | `warnings` | list extend |
+| `projected_final_artifacts` | `final_artifacts` | dict.update — includes `promoted_tool: {name, path, registry_path, output_path}` |
 
 #### Integration adapter (`integration/`)
 
-The `integration/` package at the project root provides two functions that
-implement the full integration contract. **The parent-graph owner only needs these two calls.**
+The `integration/` package at the project root provides two functions that implement
+the full integration contract. **The parent-graph owner only needs these two calls.**
 
 ```
 integration/
@@ -323,97 +349,123 @@ integration/
 └── mapper.py     # full implementation with docstrings
 ```
 
-##### Step 1 — Import
+**Input mapping** (`build_child_input` + `missing_info` override):
+
+| Source | Child field | Notes |
+|---|---|---|
+| `state.coverage["missing_info"]` (joined) | `user_query` | The specific gaps the existing tools could not answer — overrides `state.instruction` |
+| `state.dataset_path` | `data_path` | Same dataset the parent is analysing |
+
+#### Changes required on the parent side
+
+**1. `pipeline/state.py` — add one guard field to `AnalysisPipelineState`:**
+
+```python
+tool_gen_attempted: bool = Field(
+    default=False,
+    description="Prevents re-triggering the child graph if it fails to clear the capability gap"
+)
+```
+
+**2. `pipeline/runner.py` — imports:**
 
 ```python
 import sys
 sys.path.insert(0, "/path/to/MCP_Tool_Code_Interpreter_Generator")
 
 from integration import build_child_input, apply_child_output
-from src.pipeline import build_graph
+from src.pipeline import build_graph as build_child_graph
 ```
 
-##### Step 2 — Build the child graph once (outside your node)
+**3. `ModularAnalysisPipelineAgent.__init__` — build child graph once:**
 
 ```python
-child_graph = build_graph()
+self._child_graph = build_child_graph()
 ```
 
-##### Step 3 — Call the child graph from a parent node
+**4. New node method on `ModularAnalysisPipelineAgent`:**
 
 ```python
-def tool_generator_node(parent_state: AnalysisPipelineState) -> dict:
-    """Parent graph node that runs the child tool-generator pipeline."""
+async def tool_generator_node(self, state: AnalysisPipelineState) -> Command:
+    """Invoke child tool-generator pipeline to fill a detected capability gap.
 
-    # Build a valid initial ToolGeneratorState from parent fields:
-    #   instruction  -> user_query
-    #   dataset_path -> data_path
-    child_init = build_child_input(parent_state)
+    Uses missing_info (what existing tools could not answer) as the child query,
+    not the full instruction. This targets generation precisely at the gap.
+    """
+    child_init = build_child_input(state)   # baseline: instruction -> user_query, dataset_path -> data_path
 
-    # Run the child graph (projection_node runs last, populates projected_* fields)
-    config = {"configurable": {"thread_id": "toolgen-1"}}
-    child_result = child_graph.invoke(child_init, config)
+    # Override user_query with the specific missing items — more precise than full instruction
+    missing = []
+    try:
+        missing = (state.coverage or {}).get("missing_info") or []
+    except Exception:
+        pass
+    if missing:
+        child_init["user_query"] = "; ".join(str(m) for m in missing if m)
 
-    # Write child projected_* fields into parent-safe channels (in-place):
-    #   projected_tool_transcript -> tool_transcript  (list extend, deduped)
-    #   projected_artifact_log    -> artifact_log     (list extend, deduped)
-    #   projected_capability_gap  -> capability_gap   (replace)
-    #   projected_errors          -> errors           (list extend)
-    #   projected_warnings        -> warnings         (list extend)
-    #   projected_final_artifacts -> final_artifacts  (dict.update)
-    apply_child_output(child_result, parent_state)
-
-    # Return any additional parent-level fields you want to update
-    return {}
-```
-
-##### Step 4 — Wire the node into the parent graph
-
-```python
-from langgraph.graph import StateGraph, END
-
-parent = StateGraph(AnalysisPipelineState)
-parent.add_node("tool_generator_node", tool_generator_node)
-parent.add_edge("planner", "tool_generator_node")
-parent.add_edge("tool_generator_node", "reviewer")
-parent_graph = parent.compile()
-```
-
-##### Complete minimal example
-
-```python
-from integration import build_child_input, apply_child_output
-from src.pipeline import build_graph
-from langgraph.graph import StateGraph, END
-
-child_graph = build_graph()
-
-def tool_generator_node(state):
-    child_result = child_graph.invoke(
-        build_child_input(state),
-        {"configurable": {"thread_id": "toolgen-1"}}
+    child_result = self._child_graph.invoke(
+        child_init,
+        {"configurable": {"thread_id": str(uuid.uuid4())}}  # unique thread per run
     )
-    apply_child_output(child_result, state)
-    return {}
-
-parent = StateGraph(AnalysisPipelineState)
-parent.add_node("tool_generator_node", tool_generator_node)
-# ... add remaining nodes and edges
-parent_graph = parent.compile()
+    apply_child_output(child_result, state)  # merges projected_* fields into parent state in-place
+    return Command(update={"tool_gen_attempted": True}, goto="interpret_results")
 ```
 
-#### What `capability_gap` means in the parent
+**5. Register node and wire edge in `build_graph()`:**
 
-`capability_gap` being non-`None` after the child runs means the gap detector
-found no existing tool with ≥ 50% overlap score and triggered generation of a new one.
-This is the **normal success path**, not an error. Interpret it as:
-> "A new tool was generated to fill this capability gap."
+```python
+graph.add_node("tool_generator_node", self.tool_generator_node)
+graph.add_edge("tool_generator_node", "interpret_results")
+
+# Update reflect's ends list:
+graph.add_node("reflect", self.reflect,
+    ends=["planner", "execute_step", "interpret_results", "synthesis", "tool_generator_node", END])
+```
+
+**6. Update `_route_reflect` — add before the final planner/synthesis decision:**
+
+```python
+# Trigger child graph if capability gap detected and not yet attempted
+gap = getattr(state, "capability_gap", None)
+already_attempted = getattr(state, "tool_gen_attempted", False)
+if isinstance(gap, dict) and not already_attempted:
+    return "tool_generator_node"
+```
+
+**7. In `reflect` node body — change the two `goto="synthesis"` branches that set `capability_gap`:**
+
+There are exactly **two** places in `reflect` where `capability_gap` is set and the code routes to `synthesis`. Both must be changed to route to `tool_generator_node` instead (guarded by `tool_gen_attempted`):
+
+_Branch 1_ (~line 2992) — triggered when `filtered` is empty (no actionable missing item maps to existing tools):
+```python
+# Add guard before the return:
+if not getattr(state, "tool_gen_attempted", False):
+    return Command(update=updates, goto="tool_generator_node")
+return Command(update=updates, goto="synthesis")
+```
+
+_Branch 2_ (~line 3088) — triggered when `current_round >= max_refinements` (replanning cap reached):
+```python
+# Add guard before the return:
+if not getattr(state, "tool_gen_attempted", False) and updates.get("capability_gap"):
+    return Command(update=updates, goto="tool_generator_node")
+return Command(update=updates, goto="synthesis")
+```
+
+> All other `goto="synthesis"` paths in `reflect` remain **unchanged**.
+
+#### What `capability_gap` means after the child runs
+
+| `capability_gap` value | Meaning |
+|---|---|
+| `None` | Tool was generated and promoted successfully — gap is filled |
+| `Dict` | Child graph failed to promote a tool — gap persists, synthesis will note it |
 
 > **Note:** The gap detector only considers tools whose active file exists on disk (`tools/active/`). Stale registry entries pointing to deleted files are automatically excluded.
 
-The promoted tool metadata is available in `final_artifacts["promoted_tool"]`.
+The promoted tool metadata is always available in `final_artifacts["promoted_tool"]` on success.
 
-> **Note:** For agent integration, `server.py` is not needed. Use `build_graph()` or `run_pipeline()` directly from `src/pipeline.py`.
+> **Note:** `server.py` is not needed for agent integration. Use `build_graph()` directly from `src/pipeline.py`.
 
 ---
 
