@@ -83,7 +83,7 @@ The pipeline consists of the following nodes:
 - **repair_node** - Repairs code based on validation errors (max 5 attempts)
 - **executor_node** - Executes the tool on actual user data
 - **promoter_node** - Promotes successful tool to active registry
-- **projection_node** - Terminal node; packages all child outputs into `projected_*` fields compatible with the parent graph (`AnalysisPipelineState`)
+- **projection_node** - Terminal node; packages all child outputs into `projected_*` fields compatible with the parent graph (state schema: `AnalysisPipelineState`)
 
 For detailed architecture and module descriptions, see [module_prs/README.md](module_prs/README.md)
 
@@ -285,8 +285,8 @@ python test.py -d "query here"
 
 ### Integrating with a Parent LangGraph (`AnalysisPipelineState`)
 
-The child graph (`ToolGeneratorState`) is designed to be called as a **black-box node**
-from a parent graph (`AnalysisPipelineState`). Because the parent uses `extra='forbid'`,
+The child graph (built by `build_graph()`, state schema: `ToolGeneratorState`) is designed to be called as a **black-box node**
+from a parent graph (state schema: `AnalysisPipelineState`, compiled by `ModularAnalysisPipelineAgent._build_graph()`). Because the parent uses `extra='forbid'`,
 the child schema was adapted so **no parent schema changes are required** beyond a single
 guard field and the new node.
 
@@ -386,13 +386,19 @@ self._child_graph = build_child_graph()
 **4. New node method on `ModularAnalysisPipelineAgent`:**
 
 ```python
+import uuid  # add to runner.py imports if not already present
+
 async def tool_generator_node(self, state: AnalysisPipelineState) -> Command:
     """Invoke child tool-generator pipeline to fill a detected capability gap.
 
     Uses missing_info (what existing tools could not answer) as the child query,
     not the full instruction. This targets generation precisely at the gap.
+
+    IMPORTANT: Do NOT call apply_child_output(child_result, state) here.
+    apply_child_output uses setattr/dict mutation which LangGraph does not
+    persist — all state changes must flow through Command(update=...).
     """
-    child_init = build_child_input(state)   # baseline: instruction -> user_query, dataset_path -> data_path
+    child_init = build_child_input(state)  # baseline: instruction -> user_query, dataset_path -> data_path
 
     # Override user_query with the specific missing items — more precise than full instruction
     missing = []
@@ -405,13 +411,50 @@ async def tool_generator_node(self, state: AnalysisPipelineState) -> Command:
 
     child_result = self._child_graph.invoke(
         child_init,
-        {"configurable": {"thread_id": str(uuid.uuid4())}}  # unique thread per run
+        {"configurable": {"thread_id": str(uuid.uuid4())}}
     )
-    apply_child_output(child_result, state)  # merges projected_* fields into parent state in-place
-    return Command(update={"tool_gen_attempted": True}, goto="interpret_results")
+
+    # Build LangGraph-safe updates dict.
+    # - Extend-reducer fields (tool_transcript, artifact_log, errors, warnings):
+    #   return ONLY the new delta items — the reducer merges them into existing state.
+    #   Returning the full merged list would cause the reducer to double-apply, creating duplicates.
+    # - Replace-reducer fields (capability_gap, final_artifacts):
+    #   return the final intended value directly.
+    updates: Dict[str, Any] = {"tool_gen_attempted": True}
+
+    # Extend-reducer fields — delta only
+    new_transcript = child_result.get("projected_tool_transcript") or []
+    if new_transcript:
+        updates["tool_transcript"] = new_transcript  # _merge_tool_transcript reducer extends
+
+    new_artifact_log = child_result.get("projected_artifact_log") or []
+    if new_artifact_log:
+        updates["artifact_log"] = new_artifact_log  # ARTIFACT_LOG_REDUCER extends + dedupes
+
+    new_errors = child_result.get("projected_errors") or []
+    if new_errors:
+        updates["errors"] = new_errors  # ERRORS_REDUCER extends
+
+    new_warnings = child_result.get("projected_warnings") or []
+    if new_warnings:
+        updates["warnings"] = new_warnings  # WARNINGS_REDUCER extends
+
+    # Replace-reducer fields — final value
+    updates["capability_gap"] = child_result.get("projected_capability_gap")  # None = gap filled
+
+    new_fa = child_result.get("projected_final_artifacts")
+    if new_fa:
+        # _replace_latest_dict replaces entirely — merge with existing first to avoid data loss
+        existing_fa = dict(state.final_artifacts or {})
+        existing_fa.update(new_fa)
+        updates["final_artifacts"] = existing_fa
+
+    return Command(update=updates, goto="interpret_results")
 ```
 
-**5. Register node and wire edge in `build_graph()`:**
+> **Note on `apply_child_output`:** This function is the correct integration contract for plain Python / non-LangGraph callers (A2A server, testing scripts). Inside a LangGraph node, all state changes MUST go through `Command(update=...)` — `setattr` mutations on the state object are not persisted by the checkpointer.
+
+**5. Register node and wire edge in `_build_graph()` (the parent's graph builder method):**
 
 ```python
 graph.add_node("tool_generator_node", self.tool_generator_node)
