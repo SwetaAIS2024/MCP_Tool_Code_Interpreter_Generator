@@ -54,7 +54,8 @@ validation:
 sandbox:
   # "subprocess" works on all platforms (Mac, Windows, Linux) without Docker.
   # Switch to "docker" only on Linux servers where you want stronger isolation.
-  mode: "subprocess"
+  # mode: "subprocess"
+  mode: "docker"
   timeout_seconds: 300
   memory_limit_mb: 512
 

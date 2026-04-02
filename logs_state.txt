@@ -1,4 +1,4 @@
-(c_venv) (base) PS C:\Users\admin\Desktop\sweta\code_generator_interpreter\MCP_Tool_Code_Interpreter_Generator> python test.py "Show monthly trend of total injuries from Jan to Mar for all the years. Generate the plots as well." --state
+python test.py "Show monthly trend of total injuries from Jan to Mar for all the years. Generate the plots as well." --stateor>
 
 ================================================================================
 TESTING CODE GENERATION PIPELINE
@@ -95,7 +95,7 @@ Generated ToolSpec:
   "return_type": "Dict[str, Any]",
   "when_to_use": "When you need to analyze time series data by aggregating injuries over specific periods and visualize the trend.",
   "what_it_does": "Load the dataset and select required columns: crash_date and injuries_total. Parse the crash_date column using pd.to_datetime(). Extract year-month periods from crash_date and create a new 'period' column. Group by 'period' and calculate the sum of injuries_total for each period. Sort the results in chronological order based on the period. Generate a line plot to visualize the monthly trend of total injuries over time.",
-  "returns": "A dictionary containing aggregated injury data by period and a base64-encoded line plot visualizing the trend.",
+  "returns": "A dictionary containing aggregated injury data by period and a base64-encoded line plot visualizing the trend.",   
   "prerequisites": "crash_date, injuries_total"
 }
 
@@ -110,7 +110,7 @@ CODE GENERATION PROMPT
 Generate Python function code for this tool specification.
 
 TOOL NAME: time_series_aggregate_injuries
-DESCRIPTION: Generates a time series aggregation of total injuries over specified periods.     
+DESCRIPTION: Generates a time series aggregation of total injuries over specified periods.
 PARAMETERS: [
   {
     "name": "file_path",
@@ -140,30 +140,33 @@ def time_series_aggregate_injuries(file_path: str):
     # Load the dataset
     df = pd.read_csv(file_path)
 
-    # Validate required columns
+    # Required columns
     required_cols = ['crash_date', 'injuries_total']
-    if not all(col in df.columns for col in required_cols):
-        raise ValueError(f"Missing required columns. Expected {required_cols}, found {df.columns.tolist()}.")
 
-    # Drop rows with NaN values in required columns
+    # Validate required columns
+    missing_cols = [col for col in required_cols if col not in df.columns]
+    if missing_cols:
+        raise ValueError(f"Missing required columns: {missing_cols}")
+
+    # Drop NaN values from required columns
     df = df[required_cols].dropna()
 
     # Parse crash_date column to datetime
     df['crash_date'] = pd.to_datetime(df['crash_date'])
 
-    # Extract year-month periods from crash_date and create a new 'period' column
+    # Extract year-month periods and create a new 'period' column
     df['period'] = df['crash_date'].dt.to_period('M')
 
     # Group by 'period' and calculate the sum of injuries_total for each period
     aggregated_df = df.groupby('period')['injuries_total'].sum().reset_index()
 
     # Sort the results in chronological order based on the period
-    aggregated_df = aggregated_df.sort_values(by='period')
+    aggregated_df.sort_values(by='period', inplace=True)
 
     # Generate a line plot to visualize the monthly trend of total injuries over time
     buf = io.BytesIO()
     plt.figure(figsize=(10, 6))
-    plt.plot(aggregated_df['period'].dt.to_timestamp(), aggregated_df['injuries_total'], marker='o', linestyle='-')
+    plt.plot(aggregated_df['period'].dt.to_timestamp(), aggregated_df['injuries_total'], marker='o')
     plt.title('Monthly Trend of Total Injuries Over Time')
     plt.xlabel('Month')
     plt.ylabel('Total Injuries')
@@ -181,7 +184,7 @@ def time_series_aggregate_injuries(file_path: str):
         "columns": ["period", "injuries_total"]
     }
 
-    return {"result": result, "metadata": meta...
+    return {"result": result, "metadata": metadata, "plot_base6...
 
 ================================================================================
 EXTRACTED CODE (before wrapping)
@@ -196,30 +199,33 @@ def time_series_aggregate_injuries(file_path: str):
     # Load the dataset
     df = pd.read_csv(file_path)
 
-    # Validate required columns
+    # Required columns
     required_cols = ['crash_date', 'injuries_total']
-    if not all(col in df.columns for col in required_cols):
-        raise ValueError(f"Missing required columns. Expected {required_cols}, found {df.columns.tolist()}.")
 
-    # Drop rows with NaN values in required columns
+    # Validate required columns
+    missing_cols = [col for col in required_cols if col not in df.columns]
+    if missing_cols:
+        raise ValueError(f"Missing required columns: {missing_cols}")
+
+    # Drop NaN values from required columns
     df = df[required_cols].dropna()
 
     # Parse crash_date column to datetime
     df['crash_date'] = pd.to_datetime(df['crash_date'])
 
-    # Extract year-month periods from crash_date and create a new 'period' column
+    # Extract year-month periods and create a new 'period' column
     df['period'] = df['crash_date'].dt.to_period('M')
 
     # Group by 'period' and calculate the sum of injuries_total for each period
     aggregated_df = df.groupby('period')['injuries_total'].sum().reset_index()
 
     # Sort the results in chronological order based on the period
-    aggregated_df = aggregated_df.sort_values(by='period')
+    aggregated_df.sort_values(by='period', inplace=True)
 
     # Generate a line plot to visualize the monthly trend of total injuries over time
     buf = io.BytesIO()
     plt.figure(figsize=(10, 6))
-    plt.plot(aggregated_df['period'].dt.to_timestamp(), aggregated_df['injuries_total'], marker='o', linestyle='-')
+    plt.plot(aggregated_df['period'].dt.to_timestamp(), aggregated_df['injuries_total'], marker='o')
     plt.title('Monthly Trend of Total Injuries Over Time')
     plt.xlabel('Month')
     plt.ylabel('Total Injuries')
@@ -262,30 +268,33 @@ def time_series_aggregate_injuries(file_path: str):
     # Load the dataset
     df = pd.read_csv(file_path)
 
-    # Validate required columns
+    # Required columns
     required_cols = ['crash_date', 'injuries_total']
-    if not all(col in df.columns for col in required_cols):
-        raise ValueError(f"Missing required columns. Expected {required_cols}, found {df.columns.tolist()}.")
 
-    # Drop rows with NaN values in required columns
+    # Validate required columns
+    missing_cols = [col for col in required_cols if col not in df.columns]
+    if missing_cols:
+        raise ValueError(f"Missing required columns: {missing_cols}")
+
+    # Drop NaN values from required columns
     df = df[required_cols].dropna()
 
     # Parse crash_date column to datetime
     df['crash_date'] = pd.to_datetime(df['crash_date'])
 
-    # Extract year-month periods from crash_date and create a new 'period' column
+    # Extract year-month periods and create a new 'period' column
     df['period'] = df['crash_date'].dt.to_period('M')
 
     # Group by 'period' and calculate the sum of injuries_total for each period
     aggregated_df = df.groupby('period')['injuries_total'].sum().reset_index()
 
     # Sort the results in chronological order based on the period
-    aggregated_df = aggregated_df.sort_values(by='period')
+    aggregated_df.sort_values(by='period', inplace=True)
 
     # Generate a line plot to visualize the monthly trend of total injuries over time
     buf = io.BytesIO()
     plt.figure(figsize=(10, 6))
-    plt.plot(aggregated_df['period'].dt.to_timestamp(), aggregated_df['injuries_total'], marker='o', linestyle='-')
+    plt.plot(aggregated_df['period'].dt.to_timestamp(), aggregated_df['injuries_total'], marker='o')
     plt.title('Monthly Trend of Total Injuries Over Time')
     plt.xlabel('Month')
     plt.ylabel('Total Injuries')
@@ -298,6 +307,7 @@ def time_series_aggregate_injuries(file_path: str):
 
     # Prepare the result and metadata
     result = aggregated_df.to_dict(orient='records')
+    metadata = {
    ...
 
 ================================================================================
@@ -324,27 +334,28 @@ def time_series_aggregate_injuries(file_path: str):
     # Load the dataset
     df = pd.read_csv(file_path)
 
-    # Validate required columns
+    # Required columns
     required_cols = ["crash_date", "injuries_total"]
-    if not all(col in df.columns for col in required_cols):
-        raise ValueError(
-            f"Missing required columns. Expected {required_cols}, found {df.columns.tolist()}."
-        )
 
-    # Drop rows with NaN values in required columns
+    # Validate required columns
+    missing_cols = [col for col in required_cols if col not in df.columns]
+    if missing_cols:
+        raise ValueError(f"Missing required columns: {missing_cols}")
+
+    # Drop NaN values from required columns
     df = df[required_cols].dropna()
 
     # Parse crash_date column to datetime
     df["crash_date"] = pd.to_datetime(df["crash_date"])
 
-    # Extract year-month periods from crash_date and create a new 'period' column
+    # Extract year-month periods and create a new 'period' column
     df["period"] = df["crash_date"].dt.to_period("M")
 
     # Group by 'period' and calculate the sum of injuries_total for each period
     aggregated_df = df.groupby("period")["injuries_total"].sum().reset_index()
 
     # Sort the results in chronological order based on the period
-    aggregated_df = aggregated_df.sort_values(by="period")
+    aggregated_df.sort_values(by="period", inplace=True)
 
     # Generate a line plot to visualize the monthly trend of total injuries over time
     buf = io.BytesIO()
@@ -353,7 +364,6 @@ def time_series_aggregate_injuries(file_path: str):
         aggregated_df["period"].dt.to_timestamp(),
         aggregated_df["injuries_total"],
         marker="o",
-        linestyle="-",
     )
     plt.title("Monthly Trend of Total Injuries Over Time")
     plt.xlabel("Month")
@@ -366,8 +376,10 @@ def time_series_aggregate_injuries(file_path: str):
     plot_b64 = base64.b64encode(buf.read()).decode("utf-8")
 
     # Prepare the result and metadata
-    result = aggregated_df...
-[OK] Generated code saved to draft: tools\draft\time_series_aggregate_injuries_20260402_020215.py
+    result = aggregated_df.to_dict(orient="records")
+    metadata = {
+       ...
+[OK] Generated code saved to draft: tools\draft\time_series_aggregate_injuries_20260402_105926.py
 
 Event: ['code_generator_node']
 
@@ -380,22 +392,22 @@ Tests OK: True
 Sandbox OK: True
 
 Event: ['validator_node']
-C:\Users\admin\AppData\Local\Temp\tmpwvlg4hb8.py:32: UserWarning: Could not infer format, so each element will be parsed individually, falling back to `dateutil`. To ensure parsing is consistent and as-expected, please specify a format.
+C:\Users\admin\AppData\Local\Temp\tmp8ddb3ekm.py:33: UserWarning: Could not infer format, so each element will be parsed individually, falling back to `dateutil`. To ensure parsing is consistent and as-expected, please specify a format.
   df["crash_date"] = pd.to_datetime(df["crash_date"])
-📊 Plot saved to: output\plots\time_series_aggregate_injuries_20260402_020215_plot.png
-💾 Execution results saved to: output\draft\time_series_aggregate_injuries_20260402_020215_output.json
+📊 Plot saved to: output\plots\time_series_aggregate_injuries_20260402_105926_plot.png
+💾 Execution results saved to: output\draft\time_series_aggregate_injuries_20260402_105926_output.json
 
 Event: ['executor_node']
-[OK] Moved output file to: output\active\time_series_aggregate_injuries_20260402_020215_output.json
+[OK] Moved output file to: output\active\time_series_aggregate_injuries_20260402_105926_output.json
 
 ================================================================================
 🎉 TOOL PROMOTED TO ACTIVE REGISTRY
 ================================================================================
 
-Tool Name: time_series_aggregate_injuries_20260402_020215
-Draft Path: tools\draft\time_series_aggregate_injuries_20260402_020215.py
-Active Path: tools\active\time_series_aggregate_injuries_20260402_020215.py
-Output Path: output\active\time_series_aggregate_injuries_20260402_020215_output.json
+Tool Name: time_series_aggregate_injuries_20260402_105926
+Draft Path: tools\draft\time_series_aggregate_injuries_20260402_105926.py
+Active Path: tools\active\time_series_aggregate_injuries_20260402_105926.py
+Output Path: output\active\time_series_aggregate_injuries_20260402_105926_output.json
 Registry: tools\registry.json
 [OK] Tool successfully executed and promoted to active
 
@@ -408,12 +420,12 @@ PIPELINE COMPLETED
 ================================================================================
 
 [PROMOTED TOOL]
-  Name: time_series_aggregate_injuries_20260402_020215
-  Active Path: tools\active\time_series_aggregate_injuries_20260402_020215.py
-  Output Path: output\active\time_series_aggregate_injuries_20260402_020215_output.json        
+  Name: time_series_aggregate_injuries_20260402_105926
+  Active Path: tools\active\time_series_aggregate_injuries_20260402_105926.py
+  Output Path: output\active\time_series_aggregate_injuries_20260402_105926_output.json
   Logs Path: None
   Registry Path: tools\registry.json
-  📊 Plot Path: output\plots\time_series_aggregate_injuries_20260402_020215_plot.png
+  📊 Plot Path: output\plots\time_series_aggregate_injuries_20260402_105926_plot.png
 
 [EXECUTION OUTPUT]
   Result: {
@@ -898,9 +910,9 @@ PIPELINE COMPLETED
       "injuries_total"
     ]
   },
-  "plot_path": "output\\plots\\time_series_aggregate_injuries_20260402_020215_plot.png"        
+  "plot_path": "output\\plots\\time_series_aggregate_injuries_20260402_105926_plot.png"
 }
-  Execution Time: 13460.58ms
+  Execution Time: 15390.80ms
 
 ================================================================================
 
@@ -914,22 +926,22 @@ FULL STATE DUMP
   [o] task_id                              None
 
   --- INTENT ---
-  [v] extracted_intent                     Dict[19 keys]  keys=['has_gap', 'gap_reason', 'operation', 'required_columns', 'missing_columns', 'implementation_plan', 'filters', 'group_by']    
+  [v] extracted_intent                     Dict[19 keys]  keys=['has_gap', 'gap_reason', 'operation', 'required_columns', 'missing_columns', 'implementation_plan', 'filters', 'group_by']
   [v] has_gap                              'True'
   [o] matched_tool                         None
 
   --- GENERATION ---
   [v] tool_spec                            "tool_name='time_series_aggregate_injuries' description='Generates a time series aggregation of total injuries over speci"
   [v] generated_code                       '"""Generated MCP tool: time_series_aggregate_injuries"""\n\nimport matplotlib\n\nmatplotlib.use("Agg")  # Non-interactive ba'...
-  [v] draft_path                           'tools\\draft\\time_series_aggregate_injuries_20260402_020215.py'
+  [v] draft_path                           'tools\\draft\\time_series_aggregate_injuries_20260402_105926.py'
 
   --- VALIDATION ---
   [v] validation_result                    'schema_ok=True tests_ok=True sandbox_ok=True errors=[] warnings=[]'
   [v] repair_attempts                      '0'
 
   --- EXECUTION ---
-  [v] execution_output                     Dict[4 keys]  keys=['result', 'summary_markdown', 'execution_time_ms', 'error']
-  [v] draft_output_path                    'output\\draft\\time_series_aggregate_injuries_20260402_020215_output.json'
+  [v] execution_output                     Dict[4 keys]  keys=['result', 'summary_markdown', 'execution_time_ms', 'error']       
+  [v] draft_output_path                    'output\\draft\\time_series_aggregate_injuries_20260402_105926_output.json'
 
   --- FINAL ---
   [v] promoted_tool                        Dict[4 keys]  keys=['name', 'path', 'registry_path', 'output_path']
@@ -937,16 +949,14 @@ FULL STATE DUMP
 
   --- PROJECTION ---
   [v] projected_tool_transcript            List[5 items]  [{'tool': 'intent_extractor', 'args': {'query': 'Show monthly trend of total injuries from Jan to Mar for all the years.
-  [v] projected_artifact_log               List[3 items]  ['tools\\draft\\time_series_aggregate_injuries_20260402_020215.py', 'output\\draft\\time_series_aggregate_injuries_20260
+  [v] projected_artifact_log               List[3 items]  ['output\\plots\\time_series_aggregate_injuries_20260402_105926_plot.png', 'tools\\active\\time_series_aggregate_injurie
   [o] projected_capability_gap             None
   [o] projected_errors                     None
   [o] projected_warnings                   None
   [v] projected_final_artifacts            Dict[1 keys]  keys=['promoted_tool']
 
   --- MESSAGES ---
-  [v] messages                             List[1 items]  [AIMessage(content='**Tool:** `time_series_aggregate_injuries_20260402_020215`\nSchema: pass | Tests: pass | Sandbox: pa
+  [v] messages                             List[1 items]  [AIMessage(content='**Tool:** `time_series_aggregate_injuries_20260402_105926`\nSchema: pass | Tests: pass | Sandbox: pa
 
   [v] No unexpected keys
 ================================================================================
-
-(c_venv) (base) PS C:\Users\admin\Desktop\sweta\code_generator_interpreter\MCP_Tool_Code_Interpreter_Generator>

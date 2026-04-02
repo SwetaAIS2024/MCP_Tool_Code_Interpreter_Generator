@@ -9,7 +9,8 @@ The sandbox execution environment is designed to safely run untrusted code gener
 **Allowed imports** (see `config/sandbox_policy.yaml`):
 - Data manipulation: `pandas`, `numpy`
 - Visualization: `matplotlib`, `seaborn`
-- Utilities: `json`, `csv`, `datetime`, `collections`
+- Statistics: `scipy`, `statsmodels`
+- Utilities: `json`, `csv`, `datetime`, `collections`, `itertools`, `functools`, `time`
 
 **Blocked imports**:
 - System access: `os`, `subprocess`, `sys`
@@ -33,19 +34,20 @@ The sandbox execution environment is designed to safely run untrusted code gener
 
 ## Implementation
 
-### Subprocess Mode (Default)
+### Subprocess Mode
 ```python
-# Uses Python's subprocess module
-# Fast, suitable for development
-# Limited security (relies on OS permissions)
+# Uses Python's subprocess module with a clean environment
+# Fast, suitable for development and Windows deployments
+# Limited isolation (relies on OS permissions + import policy)
 ```
 
-### Docker Mode (Production)
+### Docker Mode (Active — configured in config/config.yaml)
 ```python
 # Full container isolation
-# Network disabled, read-only filesystem
+# Network disabled (network_mode: none), read-only filesystem
 # Strong security guarantees
 # See docker/README.md for setup
+# Switch mode: set sandbox.mode: "subprocess" in config/config.yaml
 ```
 
 ## Best Practices
@@ -140,5 +142,5 @@ allowed:
 ## Updates
 This document is updated alongside sandbox implementation changes.
 
-**Last Updated**: January 27, 2026  
-**Version**: 1.0.0
+**Last Updated**: April 2, 2026  
+**Version**: 1.1.0

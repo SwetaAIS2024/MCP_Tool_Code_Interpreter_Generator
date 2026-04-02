@@ -1,21 +1,21 @@
 {
   "tools": [
     {
-      "name": "time_series_aggregate_injuries_20260402_022143",
-      "description": "Generates a time series aggregation of total injuries over specified periods.",
-      "user_query": "Show monthly trend of total injuries from Jan to Mar for all the years. Generate the plots as well.",
-      "tool_path": "tools\\active\\time_series_aggregate_injuries_20260402_022143.py",
-      "log_file": "logs\\pipeline_20260402_022002.log",
+      "name": "count_total_crashes_20260402_113558",
+      "description": "Generates a summary of total crashes by year.",
+      "user_query": "Count total crashes by year.",
+      "tool_path": "tools\\active\\count_total_crashes_20260402_113558.py",
+      "log_file": "logs\\pipeline_20260402_113442.log",
       "parameters": [
         {
           "name": "file_path",
           "type": "str",
-          "description": "Path to CSV file containing crash data.",
+          "description": "Path to CSV file containing crash data",
           "required": true
         }
       ],
       "return_type": "Dict[str, Any]",
-      "output_file": "output\\active\\time_series_aggregate_injuries_20260402_022143_output.json"
+      "output_file": "output\\active\\count_total_crashes_20260402_113558_output.json"
     }
   ]
 }

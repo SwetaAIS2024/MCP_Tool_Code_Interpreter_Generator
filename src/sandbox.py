@@ -1,5 +1,6 @@
 """Sandbox Module - Safe execution environment for untrusted code."""
 
+import logging
 import subprocess
 import tempfile
 import time
@@ -7,6 +8,8 @@ import yaml
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Dict, Any, Optional
+
+logger = logging.getLogger(__name__)
 
 
 # ============================================================================
@@ -330,7 +333,7 @@ class DockerSandboxExecutor(BaseSandbox):
         shutil.copy2(data_file, sandbox_data_file)
         
         try:
-            # Run docker-compose with data path
+            # Run docker compose with data path
             start = time.time()
             
             # Use container-relative path for data
@@ -338,8 +341,8 @@ class DockerSandboxExecutor(BaseSandbox):
             
             result = subprocess.run(
                 [
-                    'docker-compose', '-f', 'docker/docker-compose.sandbox.yml',
-                    'run', '--rm',
+                    'docker', 'compose', '-f', 'docker/docker-compose.sandbox.yml',
+                    'run', '--rm', '--no-deps',
                     'sandbox',
                     'python', '/sandbox/temp_code/tool.py', container_data_path
                 ],
@@ -355,7 +358,7 @@ class DockerSandboxExecutor(BaseSandbox):
             
             # Cleanup
             subprocess.run(
-                ['docker-compose', '-f', 'docker/docker-compose.sandbox.yml', 'down'],
+                ['docker', 'compose', '-f', 'docker/docker-compose.sandbox.yml', 'down'],
                 capture_output=True,
                 encoding='utf-8',
                 errors='replace'
@@ -372,7 +375,7 @@ class DockerSandboxExecutor(BaseSandbox):
         except subprocess.TimeoutExpired:
             # Force cleanup on timeout
             subprocess.run(
-                ['docker-compose', '-f', 'docker/docker-compose.sandbox.yml', 'down'],
+                ['docker', 'compose', '-f', 'docker/docker-compose.sandbox.yml', 'down'],
                 capture_output=True,
                 encoding='utf-8',
                 errors='replace'
@@ -489,8 +492,10 @@ class SandboxFactory:
             mode = "subprocess"
         
         if mode == "docker":
+            logger.info("[sandbox] Mode: docker (DockerSandboxExecutor)")
             return DockerSandboxExecutor()
         else:
+            logger.info("[sandbox] Mode: subprocess (SubprocessSandboxExecutor)")
             return SubprocessSandboxExecutor()
 
 

@@ -10,22 +10,28 @@ The pipeline now uses a centralized logging system with configurable verbosity l
 
 ```bash
 # Normal mode (default) - Shows key milestones only
-python test_pipeline_with_feedback.py
+python test.py "<query>"
 
 # Quiet mode - Only warnings and errors
-python test_pipeline_with_feedback.py --quiet
-python test_pipeline_with_feedback.py -q
+python test.py "<query>" --quiet
+python test.py "<query>" -q
 
 # Verbose mode - Shows all information
-python test_pipeline_with_feedback.py --verbose
-python test_pipeline_with_feedback.py -v
+python test.py "<query>" --verbose
+python test.py "<query>" -v
 
 # Debug mode - Shows everything including internals
-python test_pipeline_with_feedback.py --debug
-python test_pipeline_with_feedback.py -d
+python test.py "<query>" --debug
+python test.py "<query>" -d
 
 # Auto-approve mode (for testing)
-python test_pipeline_with_feedback.py --auto
+python test.py "<query>" --auto
+
+# Dump full ToolGeneratorState after the run
+python test.py "<query>" --state
+
+# Run integration projection verification
+python test.py "<query>" --verify
 ```
 
 ### Log Files
@@ -99,8 +105,10 @@ DEBUG [executor] Module contents: ['FastMCP', 'analyze_...']
 
 ## Migration Notes
 
-Modules updated to use logging (gradually migrating all `print()` statements):
-- ✅ `test_pipeline_with_feedback.py` - CLI arguments and logger setup
-- ⏳ Other modules - Will be migrated incrementally
-
-For now, existing `print()` statements will still work but won't respect verbosity flags.
+All pipeline modules use structured logging via `src/logger_config.py`:
+- ✅ `test.py` - CLI arguments and logger setup
+- ✅ `src/intent_extraction.py`, `src/intent_validator.py`
+- ✅ `src/spec_generator.py`, `src/code_generator.py`
+- ✅ `src/validator.py`, `src/executor.py`
+- ✅ `src/promoter.py`, `src/pipeline.py`
+- ✅ `src/sandbox.py`

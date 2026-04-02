@@ -196,11 +196,11 @@ llm:
     coding: "qwen2.5-coder:32b"          # Code generation + repair
     
   
-  temperature: 0.0
+  temperature: 0.4
 
 sandbox:
-  mode: "docker"  # or "subprocess" for faster testing
-  timeout_seconds: 120
+  mode: "docker"  # or "docker" for stronger isolation (Linux only)
+  timeout_seconds: 300
   memory_limit_mb: 512
 ```
 
@@ -667,7 +667,7 @@ llm:
     reasoning: "deepseek-r1:70b"    # Intent extraction & spec generation
     coding: "qwen2.5-coder:32b"     # Code generation & repair
     
-  temperature: 0.0
+  temperature: 0.4
 
 # Directory paths
 paths:
@@ -680,12 +680,12 @@ paths:
 # Validation settings
 validation:
   max_repair_attempts: 5            # Code repair retry limit
-  sandbox_timeout_seconds: 120
+  sandbox_timeout_seconds: 300
 
 # Sandbox configuration
 sandbox:
-  mode: "docker"                    # "docker" or "subprocess"
-  timeout_seconds: 120              # Execution timeout
+  mode: "subprocess"                # "docker" or "subprocess"
+  timeout_seconds: 300              # Execution timeout
   memory_limit_mb: 512              # Memory limit
 
 # Logging
@@ -721,7 +721,7 @@ Controls security restrictions for code execution:
 - Specification generation with I/O schemas
 - Code generation with FastMCP decorators
 - Multi-stage validation (syntax, schema, sandbox)
-- Automated code repair (up to 3 attempts)
+- Automated code repair (up to 5 attempts)
 - Sandboxed execution (Docker + subprocess modes)
 - Tool registry and promotion system
 - Comprehensive logging and debugging
