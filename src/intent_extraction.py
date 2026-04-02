@@ -725,8 +725,6 @@ def route_after_intent(state: ToolGeneratorState) -> str:
     Returns:
         Next node name
     """
-    from langgraph.graph import END
-    
     # NEW: Check intent validation results
     intent = state.get("extracted_intent", {})
     validation = intent.get("validation", {})
@@ -743,7 +741,7 @@ def route_after_intent(state: ToolGeneratorState) -> str:
         state["messages"] = list(state.get("messages") or []) + [
             AIMessage(content=f"**Intent validation failed**\n\n{err_lines}\n\nPlease rephrase your query or check that the required columns exist in the dataset.")
         ]
-        return END
+        return "projection_node"
     
     # Log warnings if any
     warnings = validation.get("warnings", [])
@@ -768,7 +766,7 @@ def route_after_intent(state: ToolGeneratorState) -> str:
         state["errors"] = state.get("errors", []) + [
             "Column grounding failed: no valid columns found for groupby operation"
         ]
-        return END  # Stop pipeline - needs clarification
+        return "projection_node"
     
     # Gate 2: If critical columns are missing and not resolved, stop
     if len(missing_cols) > 0 and len(required_cols) == 0:
@@ -780,7 +778,7 @@ def route_after_intent(state: ToolGeneratorState) -> str:
         state["errors"] = state.get("errors", []) + [
             f"Cannot ground columns: {missing_cols} not found in dataset"
         ]
-        return END  # Stop pipeline - needs clarification
+        return "projection_node"
     
     # Gate 3: Warn if partial resolution (some columns grounded, some missing)
     if len(missing_cols) > 0:
@@ -802,5 +800,5 @@ def route_after_intent(state: ToolGeneratorState) -> str:
             logger.info(f"   📄 Tool path    : {tool_path}")
         if output_file:
             logger.info(f"   Last output  : {output_file}")
-        return END
+        return "projection_node"
     return "spec_generator_node"

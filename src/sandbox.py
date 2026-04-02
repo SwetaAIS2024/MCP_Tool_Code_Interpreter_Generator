@@ -1,6 +1,7 @@
 """Sandbox Module - Safe execution environment for untrusted code."""
 
 import logging
+import os
 import subprocess
 import tempfile
 import time
@@ -486,10 +487,15 @@ class SandboxFactory:
         if config_file.exists():
             with open(config_file) as f:
                 config = yaml.safe_load(f)
-            
-            mode = config.get("sandbox", {}).get("mode", "subprocess")
+            mode = (config or {}).get("sandbox", {}).get("mode", "subprocess")
         else:
             mode = "subprocess"
+
+        # Environment override for integrations/tests.
+        # Example: TOOLGEN_SANDBOX_MODE=subprocess
+        env_mode = os.getenv("TOOLGEN_SANDBOX_MODE")
+        if env_mode:
+            mode = str(env_mode).strip().lower()
         
         if mode == "docker":
             logger.info("[sandbox] Mode: docker (DockerSandboxExecutor)")

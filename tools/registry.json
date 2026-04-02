@@ -16,6 +16,40 @@
       ],
       "return_type": "Dict[str, Any]",
       "output_file": "output\\active\\count_total_crashes_20260402_113558_output.json"
+    },
+    {
+      "name": "groupby_type_incident_count_20260402_160247",
+      "description": "This tool groups the dataset by the 'Type' column and calculates the count of each incident type. It then sorts these counts in descending order and returns a JSON object containing the top incident types along with their respective counts.",
+      "user_query": "Summarize key patterns in the traffic incidents dataset and return a JSON of top incident types and counts.",
+      "tool_path": "tools\\active\\groupby_type_incident_count_20260402_160247.py",
+      "log_file": "logs/pipeline_20260402_160247.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\groupby_type_incident_count_20260402_160247_output.json"
+    },
+    {
+      "name": "describe_summary_type_20260402_162345",
+      "description": "Generates a JSON summary of incident counts by category type.",
+      "user_query": "Create and promote a reusable Python tool that reads the dataset and outputs a JSON summary of incident counts by incident category. If you cannot create/promote new tool files with the currently available tools, set coverage.answers_query=false and missing_info=['Need code interpreter tool generation; current tools cannot create new tool files'] (do not reference dataset columns in missing_info).\n\nCapability gaps / missing info:\n- Need code interpreter tool generation; current tools cannot create new tool files",
+      "tool_path": "tools\\active\\describe_summary_type_20260402_162345.py",
+      "log_file": "logs/pipeline_20260402_162345.log",
+      "parameters": [
+        {
+          "name": "file_path",
+          "type": "str",
+          "description": "Path to CSV file",
+          "required": true
+        }
+      ],
+      "return_type": "Dict[str, Any]",
+      "output_file": "output\\active\\describe_summary_type_20260402_162345_output.json"
     }
   ]
 }
