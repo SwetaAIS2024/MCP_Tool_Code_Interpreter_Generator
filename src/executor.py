@@ -423,8 +423,6 @@ def executor_node(state: ToolGeneratorState) -> ToolGeneratorState:
 
 def route_after_execution(state: ToolGeneratorState) -> str:
     """Route after execution based on success/failure."""
-    from langgraph.graph import END
-
     execution_output = state.get("execution_output")
     repair_attempts = state.get("repair_attempts", 0)
 
@@ -438,7 +436,7 @@ def route_after_execution(state: ToolGeneratorState) -> str:
         max_repair_attempts = 5
 
     if not execution_output:
-        return END
+        return "projection_node"
 
     has_error = False
     error_msg = ""
@@ -478,4 +476,4 @@ def route_after_execution(state: ToolGeneratorState) -> str:
     logger.error(f"[ERROR] Maximum repair attempts ({max_repair_attempts}) exceeded")
     logger.error(f"Final error: {error_msg}")
     logger.info("[WARN] Tool generation failed - ending pipeline")
-    return END
+    return "projection_node"

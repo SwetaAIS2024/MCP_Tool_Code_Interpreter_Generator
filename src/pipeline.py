@@ -44,6 +44,7 @@ def projection_node(state: ToolGeneratorState) -> ToolGeneratorState:
     artifact_log: List[str] = []
     errors: List[str] = []
     warnings: List[str] = []
+    plot_b64 = ""
 
     # ---- Intent / gap -------------------------------------------------------
     extracted_intent = state.get("extracted_intent")
