@@ -321,7 +321,8 @@ reflect
 |---|---|
 | Parent `extra='forbid'` | Child outputs are projected into existing parent channels only |
 | `messages` type mismatch | Child `messages` is `List[BaseMessage]` + `add_messages`, matching parent exactly |
-| Child-internal fields (`tool_spec`, `generated_code`, etc.) | Never written to parent; stay inside child state |
+| Child-internal fields (`tool_spec`, `generated_code`, `draft_path`, etc.) | Never written to parent; stay inside child state |
+| Generated tool source code | **Never sent to parent.** `tool_generator_node` does NOT include `messages` in `Command(update=...)`, so the child's AIMessage (which contains the code block) is dropped. The parent receives file paths only. |
 | All child results | Packaged by `projection_node` (terminal child node) into 6 `projected_*` fields |
 
 #### Output projection map
@@ -329,14 +330,16 @@ reflect
 After `child_graph.invoke()` completes, `projection_node` has pre-packaged all results
 into these fields on the returned child state:
 
-| Child field | Parent channel | Merge strategy |
+| Child field | Parent channel | Content — what is and is NOT included |
 |---|---|---|
-| `projected_tool_transcript` | `tool_transcript` | list extend (5 events: intent, spec, validator, executor, promoter) |
-| `projected_artifact_log` | `artifact_log` | list extend, deduped (active tool py, active output JSON, plot PNG if generated) |
-| `projected_capability_gap` | `capability_gap` | replace — `None` when tool promoted successfully, non-`None` if generation failed |
+| `projected_tool_transcript` | `tool_transcript` | Metadata only: 5 events (intent, spec, validator, executor, promoter). **No source code.** |
+| `projected_artifact_log` | `artifact_log` | File paths only: active tool `.py`, active output `.json`, plot `.png`. **No file contents.** |
+| `projected_capability_gap` | `capability_gap` | `None` when tool promoted successfully; non-`None` dict if generation failed |
 | `projected_errors` | `errors` | list extend |
 | `projected_warnings` | `warnings` | list extend |
-| `projected_final_artifacts` | `final_artifacts` | dict.update — includes `promoted_tool: {name, path, registry_path, output_path}` |
+| `projected_final_artifacts` | `final_artifacts` | `{"promoted_tool": {name, path, registry_path, output_path}}` — paths only, **no code** |
+
+> **The generated tool source code never reaches the parent graph.** The parent receives only file paths pointing to `tools/active/` and `output/active/`. If the parent needs to read the code, it can open the path from `final_artifacts["promoted_tool"]["path"]`.
 
 #### Integration adapter (`integration/`)
 
